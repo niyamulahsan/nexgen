@@ -17,6 +17,14 @@ function ask(query) {
   return new Promise((resolve) => rl.question(query, (a) => { rl.close(); resolve(a.trim()); }));
 }
 
+function detectPackageManager() {
+  const ua = process.env.npm_config_user_agent || "";
+  if (ua.includes("bun")) return "bun";
+  if (ua.includes("pnpm")) return "pnpm";
+  if (ua.includes("yarn")) return "yarn";
+  return "npm";
+}
+
 function isValidProjectName(name) {
   return /^[a-z0-9@][a-z0-9._-]*$/i.test(name);
 }
@@ -74,10 +82,12 @@ async function main() {
     writeFileSync(targetPkgPath, JSON.stringify(targetPkg, null, 2) + "\n");
   }
 
+  const pm = detectPackageManager();
+
   console.log(`Done! Created "${projectName}" at ${targetDir}`);
   console.log();
   console.log("  cd " + projectName);
-  console.log("  npm install");
+  console.log("  " + pm + " install");
   console.log("  cp .env.example .env");
   console.log();
   console.log("Enjoy building with Nexgen!");
