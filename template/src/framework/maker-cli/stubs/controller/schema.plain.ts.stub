@@ -1,0 +1,13 @@
+import { z } from "@/framework/facade.js";
+
+export const Create{{ClassName}}Schema = z.object({
+  name: z.string().min(1)
+});
+
+export const Update{{ClassName}}Schema = z.object({
+  name: z.string().min(1)
+});
+
+export const {{ClassName}}IdParamsSchema = z.object({
+  id: z.coerce.number().int().positive()
+});

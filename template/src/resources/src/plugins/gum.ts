@@ -1,0 +1,343 @@
+import type { App } from "vue";
+import { computed, reactive, ref, toRaw } from "vue";
+import { useStorage } from "@vueuse/core";
+import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
+import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
+
+export type GumPluginOptions = {
+  rememberPrefix?: string;
+  recentlySuccessfulDuration?: number;
+};
+
+type GumMethod = "get" | "post" | "put" | "patch" | "delete";
+type GumVisitOptions = {
+  method?: GumMethod;
+  data?: Record<string, unknown> | FormData;
+  query?: Record<string, unknown>;
+  replace?: boolean;
+  preserveState?: boolean;
+  preserveScroll?: boolean;
+  onBefore?: () => boolean | void;
+  onStart?: () => void;
+  onProgress?: (event: AxiosProgressEvent) => void;
+  onSuccess?: (response: AxiosResponse) => void;
+  onError?: (error: AxiosError) => void;
+  onFinish?: () => void;
+};
+
+type FormMethod = "post" | "put" | "patch" | "delete";
+type FormErrors<T> = Partial<Record<keyof T | string, string>>;
+type FormSubmitOptions = {
+  onStart?: () => void;
+  onSuccess?: () => void;
+  onError?: (error: AxiosError) => void;
+  onFinish?: () => void;
+};
+
+const config: Required<GumPluginOptions> = {
+  rememberPrefix: "gum",
+  recentlySuccessfulDuration: 2000
+};
+
+/**
+ * Why: preserveState=false should clear only state for one page.
+ * When: called by remember registration and GET visits.
+ * Where: used in this Gum plugin storage registry.
+ */
+const routeRememberKeys = new Map<string, Set<string>>();
+
+/**
+ * Why: route keys must be consistent across query changes.
+ * When: before read/write in remember key registry.
+ * Where: internal helper for Gum path-based state tracking.
+ */
+function normalizePath(path: string) {
+  const clean = (path || "/").split("?")[0];
+  return clean || "/";
+}
+
+function registerRememberKey(path: string, key: string) {
+  const routePath = normalizePath(path);
+  if (!routeRememberKeys.has(routePath)) routeRememberKeys.set(routePath, new Set<string>());
+  routeRememberKeys.get(routePath)?.add(key);
+}
+
+/**
+ * Why: emulate Inertia preserveState=false behavior.
+ * When: a GET visit requests state reset.
+ * Where: removes entries from localStorage using Gum prefix.
+ */
+export function clearRememberForPath(path: string) {
+  const routePath = normalizePath(path);
+  const keys = routeRememberKeys.get(routePath);
+  if (!keys) return;
+  keys.forEach((key) => localStorage.removeItem(`${config.rememberPrefix}:${key}`));
+}
+
+/**
+ * Why: persist page-local UI state across navigations/reloads.
+ * When: page needs remembered filters/forms.
+ * Where: composables/pages calling useGumRemember.
+ */
+export function useGumRemember<T extends object>(key: string, initial: T) {
+  const route = useRoute();
+  registerRememberKey(route.path, key);
+
+  return useStorage<T>(`${config.rememberPrefix}:${key}`, initial, localStorage, {
+    mergeDefaults: true
+  });
+}
+
+/**
+ * Why: provide Inertia-style visit API for requests + navigation.
+ * When: pages trigger get/post/put/patch/delete/reload flows.
+ * Where: frontend pages/composables that import useGum.
+ */
+export function useGum() {
+  const router = useRouter();
+  const route = useRoute();
+  const processing = ref(false);
+
+  /**
+   * Why: unify request lifecycle hooks with router sync.
+   * When: any Gum visit method is executed.
+   * Where: internal core of useGum().
+   */
+  async function visit(url: string, options: GumVisitOptions = {}) {
+    const {
+      method = "get",
+      data,
+      query,
+      replace = false,
+      preserveState = method !== "get",
+      preserveScroll = false,
+      onBefore,
+      onStart,
+      onProgress,
+      onSuccess,
+      onError,
+      onFinish
+    } = options;
+
+    const allow = onBefore?.();
+    if (allow === false) return;
+
+    const scrollY = window.scrollY;
+    processing.value = true;
+    onStart?.();
+
+    try {
+      const response = await axios.request({
+        method,
+        url,
+        params: method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
+        data: method === "get" ? undefined : data,
+        onUploadProgress: (event) => onProgress?.(event)
+      });
+
+      if (method === "get") {
+        if (!preserveState) clearRememberForPath(url);
+
+        const payload = {
+          path: url,
+          query: (query ?? route.query) as LocationQueryRaw
+        };
+
+        if (replace) await router.replace(payload);
+        else await router.push(payload);
+      }
+
+      onSuccess?.(response);
+      return response;
+    } catch (error) {
+      onError?.(error as AxiosError);
+      throw error;
+    } finally {
+      processing.value = false;
+      onFinish?.();
+      if (preserveScroll) window.scrollTo({ top: scrollY });
+    }
+  }
+
+  return {
+    processing,
+    visit,
+    get: (url: string, options: Omit<GumVisitOptions, "method"> = {}) =>
+      visit(url, { ...options, method: "get" }),
+    post: (
+      url: string,
+      data?: Record<string, unknown> | FormData,
+      options: Omit<GumVisitOptions, "method" | "data"> = {}
+    ) => {
+      return visit(url, { ...options, method: "post", data });
+    },
+    put: (
+      url: string,
+      data?: Record<string, unknown> | FormData,
+      options: Omit<GumVisitOptions, "method" | "data"> = {}
+    ) => {
+      return visit(url, { ...options, method: "put", data });
+    },
+    patch: (
+      url: string,
+      data?: Record<string, unknown> | FormData,
+      options: Omit<GumVisitOptions, "method" | "data"> = {}
+    ) => {
+      return visit(url, { ...options, method: "patch", data });
+    },
+    delete: (url: string, options: Omit<GumVisitOptions, "method"> = {}) =>
+      visit(url, { ...options, method: "delete" }),
+    reload: (options: Omit<GumVisitOptions, "method"> = {}) => {
+      return visit(route.path, {
+        ...options,
+        method: "get",
+        replace: true,
+        query: route.query as Record<string, unknown>
+      });
+    }
+  };
+}
+
+/**
+ * Why: centralize form state/errors/progress like Inertia useForm.
+ * When: create/update/delete forms submit to backend.
+ * Where: frontend forms using useGumForm.
+ */
+export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
+  const initial = structuredClone(defaults);
+  const data = reactive(structuredClone(defaults)) as T;
+  const errors = reactive<Record<string, string>>({});
+  const progress = ref<number | null>(null);
+  const processing = ref(false);
+  const wasSuccessful = ref(false);
+  const recentlySuccessful = ref(false);
+  const isDirty = computed(() => JSON.stringify(toRaw(data)) !== JSON.stringify(initial));
+
+  /**
+   * Why: allow manual error assignment for custom validations.
+   * When: setting one field error outside server response.
+   * Where: useGumForm consumer code.
+   */
+  function setError(field: keyof T | string, message: string) {
+    errors[String(field)] = message;
+  }
+
+  /**
+   * Why: keep error state in sync with user actions/submits.
+   * When: before submit or after field corrections.
+   * Where: useGumForm internal + consumer calls.
+   */
+  function clearErrors(...fields: (keyof T | string)[]) {
+    if (!fields.length) {
+      Object.keys(errors).forEach((key) => delete errors[key]);
+      return;
+    }
+    fields.forEach((field) => delete errors[String(field)]);
+  }
+
+  /**
+   * Why: restore form values to initial defaults safely.
+   * When: cancel edit or after successful submission.
+   * Where: useGumForm consumer actions.
+   */
+  function reset(...fields: (keyof T)[]) {
+    if (!fields.length) {
+      Object.assign(data, structuredClone(initial));
+      clearErrors();
+      return;
+    }
+
+    fields.forEach((field) => {
+      data[field] = structuredClone(initial[field]);
+      delete errors[String(field)];
+    });
+  }
+
+  /**
+   * Why: provide a single submission path with lifecycle hooks.
+   * When: post/put/patch/delete helpers are called.
+   * Where: useGumForm internal request executor.
+   */
+  async function submit(
+    method: FormMethod,
+    url: string,
+    payload?: Record<string, unknown>,
+    options: FormSubmitOptions = {}
+  ) {
+    const { onStart, onSuccess, onError, onFinish } = options;
+    wasSuccessful.value = false;
+    clearErrors();
+    processing.value = true;
+    onStart?.();
+
+    try {
+      const response = await axios.request({
+        method,
+        url,
+        data: payload ?? toRaw(data),
+        onUploadProgress: (event) => {
+          if (!event.total) return;
+          progress.value = Math.round((event.loaded * 100) / event.total);
+        }
+      });
+
+      wasSuccessful.value = true;
+      recentlySuccessful.value = true;
+      setTimeout(() => {
+        recentlySuccessful.value = false;
+      }, config.recentlySuccessfulDuration);
+      onSuccess?.();
+      return response;
+    } catch (error) {
+      const err = error as AxiosError<{ errors?: Record<string, string[] | string> }>;
+      const serverErrors = err.response?.data?.errors;
+      if (serverErrors) {
+        Object.entries(serverErrors).forEach(([key, value]) => {
+          errors[String(key)] = Array.isArray(value) ? value[0] : value;
+        });
+      }
+      onError?.(error as AxiosError);
+      throw error;
+    } finally {
+      processing.value = false;
+      progress.value = null;
+      onFinish?.();
+    }
+  }
+
+  return {
+    data,
+    errors: errors as FormErrors<T>,
+    progress,
+    processing,
+    wasSuccessful,
+    recentlySuccessful,
+    isDirty,
+    setError,
+    clearErrors,
+    reset,
+    submit,
+    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("post", url, payload, options),
+    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("put", url, payload, options),
+    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("patch", url, payload, options),
+    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("delete", url, payload, options)
+  };
+}
+
+/**
+ * Why: configure shared Gum behavior globally.
+ * When: app bootstrap calls app.use(GumPlugin, options).
+ * Where: src/resources/src/main.ts plugin registration.
+ */
+export const GumPlugin = {
+  install(_app: App, options: GumPluginOptions = {}) {
+    if (options.rememberPrefix) config.rememberPrefix = options.rememberPrefix;
+    if (typeof options.recentlySuccessfulDuration === "number") {
+      config.recentlySuccessfulDuration = options.recentlySuccessfulDuration;
+    }
+  }
+};

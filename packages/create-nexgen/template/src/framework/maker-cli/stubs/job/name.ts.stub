@@ -1,0 +1,24 @@
+import { DateTime } from "luxon";
+import { shouldQueue, dispatchEvent } from "@/framework/facade.js";
+
+/**
+ * event: Event name this worker listens to.
+ * queue: Queue name where jobs are consumed from.
+ * handler: Async processor that receives `job.data`.
+ */
+shouldQueue("{{module}}.{{name}}", "default", async job => {
+  console.log("{{module}}.{{name}}", job.data);
+
+  /**
+   * dispatchEvent name: Event id to publish to listeners.
+   * payload: Data sent to queue/broadcast consumers.
+   * queue: Optional queue target for async event consumers.
+   * broadcast: Optional realtime fanout (all/users/roles/rooms).
+   */
+  // await dispatchEvent("{{module}}.{{name}}.finished", {
+  //   ...job.data,
+  //   processedAt: DateTime.now(),
+  // });
+
+  return { ok: true, processedAt: DateTime.now().toISO() };
+});

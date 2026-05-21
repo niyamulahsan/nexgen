@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+RUNTIME_EXEC="${1:-node}"
+AUTO_MIGRATE_RAW="${AUTO_MIGRATE:-false}"
+AUTO_MIGRATE_NORMALIZED=$(echo "$AUTO_MIGRATE_RAW" | tr -d '\r' | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+case "$AUTO_MIGRATE_NORMALIZED" in
+  true|1|yes)
+    exec "$RUNTIME_EXEC" src/framework/maker-cli/src/index.mjs db:migrate --seed
+    ;;
+  *)
+    echo "Skipping migrations (AUTO_MIGRATE=$AUTO_MIGRATE_RAW)"
+    ;;
+esac

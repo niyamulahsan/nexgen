@@ -1,0 +1,85 @@
+import type { Handler } from "hono";
+import { and, count, desc, eq, sql } from "drizzle-orm";
+import { db } from "@/framework/facade.js";
+import { notifications } from "@/modules/auth/database/models/notifications.js";
+
+export const list: Handler = async (c: any) => {
+  const userId = c.get("auth").id;
+  const page = Math.max(1, Number(c.req.query("page")) || 1);
+  const perPage = Math.min(50, Math.max(1, Number(c.req.query("perPage")) || 20));
+
+  const unread = await db.select({ count: count() }).from(notifications)
+    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} IS NULL`));
+
+  const total = await db.select({ count: count() }).from(notifications)
+    .where(eq(notifications.userId, userId));
+
+  const rows = await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(perPage).offset((page - 1) * perPage);
+
+  return c.json({
+    data: rows.map(normalize),
+    total: total[0].count,
+    unread: unread[0].count,
+    page,
+    perPage,
+  });
+};
+
+export const unreadCount: Handler = async (c: any) => {
+  const userId = c.get("auth").id;
+  const rows = await db.select({ count: count() }).from(notifications)
+    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} IS NULL`));
+  return c.json({ count: rows[0].count });
+};
+
+export const markRead: Handler = async (c: any) => {
+  const userId = c.get("auth").id;
+  const id = Number(c.req.param("id"));
+
+  await db.update(notifications)
+    .set({ readAt: sql`now()` })
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+
+  return c.json({ ok: true });
+};
+
+export const markAllRead: Handler = async (c: any) => {
+  const userId = c.get("auth").id;
+
+  await db.update(notifications)
+    .set({ readAt: sql`now()` })
+    .where(and(eq(notifications.userId, userId), sql`${notifications.readAt} IS NULL`));
+
+  return c.json({ ok: true });
+};
+
+export const remove: Handler = async (c: any) => {
+  const userId = c.get("auth").id;
+  const id = Number(c.req.param("id"));
+
+  await db.delete(notifications)
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+
+  return c.json({ ok: true });
+};
+
+function normalize(row: typeof notifications.$inferSelect) {
+  let parsed: unknown = null;
+  if (row.data) {
+    try { parsed = JSON.parse(row.data); } catch {}
+  }
+  return {
+    id: row.id,
+    userId: row.userId,
+    type: row.type,
+    title: row.title,
+    body: row.body,
+    data: parsed,
+    link: row.link,
+    readAt: row.readAt?.toISOString() || null,
+    createdAt: row.createdAt.toISOString(),
+  };
+}

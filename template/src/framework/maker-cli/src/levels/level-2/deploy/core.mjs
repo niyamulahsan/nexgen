@@ -1,0 +1,635 @@
+import os from "node:os";
+import { spawn } from "node:child_process";
+import fsSync from "node:fs";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { detectDeployDatabase, redisEnabled } from "../../level-1/env-db.mjs";
+import { getOption, hasFlag, stripWorkflowFlags } from "../../level-1/flags.mjs";
+import { writeFileAlways, writeFileIfMissing } from "../../level-1/file-ops.mjs";
+import { runCommand } from "../../level-1/process.mjs";
+
+/** Expand ~ to the user's home directory in a file path. */
+function expandHome(inputPath = "") {
+  if (!inputPath || !inputPath.startsWith("~")) return inputPath;
+  return `${os.homedir()}${inputPath.slice(1)}`;
+}
+
+const stubsRoot = path.resolve(import.meta.dirname, "../../../..", "stubs");
+
+/** Template stubs used for deploy file generation. */
+const STUBS = {
+  deploy: {
+    dockerfile: {
+      node: {
+        npm: "deploy/Dockerfile.stub",
+        pnpm: "deploy/Dockerfile.pnpm.stub",
+        yarn: "deploy/Dockerfile.yarn.stub"
+      },
+      bun: "deploy/Dockerfile.bun.stub"
+    },
+    composeByDatabase: {
+      mysql: "deploy/compose/mysql.server.stub",
+      postgres: "deploy/compose/postgres.server.stub",
+      sqlite: "deploy/compose/sqlite.stub"
+    },
+    envByDatabase: {
+      mysql: "deploy/env/mysql.server.stub",
+      postgres: "deploy/env/postgres.server.stub",
+      sqlite: "deploy/env/sqlite.stub"
+    },
+    readme: "deploy/README.stub",
+    supervisor: {
+      redis: "deploy/supervisor/redis.stub",
+      noredis: "deploy/supervisor/noredis.stub"
+    },
+    autoMigrateScript: "deploy/scripts/auto-migrate.sh.stub",
+    server: {
+      compose: {
+        redis: "deploy/server/compose/redis.stub",
+        redisDev: "deploy/server/compose/redis.dev.stub",
+        noredis: "deploy/server/compose/noredis.stub"
+      },
+      env: {
+        redis: "deploy/server/env/redis.stub",
+        noredis: "deploy/server/env/noredis.stub",
+        localExample: "deploy/server/env/local.example.stub"
+      },
+      pgadminServers: "deploy/server/pgadmin/servers.stub",
+      readme: "deploy/server/README.stub",
+      nginxReadme: "deploy/server/nginx-vhost/README.stub",
+      nginxHost: "deploy/server/nginx-vhost/app.example.com.stub",
+      redisConfig: "deploy/server/redis/redis.conf.stub"
+    },
+    workflow: {
+      local: "deploy/workflow/local.json.stub",
+      remote: "deploy/workflow/remote.json.stub"
+    }
+  },
+  controller: {
+    openapi: "controller/openapi.ts.stub",
+    openapiWithModel: "controller/openapi.with-model.ts.stub",
+    plain: "controller/plain.ts.stub",
+    schema: {
+      openapi: "controller/schema.ts.stub",
+      plain: "controller/schema.plain.ts.stub"
+    }
+  },
+  route: {
+    api: "route/api.ts.stub",
+    plain: "route/plain.ts.stub"
+  },
+  model: {
+    named: {
+      mysql: "model/name.mysql.ts.stub",
+      postgresql: "model/name.postgresql.ts.stub",
+      sqlite: "model/name.sqlite.ts.stub"
+    }
+  },
+  example: {
+    schema: "example/schema.ts.stub",
+    controller: "example/controller.ts.stub",
+    routeApi: "example/route.api.ts.stub",
+    job: "example/job.ts.stub",
+    console: "example/console.ts.stub"
+  },
+  seeder: { named: "seeder/name.ts.stub" },
+  job: { named: "job/name.ts.stub" },
+  schedule: { named: "schedule/name.ts.stub" }
+};
+
+/** Read a stub file from the stubs directory. */
+async function readStubRaw(name) {
+  const file = path.join(stubsRoot, name);
+  return fs.readFile(file, "utf8");
+}
+
+/** Read a stub file and replace {{key}} placeholders with the given values. */
+async function renderStub(name, values = {}) {
+  let content = await readStubRaw(name);
+  for (const [key, value] of Object.entries(values)) content = content.replaceAll(`{{${key}}}`, String(value));
+  return content.replace(/\{\{[A-Z0-9_]+\}\}/g, "");
+}
+
+/** Pick the redis or noredis stub based on the redisEnabled flag. */
+function pickRedisStub(redisOn, redisStub, noRedisStub) {
+  return redisOn ? redisStub : noRedisStub;
+}
+
+/** Render multiple stubs and write them to the filesystem. */
+async function writeRenderedFiles(root, entries = []) {
+  for (const entry of entries) {
+    const content = await renderStub(entry.stub, entry.values || {});
+    await writeFileAlways(path.join(root, entry.output), content);
+  }
+}
+
+/** Read a specific key from a .env file. Returns empty string if not found. */
+async function readEnvValue(envPath, key) {
+  let raw = "";
+  try {
+    raw = await fs.readFile(envPath, "utf8");
+  } catch {
+    return "";
+  }
+  for (const line of raw.split(/\r?\n/)) {
+    const clean = line.trim();
+    if (!clean || clean.startsWith("#")) continue;
+    const idx = clean.indexOf("=");
+    if (idx <= 0) continue;
+    if (clean.slice(0, idx).trim() !== key) continue;
+    return clean.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
+  }
+  return "";
+}
+
+/** Ensure a .env file exists, copying from .example if missing. */
+async function ensureEnvFile(envPath, examplePath) {
+  try {
+    await fs.access(envPath);
+  } catch {
+    try {
+      await fs.copyFile(examplePath, envPath);
+      console.log(`Created ${path.relative(process.cwd(), envPath)} from ${path.relative(process.cwd(), examplePath)}.`);
+    } catch {
+      throw new Error(`Missing env file: ${path.relative(process.cwd(), envPath)}. Create it first.`);
+    }
+  }
+}
+
+/** Ensure a Docker network exists, creating it if missing. */
+async function ensureDockerNetwork(name) {
+  try {
+    await runCommand("docker", ["network", "inspect", name], { silent: true });
+  } catch {
+    await runCommand("docker", ["network", "create", name]);
+  }
+}
+
+/** Replace the database name in a connection URL with a given name. */
+function updateDatabaseNameInUrl(rawUrl, nextDbName) {
+  try {
+    const url = new URL(rawUrl);
+    if (!nextDbName) return rawUrl;
+    url.pathname = `/${nextDbName}`;
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
+/** Replace ${variable} placeholders in a string with provided values. */
+function expandEnvTemplate(value, vars = {}) {
+  let out = String(value || "");
+  for (const [key, val] of Object.entries(vars)) out = out.replaceAll(`\${${key}}`, String(val ?? ""));
+  return out;
+}
+
+/** Ensure a bind-mount source file exists as a file (not a directory), creating from stub if needed. */
+async function ensureBindMountFile(filePath, stubName) {
+  let stat;
+  try { stat = await fs.stat(filePath); } catch { /* doesn't exist */ }
+
+  if (stat) {
+    if (stat.isFile()) return;
+    if (stat.isDirectory()) {
+      console.log(`Fixing: ${path.relative(process.cwd(), filePath)} was a directory, replacing with file.`);
+      await fs.rm(filePath, { recursive: true, force: true });
+    }
+  }
+
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  const content = await renderStub(stubName);
+  await fs.writeFile(filePath, content, "utf8");
+}
+
+/** Parse remote workflow config file. */
+async function readRemoteConfig(configPath) {
+  const resolved = path.resolve(process.cwd(), configPath);
+  const parsed = JSON.parse(await fs.readFile(resolved, "utf8"));
+  const remote = parsed.remote || {};
+  return {
+    host: String(remote.host || "").trim(),
+    user: String(remote.user || "").trim(),
+    port: String(remote.port || 22).trim(),
+    keyPath: expandHome(String(remote.keyPath || "").trim()),
+    targetPath: String(remote.targetPath || "").trim()
+  };
+}
+
+/** Build SSH base args from config. */
+function buildSshArgs(config) {
+  const sshArgs = ["-p", config.port];
+  if (config.keyPath) sshArgs.push("-i", config.keyPath);
+  return { sshArgs, remoteHost: `${config.user}@${config.host}` };
+}
+
+/** Sync pgAdmin servers.json into the running pgAdmin container. */
+async function syncPgAdminServers(deployRoot, envPath, localEnvPath) {
+  const serversPath = path.join(deployRoot, "server", "pgadmin", "servers.json");
+  try { await fs.access(serversPath); } catch { return; }
+  const email = (await readEnvValue(localEnvPath, "PGADMIN_DEFAULT_EMAIL")) || (await readEnvValue(envPath, "PGADMIN_DEFAULT_EMAIL"));
+  if (!email) return;
+  try {
+    await runCommand("docker", ["exec", "pgadmin", "sh", "-lc", `/venv/bin/python /pgadmin4/setup.py load-servers /pgadmin4/servers.json --user \"${email.replace(/"/g, '\\"')}\" --replace`]);
+    console.log(`pgAdmin servers synced for ${email}.`);
+  } catch {
+    console.log("Warning: could not auto-sync pgAdmin servers.");
+  }
+}
+
+/** Update DATABASE_URL in the deploy env to match the server's actual database name. */
+async function syncDeployDatabaseUrlWithServerEnv(deployEnvPath, serverEnvPath) {
+  const appDatabaseUrlRaw = await readEnvValue(deployEnvPath, "DATABASE_URL");
+  if (!appDatabaseUrlRaw) return;
+  const appDatabaseUrl = decodeURIComponent(appDatabaseUrlRaw);
+  const serverLocalEnvPath = `${serverEnvPath}.local`;
+  const readServerValue = async (key) => (await readEnvValue(serverLocalEnvPath, key)) || (await readEnvValue(serverEnvPath, key));
+  const expandedDatabaseUrl = expandEnvTemplate(appDatabaseUrl, {
+    MYSQL_ROOT_PASSWORD: await readServerValue("MYSQL_ROOT_PASSWORD"),
+    MYSQL_DATABASE: await readServerValue("MYSQL_DATABASE"),
+    POSTGRES_USER: await readServerValue("POSTGRES_USER"),
+    POSTGRES_PASSWORD: await readServerValue("POSTGRES_PASSWORD"),
+    POSTGRES_DB: await readServerValue("POSTGRES_DB")
+  });
+  const lower = appDatabaseUrl.toLowerCase();
+  const serverDbName = lower.startsWith("mysql") ? await readServerValue("MYSQL_DATABASE") : (lower.startsWith("postgres") || lower.startsWith("postgresql")) ? await readServerValue("POSTGRES_DB") : "";
+  if (!serverDbName) return;
+  const nextUrl = updateDatabaseNameInUrl(expandedDatabaseUrl, serverDbName);
+  if (nextUrl === appDatabaseUrl) return;
+  const content = await fs.readFile(deployEnvPath, "utf8");
+  const updated = content.replace(/^DATABASE_URL=.*$/m, `DATABASE_URL=${nextUrl}`);
+  if (updated !== content) await fs.writeFile(deployEnvPath, updated);
+}
+
+/** Ensure the target database exists inside the running MySQL container. */
+async function ensureDeployDatabaseReady(deployEnvPath, serverEnvPath) {
+  const rawUrl = await readEnvValue(deployEnvPath, "DATABASE_URL");
+  if (!rawUrl) return;
+  const databaseUrl = decodeURIComponent(rawUrl);
+  const lower = databaseUrl.toLowerCase();
+  const serverLocalEnvPath = `${serverEnvPath}.local`;
+  const readServerValue = async (key) => (await readEnvValue(serverLocalEnvPath, key)) || (await readEnvValue(serverEnvPath, key));
+  if (lower.startsWith("mysql") || lower.startsWith("mariadb")) {
+    const password = await readServerValue("MYSQL_ROOT_PASSWORD");
+    if (!password) return;
+    const dbName = (() => { try { const u = new URL(databaseUrl); return decodeURIComponent((u.pathname || "").replace(/^\/+/, "")); } catch { return ""; } })();
+    if (!dbName) return;
+    await runCommand("docker", ["exec", "mysql-global", "mysql", "-uroot", `-p${password}`, "-e", `CREATE DATABASE IF NOT EXISTS \`${dbName.replace(/`/g, "``")}\`;`]);
+    return;
+  }
+}
+
+/** Generate deploy scaffolding files (Dockerfile, compose, env, etc.). */
+export async function createDeploy(flags = []) {
+  const deployRoot = path.resolve(process.cwd(), "deploy");
+  const force = hasFlag(flags, "--force");
+  const appOnly = hasFlag(flags, "--app-only");
+  const serverOnly = hasFlag(flags, "--server-only");
+  const isDev = hasFlag(flags, "--dev");
+  const doApp = !serverOnly;
+  const doServer = !appOnly;
+  const runtimeFlag = flags.find((flag) => flag.startsWith("--runtime="));
+  const runtime = runtimeFlag ? runtimeFlag.split("=")[1].trim().toLowerCase() : "node";
+  const pmFlag = flags.find((flag) => flag.startsWith("--pm="));
+  const nodePm = pmFlag ? pmFlag.split("=")[1].trim().toLowerCase() : "npm";
+  const database = detectDeployDatabase(process.env.DATABASE_URL || await readEnvValue(path.resolve(process.cwd(), ".env"), "DATABASE_URL"));
+  let redisOn = redisEnabled();
+  if (!redisOn && process.env.REDIS === undefined) {
+    const rootRedis = (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS")).toLowerCase();
+    redisOn = rootRedis === "true" || rootRedis === "1" || rootRedis === "yes";
+  }
+  if (!force) { try { await fs.access(deployRoot); throw new Error("deploy folder already exists. Re-run with --force"); } catch { } }
+  const runtimeExec = runtime === "bun" ? "bun" : "node";
+  const nodeDockerStub = STUBS.deploy.dockerfile.node[nodePm] || STUBS.deploy.dockerfile.node.npm;
+  const composeStub = STUBS.deploy.composeByDatabase[database] || STUBS.deploy.composeByDatabase.sqlite;
+  const envStub = STUBS.deploy.envByDatabase[database] || STUBS.deploy.envByDatabase.sqlite;
+  if (doApp) {
+    await writeRenderedFiles(deployRoot, [
+      {
+        output: "Dockerfile",
+        stub: runtime === "bun" ? STUBS.deploy.dockerfile.bun : nodeDockerStub
+      },
+      {
+        output: "docker-compose.yml",
+        stub: composeStub,
+        values: { REDIS_ENV_LINE: redisOn ? "      REDIS_URL: redis://redis-global:6379\n" : "" }
+      },
+      {
+        output: ".env.example",
+        stub: envStub,
+        values: {
+          REDIS_ENABLED: redisOn ? "true" : "false",
+          FRONTEND: process.env.FRONTEND !== "false" ? "true" : "false",
+          SOCKET: process.env.SOCKET !== "false" ? "true" : "false",
+          OPEN_API: process.env.OPEN_API || "true",
+          LOG_LEVEL: process.env.LOG_LEVEL || "info",
+          CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
+          COOKIE_NAME: process.env.COOKIE_NAME || "nexgen",
+          SESSION_COOKIE: process.env.SESSION_COOKIE || "nexgen_session",
+          SESSION_TTL_SECONDS: process.env.SESSION_TTL_SECONDS || "7200",
+          CACHE_TTL_SECONDS: process.env.CACHE_TTL_SECONDS || "3600",
+          STORAGE_DRIVER: process.env.STORAGE_DRIVER || "local",
+          STORAGE_DISK: process.env.STORAGE_DISK || "public",
+          AUTH_REQUIRE_EMAIL_VERIFICATION: process.env.AUTH_REQUIRE_EMAIL_VERIFICATION || "false",
+          MAIL_FAIL_SILENT: "true",
+          REDIS_PREFIX: process.env.REDIS_PREFIX || "nexgen",
+          JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "JWT_ACCESS_SECRET")) || "",
+          JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "JWT_REFRESH_SECRET")) || "",
+          COOKIE_SECRET: process.env.COOKIE_SECRET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "COOKIE_SECRET")) || ""
+        }
+      },
+      {
+        output: "README.md",
+        stub: STUBS.deploy.readme,
+        values: { DATABASE_MODE: database, REDIS_STATUS: redisOn ? "yes" : "no", RUNTIME_NAME: runtime }
+      },
+      {
+        output: "supervisor/supervisord.conf",
+        stub: pickRedisStub(redisOn, STUBS.deploy.supervisor.redis, STUBS.deploy.supervisor.noredis),
+        values: { RUNTIME_EXEC: runtimeExec, RUNTIME_NAME: runtime }
+      },
+      {
+        output: "scripts/auto-migrate.sh",
+        stub: STUBS.deploy.autoMigrateScript
+      }
+    ]);
+  }
+  if (doServer) {
+    await writeRenderedFiles(deployRoot, [
+      {
+        output: "server/docker-compose.yml",
+        stub: pickRedisStub(redisOn, isDev ? STUBS.deploy.server.compose.redisDev : STUBS.deploy.server.compose.redis, STUBS.deploy.server.compose.noredis)
+      },
+      {
+        output: "server/.env.example",
+        stub: pickRedisStub(redisOn, STUBS.deploy.server.env.redis, STUBS.deploy.server.env.noredis)
+      },
+      {
+        output: "server/.env.local.example",
+        stub: STUBS.deploy.server.env.localExample
+      },
+      {
+        output: "server/pgadmin/servers.json",
+        stub: STUBS.deploy.server.pgadminServers
+      },
+      {
+        output: "server/README.md",
+        stub: STUBS.deploy.server.readme
+      },
+      {
+        output: "server/nginx-vhost/README.md",
+        stub: STUBS.deploy.server.nginxHost
+      },
+      {
+        output: "server/nginx-vhost/app.example.com",
+        stub: STUBS.deploy.server.nginxHost
+      },
+      ...(isDev ? [] : [
+        { output: "workflow.local.json", stub: STUBS.deploy.workflow.local },
+        { output: "workflow.remote.json", stub: STUBS.deploy.workflow.remote }
+      ])
+    ]);
+    if (redisOn) await writeRenderedFiles(deployRoot, [{ output: "server/redis/redis.conf", stub: STUBS.deploy.server.redisConfig }]);
+  }
+  if (!doServer) {
+    try { await fs.rm(path.join(deployRoot, "server"), { recursive: true, force: true }); } catch {}
+  }
+}
+
+/** Start the shared server infra (proxy, db, redis) or the app stack via Docker Compose. */
+export async function runDeploy(commandName) {
+  const deployRoot = path.resolve(process.cwd(), "deploy");
+  if (commandName === "deploy:server") {
+    const composePath = path.join(deployRoot, "server", "docker-compose.yml");
+    const envPath = path.join(deployRoot, "server", ".env");
+    const localEnvPath = path.join(deployRoot, "server", ".env.local");
+    const localEnvExamplePath = path.join(deployRoot, "server", ".env.local.example");
+    const envExamplePath = path.join(deployRoot, "server", ".env.example");
+    try {
+      await fs.access(composePath);
+    } catch {
+      console.log("Generating deploy/server/ files from stubs...");
+      let redisOn = redisEnabled();
+      if (!redisOn && process.env.REDIS === undefined) {
+        const rootRedis = (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS")).toLowerCase();
+        redisOn = rootRedis === "true" || rootRedis === "1" || rootRedis === "yes";
+      }
+      const serverDir = path.join(deployRoot, "server");
+      await fs.mkdir(serverDir, { recursive: true });
+      await writeRenderedFiles(serverDir, [
+        {
+          output: "docker-compose.yml",
+          stub: redisOn ? STUBS.deploy.server.compose.redisDev : STUBS.deploy.server.compose.noredis
+        },
+        {
+          output: ".env.example",
+          stub: redisOn ? STUBS.deploy.server.env.redis : STUBS.deploy.server.env.noredis
+        },
+        {
+          output: ".env.local.example",
+          stub: STUBS.deploy.server.env.localExample
+        }
+      ]);
+    }
+    let redisOn = redisEnabled();
+    if (!redisOn && process.env.REDIS === undefined) {
+      const rootRedis = (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS")).toLowerCase();
+      redisOn = rootRedis === "true" || rootRedis === "1" || rootRedis === "yes";
+    }
+    await ensureEnvFile(envPath, envExamplePath);
+    await ensureEnvFile(localEnvPath, localEnvExamplePath);
+    await ensureDockerNetwork("nginx-proxy");
+    await ensureDockerNetwork("infra");
+    await ensureBindMountFile(path.join(deployRoot, "server", "pgadmin", "servers.json"), STUBS.deploy.server.pgadminServers);
+    if (redisOn) await ensureBindMountFile(path.join(deployRoot, "server", "redis", "redis.conf"), STUBS.deploy.server.redisConfig);
+    await runCommand("docker", ["compose", "--env-file", envPath, "--env-file", localEnvPath, "-f", composePath, "up", "-d"]);
+    await syncPgAdminServers(deployRoot, envPath, localEnvPath);
+    return;
+  }
+  if (commandName === "deploy:app") {
+    const composePath = path.join(deployRoot, "docker-compose.yml");
+    const envPath = path.join(deployRoot, ".env");
+    const envExamplePath = path.join(deployRoot, ".env.example");
+    const serverEnvPath = path.join(deployRoot, "server", ".env");
+    const serverEnvExamplePath = path.join(deployRoot, "server", ".env.example");
+    await ensureEnvFile(envPath, envExamplePath);
+    try { await fs.access(serverEnvExamplePath); await ensureEnvFile(serverEnvPath, serverEnvExamplePath); } catch { }
+    try { await fs.access(serverEnvPath); await syncDeployDatabaseUrlWithServerEnv(envPath, serverEnvPath); await ensureDeployDatabaseReady(envPath, serverEnvPath); } catch { }
+    const composeArgs = ["compose"]; try { await fs.access(serverEnvPath); composeArgs.push("--env-file", serverEnvPath); } catch { }
+    composeArgs.push("--env-file", envPath, "-f", composePath, "up", "-d", "--build", "--force-recreate");
+    await runCommand("docker", composeArgs);
+  }
+}
+
+/** Start shared server infra on remote host (via SSH). */
+export async function runRemoteServer(flags = []) {
+  const configFlag = flags.find((f) => f.startsWith("--config="));
+  const configPath = configFlag ? configFlag.split("=")[1] : "deploy/workflow.remote.json";
+  const config = await readRemoteConfig(configPath);
+  const { sshArgs, remoteHost } = buildSshArgs(config);
+  const cd = `cd "${config.targetPath}"`;
+
+  console.log("Ensuring remote Docker networks...");
+  await runCommand("ssh", [...sshArgs, remoteHost, `docker network inspect nginx-proxy >/dev/null 2>&1 || docker network create nginx-proxy`]);
+  await runCommand("ssh", [...sshArgs, remoteHost, `docker network inspect infra >/dev/null 2>&1 || docker network create infra`]);
+
+  console.log("Starting server infra containers...");
+  await runCommand("ssh", [...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/server/.env -f deploy/server/docker-compose.yml up -d`]);
+
+  const localEmail = await readEnvValue(path.resolve(process.cwd(), "deploy/server/.env"), "PGADMIN_DEFAULT_EMAIL");
+  if (localEmail) {
+    console.log("Syncing pgAdmin servers...");
+    await runCommand("ssh", [...sshArgs, remoteHost, `${cd} && docker exec pgadmin /venv/bin/python /pgadmin4/setup.py load-servers /pgadmin4/servers.json --user "${localEmail}" --replace 2>/dev/null || true`]);
+  }
+}
+
+/** Build and start app stack on remote host (via SSH). */
+export async function runRemoteApp(flags = []) {
+  const configFlag = flags.find((f) => f.startsWith("--config="));
+  const configPath = configFlag ? configFlag.split("=")[1] : "deploy/workflow.remote.json";
+  const config = await readRemoteConfig(configPath);
+  const { sshArgs, remoteHost } = buildSshArgs(config);
+  const cd = `cd "${config.targetPath}"`;
+
+  console.log("Building and starting app containers...");
+  await runCommand("ssh", [...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build --force-recreate`]);
+}
+
+/** Import a MySQL dump file into the local MySQL container. */
+export async function importMysqlDumpLocal(flags = []) {
+  const deployRoot = path.resolve(process.cwd(), "deploy");
+  const sqlFile = path.resolve(process.cwd(), getOption(flags, "--file", "deploy/nexgen.sql"));
+  const database = getOption(flags, "--database", "nexgen");
+  const container = getOption(flags, "--container", "mysql-global");
+  const user = getOption(flags, "--user", "root");
+  let password = getOption(flags, "--password", "");
+  if (!password) password = await readEnvValue(path.join(deployRoot, "server", ".env"), "MYSQL_ROOT_PASSWORD");
+  if (!password) {
+    const dbUrl = await readEnvValue(path.join(deployRoot, ".env"), "DATABASE_URL");
+    try { if (dbUrl) password = decodeURIComponent(new URL(dbUrl).password); } catch {}
+  }
+  await runCommand("docker", ["exec", container, "mysql", `-u${user}`, `-p${password}`, "-e", `CREATE DATABASE IF NOT EXISTS ${database};`]);
+  await new Promise((resolve, reject) => {
+    const child = spawn("docker", ["exec", "-i", container, "mysql", `-u${user}`, `-p${password}`, database], { shell: false, stdio: ["pipe", "inherit", "inherit"] });
+    const input = fsSync.createReadStream(sqlFile);
+    input.on("error", reject); child.on("error", reject); child.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`MySQL import failed with code ${code}`))));
+    input.pipe(child.stdin);
+  });
+}
+
+/** Import a MySQL dump file into a remote MySQL container via SSH. */
+export async function importMysqlDumpRemote(flags = []) {
+  const configFlag = flags.find((flag) => flag.startsWith("--config="));
+  const configPath = configFlag ? configFlag.replace("--config=", "") : "deploy/workflow.remote.json";
+  const parsed = JSON.parse(await fs.readFile(path.resolve(process.cwd(), configPath), "utf8"));
+  const remote = parsed.remote || {};
+  const host = String(remote.host || "").trim();
+  const userHost = String(remote.user || "").trim();
+  const port = String(remote.port || 22).trim();
+  const keyPath = expandHome(String(remote.keyPath || "").trim());
+  const targetPath = String(remote.targetPath || "").trim();
+  const dbImport = parsed.databaseImport || {};
+  const file = getOption(flags, "--file", String(dbImport.file || "deploy/nexgen.sql"));
+  const database = getOption(flags, "--database", String(dbImport.database || "nexgen"));
+  const container = getOption(flags, "--container", String(dbImport.container || "mysql-global"));
+  const dbUser = getOption(flags, "--user", String(dbImport.user || "root"));
+  const passwordFlag = getOption(flags, "--password", "");
+  const passwordCmd = passwordFlag
+    ? `MYSQL_ROOT_PASSWORD='${passwordFlag.replace(/'/g, "'\\''")}'`
+    : `MYSQL_ROOT_PASSWORD=$(grep '^MYSQL_ROOT_PASSWORD=' deploy/server/.env 2>/dev/null | head -1 | cut -d '=' -f2-)`;
+  const sshBaseArgs = ["-p", port]; if (keyPath) sshBaseArgs.push("-i", keyPath);
+  const remoteHost = `${userHost}@${host}`;
+  await runCommand("ssh", [...sshBaseArgs, remoteHost, `cd \"${targetPath}\" && [ -f \"${file}\" ] || (echo \"Missing SQL file: ${file}\" && exit 1)`]);
+  await runCommand("ssh", [...sshBaseArgs, remoteHost, `cd \"${targetPath}\" && ${passwordCmd} && docker exec ${container} mysql -u${dbUser} -p\"$MYSQL_ROOT_PASSWORD\" -e \"CREATE DATABASE IF NOT EXISTS ${database};\"`]);
+  await runCommand("ssh", [...sshBaseArgs, remoteHost, `cd \"${targetPath}\" && ${passwordCmd} && docker exec -i ${container} mysql -u${dbUser} -p\"$MYSQL_ROOT_PASSWORD\" ${database} < \"${file}\"`]);
+}
+
+/** Run a deploy workflow from a config file or inline flags. */
+export async function runDeployWorkflow(flags = []) {
+  const serverOnly = hasFlag(flags, "--server-only");
+  const appOnly = hasFlag(flags, "--app-only");
+  const refresh = hasFlag(flags, "--refresh");
+  const dryRun = hasFlag(flags, "--dry-run");
+  const runtimeFlag = flags.find((flag) => flag.startsWith("--runtime="));
+  const pmFlag = flags.find((flag) => flag.startsWith("--pm="));
+  const configFlag = flags.find((flag) => flag.startsWith("--config="));
+  const configPath = configFlag ? configFlag.replace("--config=", "") : "";
+  if (configPath) {
+    const parsed = JSON.parse(await fs.readFile(path.resolve(process.cwd(), configPath), "utf8"));
+    const steps = Array.isArray(parsed.steps) ? parsed.steps : [];
+    for (const step of steps) {
+      if (step.enabled === false) continue;
+      const run = String(step.run || "").trim();
+      if (!run) continue;
+      const [subcommand, ...subArgs] = run.split(/\s+/).filter(Boolean);
+      if (subcommand === "deploy:server" || subcommand === "deploy:app") await runDeploy(subcommand);
+      else if (subcommand === "deploy:db:import") await importMysqlDumpLocal(subArgs);
+      else if (subcommand === "deploy:create") await createDeploy(subArgs);
+    }
+    return;
+  }
+  if (refresh) await createDeploy(["--force", ...(runtimeFlag ? [runtimeFlag] : []), ...(pmFlag ? [pmFlag] : [])]);
+  if (!appOnly && !dryRun) await runDeploy("deploy:server");
+  if (!serverOnly && !dryRun) await runDeploy("deploy:app");
+}
+
+/** Initialize a local workflow config file. */
+export async function initDeployWorkflow() {
+  const filePath = path.resolve(process.cwd(), "deploy/workflow.local.json");
+  const template = await readStubRaw(STUBS.deploy.workflow.local);
+  await writeFileIfMissing(filePath, template);
+}
+
+/** Initialize a remote workflow config file. */
+export async function initRemoteDeployWorkflow() {
+  const filePath = path.resolve(process.cwd(), "deploy/workflow.remote.json");
+  const template = await readStubRaw(STUBS.deploy.workflow.remote);
+  await writeFileIfMissing(filePath, template);
+}
+
+/** Run a remote workflow: upload project files and deploy on remote Docker host. */
+export async function runRemoteWorkflow(flags = []) {
+  const configFlag = flags.find((flag) => flag.startsWith("--config="));
+  const configPath = configFlag ? configFlag.replace("--config=", "") : "deploy/workflow.remote.json";
+  const config = await readRemoteConfig(configPath);
+  const { sshArgs, remoteHost } = buildSshArgs(config);
+  const serverOnly = hasFlag(flags, "--server-only");
+  const appOnly = hasFlag(flags, "--app-only");
+
+  console.log("Creating remote target directory...");
+  await runCommand("ssh", [...sshArgs, remoteHost, `mkdir -p "${config.targetPath}"`]);
+
+  console.log("Uploading project files (excluding node_modules, .git, dist)...");
+  const source = `${path.resolve(process.cwd())}/`;
+  const target = `${config.user}@${config.host}:${config.targetPath}/`;
+  await runCommand("rsync", [
+    "-avz", "--delete",
+    "--exclude=node_modules",
+    "--exclude=.git",
+    "--exclude=dist",
+    "--exclude=/.env*",
+    "-e", `ssh -p ${config.port}${config.keyPath ? ` -i "${config.keyPath}"` : ""}`,
+    source, target
+  ]);
+
+  if (!appOnly) await runRemoteServer(flags);
+  if (!serverOnly) await runRemoteApp(flags);
+}
+
+/** Run a local workflow (delegates to runDeployWorkflow). */
+export async function runLocalWorkflow(flags = []) {
+  await runDeployWorkflow(flags);
+}
+
+/** Promote: run local workflow then remote workflow with appropriate config files. */
+export async function runPromoteWorkflow(flags = []) {
+  const configFlag = flags.find((flag) => flag.startsWith("--config="));
+  const configValue = configFlag ? configFlag.replace("--config=", "") : "";
+  const normalized = configValue.toLowerCase();
+  const localConfig = !configValue ? "deploy/workflow.local.json" : normalized.includes("remote") ? "deploy/workflow.local.json" : configValue;
+  const remoteConfig = !configValue ? "deploy/workflow.remote.json" : normalized.includes("local") ? "deploy/workflow.remote.json" : configValue;
+  const localFlags = [...flags.filter((flag) => !flag.startsWith("--config=")), `--config=${localConfig}`];
+  const remoteFlags = [...flags.filter((flag) => flag !== "--refresh" && !flag.startsWith("--config=")), `--config=${remoteConfig}`];
+  await runLocalWorkflow(localFlags);
+  await runRemoteWorkflow(remoteFlags);
+}

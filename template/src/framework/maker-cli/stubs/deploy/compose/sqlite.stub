@@ -1,0 +1,29 @@
+name: ${COMPOSE_PROJECT_NAME:-nexgen}
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        FRONTEND: ${FRONTEND}
+    container_name: ${APP_NAME:-nexgen}-app
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_PORT: 3000
+      APP_URL: http://${APP_HOST:-localhost}:${APP_PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL}
+{{REDIS_ENV_LINE}}      APP_HOST: ${APP_HOST:-localhost}
+    networks:
+      - infra
+
+networks:
+  infra:
+    external: true
+    name: infra

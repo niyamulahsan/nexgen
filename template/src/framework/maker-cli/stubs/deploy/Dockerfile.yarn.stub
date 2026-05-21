@@ -1,0 +1,53 @@
+ARG NODE_VERSION=24
+FROM node:${NODE_VERSION}-bookworm-slim AS builder
+
+ARG YARN_VERSION=1.22.22
+ARG FRONTEND=true
+ENV FRONTEND=${FRONTEND}
+
+WORKDIR /app
+
+ENV APP_URL=http://localhost:3000
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable && corepack prepare yarn@${YARN_VERSION} --activate
+
+COPY package.json yarn.lock* ./
+RUN yarn install --immutable
+
+COPY . .
+RUN node src/framework/maker-cli/src/index.mjs db:schema
+RUN yarn build
+
+FROM node:${NODE_VERSION}-bookworm-slim AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV APP_URL=http://localhost:3000
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/deploy/scripts ./deploy/scripts
+
+COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 3000
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

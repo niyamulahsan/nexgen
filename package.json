@@ -1,0 +1,13 @@
+{
+  "name": "nexgen-monorepo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:template": "node scripts/sync-template.mjs",
+    "docs:dev": "npm -C packages/docs run dev",
+    "docs:build": "npm -C packages/docs run build",
+    "docs:preview": "npm -C packages/docs run preview",
+    "prepublish:cli": "npm run sync:template",
+    "publish:cli": "npm -C packages/create-nexgen publish"
+  }
+}

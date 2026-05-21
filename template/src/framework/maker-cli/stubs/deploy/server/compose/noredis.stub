@@ -1,0 +1,118 @@
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:80"
+      - "${PROXY_HTTPS_PORT:-443}:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./nginx-vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    labels:
+      com.github.nginx-proxy.nginx: "true"
+    networks:
+      - nginx-proxy
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./nginx-vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+      - ./acme:/etc/acme.sh
+    networks:
+      - nginx-proxy
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-global
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql_global_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT:-4000}:3306"
+    networks:
+      - infra
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-global
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_global_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-4001}:5432"
+    networks:
+      - infra
+
+  phpmyadmin:
+    image: phpmyadmin:5-apache
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql-global
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+      VIRTUAL_HOST: ${PHPMYADMIN_DOMAIN}
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: ${PHPMYADMIN_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    ports:
+      - "${PHPMYADMIN_LOCAL_PORT:-127.0.0.1:8082}:80"
+    networks:
+      - infra
+      - nginx-proxy
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+      VIRTUAL_HOST: ${PGADMIN_DOMAIN}
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: ${PGADMIN_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_LOCAL_PORT:-127.0.0.1:8083}:80"
+    networks:
+      - infra
+      - nginx-proxy
+
+volumes:
+  mysql_global_data:
+  postgres_global_data:
+  pgadmin_data:
+
+networks:
+  nginx-proxy:
+    external: true
+    name: nginx-proxy
+  infra:
+    external: true
+    name: infra

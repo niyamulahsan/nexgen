@@ -1,0 +1,10 @@
+import { group } from "@/framework/facade.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.controller.js";
+
+export default group()
+  .get("/", index)
+  .get("/:id", show)
+  .post("/", store)
+  .put("/:id", update)
+  .delete("/:id", destroy);

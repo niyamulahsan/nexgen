@@ -1,0 +1,17 @@
+import { db } from "@/framework/facade.js";
+import { {{tableVariable}} } from "@/modules/{{module}}/database/models/{{name}}.js";
+
+export default async function {{ClassName}}Seeder() {
+  const rows = [
+    // Add your seed data here
+    // Example:
+    // { name: "{{ClassName}} 1", description: "This is the first {{name}}" },
+    // { name: "{{ClassName}} 2", description: "This is the second {{name}}" }
+  ];
+
+  for (const row of rows) {
+    await db.insert({{tableVariable}}).values(row);
+  }
+
+  console.log("{{ClassName}} seeder completed");
+}

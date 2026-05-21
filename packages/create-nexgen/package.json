@@ -1,0 +1,26 @@
+{
+  "name": "create-nexgen",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scaffold a new Nexgen project",
+  "bin": {
+    "create-nexgen": "./src/index.mjs",
+    "nexgen": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "template"
+  ],
+  "scripts": {
+    "prepublish": "node ../../scripts/sync-template.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "nexgen",
+    "scaffold",
+    "cli"
+  ],
+  "license": "MIT"
+}

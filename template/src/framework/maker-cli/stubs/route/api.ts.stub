@@ -1,0 +1,79 @@
+import { createRoute, group, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.controller.js";
+import {
+  Create{{ClassName}}Schema,
+  Update{{ClassName}}Schema,
+  {{ClassName}}IdParamsSchema,
+  {{ClassName}}ListResponseSchema,
+  {{ClassName}}MessageSchema,
+  {{ClassName}}ResponseSchema
+} from "@/modules/{{module}}/controllers/{{controller}}.schema.js";
+
+const indexRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["{{ModuleClass}}"],
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent({{ClassName}}ListResponseSchema, "{{module}} list")
+  }
+});
+
+const showRoute = createRoute({
+  path: "/{id}",
+  method: "get",
+  tags: ["{{ModuleClass}}"],
+  request: {
+    params: {{ClassName}}IdParamsSchema
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent({{ClassName}}ResponseSchema, "{{module}} item"),
+    [HttpStatusCodes.NOT_FOUND]: jsonContent({{ClassName}}MessageSchema, "Not found")
+  }
+});
+
+const storeRoute = createRoute({
+  path: "/",
+  method: "post",
+  tags: ["{{ModuleClass}}"],
+  request: {
+    body: jsonContent(Create{{ClassName}}Schema, "Create {{module}} payload")
+  },
+  responses: {
+    [HttpStatusCodes.CREATED]: jsonContent({{ClassName}}MessageSchema, "Created")
+  }
+});
+
+const updateRoute = createRoute({
+  path: "/{id}",
+  method: "put",
+  tags: ["{{ModuleClass}}"],
+  request: {
+    params: {{ClassName}}IdParamsSchema,
+    body: jsonContent(Update{{ClassName}}Schema, "Update {{module}} payload")
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent({{ClassName}}MessageSchema, "Updated"),
+    [HttpStatusCodes.NOT_FOUND]: jsonContent({{ClassName}}MessageSchema, "Not found")
+  }
+});
+
+const destroyRoute = createRoute({
+  path: "/{id}",
+  method: "delete",
+  tags: ["{{ModuleClass}}"],
+  request: {
+    params: {{ClassName}}IdParamsSchema
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent({{ClassName}}MessageSchema, "Deleted"),
+    [HttpStatusCodes.NOT_FOUND]: jsonContent({{ClassName}}MessageSchema, "Not found")
+  }
+});
+
+export default group()
+  .api(indexRoute, index)
+  .api(showRoute, show)
+  .api(storeRoute, store)
+  .api(updateRoute, update)
+  .api(destroyRoute, destroy);

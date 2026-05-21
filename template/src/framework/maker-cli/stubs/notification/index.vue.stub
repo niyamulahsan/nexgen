@@ -1,0 +1,211 @@
+<template>
+  <Pagebar title="Notifications" />
+  <Refresh @click="fetchList" />
+
+  <div class="notifications-page">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bell"></i>
+          <span class="fw-semibold">All Notifications</span>
+          <span v-if="unread > 0" class="badge bg-danger">{{ unread }} unread</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button v-if="unread > 0" class="btn btn-sm btn-outline-primary" @click="markAllRead">
+            <i class="bi bi-check-all"></i> Mark all read
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border" role="status"></div>
+        </div>
+        <div v-else-if="items.length === 0" class="text-center text-secondary py-5">
+          <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+          No notifications yet
+        </div>
+        <div v-else>
+          <div
+            v-for="item in items"
+            :key="item.id"
+            class="notification-row"
+            :class="{ unread: !item.readAt }">
+            <div class="d-flex align-items-start gap-3 px-3 py-3">
+              <i :class="iconClass(item.type)" class="fs-5 mt-1"></i>
+              <div class="flex-grow-1 min-w-0">
+                <div class="notification-title">{{ item.title }}</div>
+                <div v-if="item.body" class="notification-body mt-1">{{ item.body }}</div>
+                <div class="notification-meta mt-1">
+                  <span class="notification-time">{{ formatDate(item.createdAt) }}</span>
+                </div>
+              </div>
+              <div class="d-flex gap-1 flex-shrink-0">
+                <button
+                  v-if="!item.readAt"
+                  class="btn btn-sm btn-outline-secondary"
+                  title="Mark as read"
+                  @click="markRead(item)">
+                  <i class="bi bi-check"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  title="Delete"
+                  @click="remove(item)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="total > perPage" class="card-footer d-flex justify-content-center">
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" :class="{ disabled: page <= 1 }">
+              <button class="page-link" @click="goPage(page - 1)">Previous</button>
+            </li>
+            <li class="page-item" :class="{ disabled: page >= maxPage }">
+              <button class="page-link" @click="goPage(page + 1)">Next</button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useHead } from "@vueuse/head";
+import axios from "@/plugins/axios";
+import { pulse } from "@/plugins/pulse";
+import { useAuth } from "@/composables/useAuth";
+import Pagebar from "@/components/Pagebar.vue";
+import Refresh from "@/components/Refresh.vue";
+
+useHead({ title: "Notifications" });
+
+const { user } = useAuth();
+
+const items = ref<any[]>([]);
+const loading = ref(true);
+const page = ref(1);
+const perPage = ref(20);
+const total = ref(0);
+const unread = ref(0);
+
+const maxPage = computed(() => Math.max(1, Math.ceil(total.value / perPage.value)));
+
+function iconClass(type: string) {
+  const map: Record<string, string> = {
+    info: "bi bi-info-circle text-primary",
+    success: "bi bi-check-circle text-success",
+    warning: "bi bi-exclamation-triangle text-warning",
+    error: "bi bi-x-circle text-danger",
+  };
+  return map[type] || "bi bi-bell text-secondary";
+}
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+}
+
+async function fetchList() {
+  loading.value = true;
+  try {
+    const res = await axios.get(`/api/{{module}}?page=${page.value}&perPage=${perPage.value}`);
+    items.value = res.data.data;
+    total.value = res.data.total;
+    unread.value = res.data.unread;
+  } catch {}
+  loading.value = false;
+}
+
+async function markRead(item: any) {
+  try {
+    await axios.patch(`/api/{{module}}/${item.id}/read`);
+    item.readAt = new Date().toISOString();
+    unread.value = Math.max(0, unread.value - 1);
+  } catch {}
+}
+
+async function markAllRead() {
+  try {
+    await axios.patch("/api/{{module}}/read-all");
+    items.value.forEach((n) => (n.readAt = new Date().toISOString()));
+    unread.value = 0;
+  } catch {}
+}
+
+async function remove(item: any) {
+  try {
+    await axios.delete(`/api/{{module}}/${item.id}`);
+    items.value = items.value.filter((n) => n.id !== item.id);
+    if (!item.readAt) unread.value = Math.max(0, unread.value - 1);
+  } catch {}
+}
+
+function goPage(p: number) {
+  page.value = Math.max(1, Math.min(p, maxPage.value));
+  fetchList();
+}
+
+let cleanup: (() => void) | null = null;
+
+onMounted(async () => {
+  await fetchList();
+
+  if (user.value) {
+    const channel = pulse.channel(`user:${user.value.id}`);
+    channel.listen("notification.created", (payload: any) => {
+      items.value.unshift(payload);
+      unread.value++;
+    });
+    cleanup = () => channel.stopListening("notification.created");
+  }
+});
+
+onUnmounted(() => {
+  cleanup?.();
+});
+</script>
+
+<style scoped>
+.notifications-page {
+  padding: 0.5rem;
+}
+
+.notification-row {
+  border-bottom: 1px solid var(--app-border);
+  transition: background 0.15s;
+}
+
+.notification-row:hover {
+  background: var(--app-surface);
+}
+
+.notification-row.unread {
+  background: rgba(var(--bs-primary-rgb), 0.04);
+}
+
+.notification-title {
+  font-weight: 500;
+}
+
+.notification-body {
+  font-size: 0.9rem;
+  color: var(--bs-secondary-color);
+}
+
+.notification-time {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+}
+
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 0;
+  }
+}
+</style>

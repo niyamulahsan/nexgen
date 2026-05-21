@@ -1,0 +1,32 @@
+import { z } from "@/framework/facade.js";
+
+export const {{ClassName}}ItemSchema = z.object({
+  id: z.number(),
+  name: z.string()
+});
+
+export const Create{{ClassName}}Schema = z.object({
+  name: z.string().min(1)
+});
+
+export const Update{{ClassName}}Schema = z.object({
+  name: z.string().min(1)
+});
+
+export const {{ClassName}}IdParamsSchema = z.object({
+  id: z.coerce.number().int().positive()
+});
+
+export const {{ClassName}}ListResponseSchema = z.object({
+  message: z.string(),
+  data: z.array({{ClassName}}ItemSchema)
+});
+
+export const {{ClassName}}ResponseSchema = z.object({
+  message: z.string(),
+  data: {{ClassName}}ItemSchema
+});
+
+export const {{ClassName}}MessageSchema = z.object({
+  message: z.string()
+});

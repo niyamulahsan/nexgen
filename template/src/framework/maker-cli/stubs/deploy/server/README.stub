@@ -1,0 +1,77 @@
+# Server Deploy (Shared Infra)
+
+This stack is shared by multiple apps on one server.
+
+## Includes
+
+- jwilder nginx-proxy
+- letsencrypt companion
+- mysql-global
+- postgres-global
+{{REDIS_INCLUDE_LINE}}
+- phpmyadmin + pgadmin
+
+{{REDIS_CONFIG_LINE}}
+
+## Setup
+
+```bash
+cp deploy/server/.env.example deploy/server/.env
+cp deploy/server/.env.local.example deploy/server/.env.local
+docker network create nginx-proxy || true
+docker network create infra || true
+docker compose --env-file deploy/server/.env --env-file deploy/server/.env.local -f deploy/server/docker-compose.yml up -d
+```
+
+Equivalent maker command:
+
+```bash
+bun maker deploy:server
+```
+
+Local Docker Desktop:
+- Proxy: `http://localhost:8081`
+- phpMyAdmin direct: `http://localhost:8082`
+- pgAdmin direct: `http://localhost:8083`
+
+Remote server deploy:
+- Keep `PROXY_HTTP_PORT=80` and `PROXY_HTTPS_PORT=443`
+- Keep `PHPMYADMIN_LOCAL_PORT=127.0.0.1:8082` and `PGADMIN_LOCAL_PORT=127.0.0.1:8083` to avoid exposing admin UIs publicly
+- Optionally remove `.env.local`
+
+## Env File Precedence (Important)
+
+This stack intentionally uses two env files together:
+
+```bash
+--env-file deploy/server/.env --env-file deploy/server/.env.local
+```
+
+Rule:
+- Values in `deploy/server/.env.local` override same keys from `deploy/server/.env`.
+
+Why:
+- `deploy/server/.env` is your shared base (works for remote/server defaults).
+- `deploy/server/.env.local` is for Docker Desktop-only overrides.
+
+Typical split:
+- `deploy/server/.env`
+  - `PROXY_HTTP_PORT=80`
+  - `PROXY_HTTPS_PORT=443`
+  - production domains like `PHPMYADMIN_DOMAIN=pma.example.com`
+- `deploy/server/.env.local`
+  - `PROXY_HTTP_PORT=8081`
+  - `PROXY_HTTPS_PORT=8443`
+  - local domains like `PHPMYADMIN_DOMAIN=pma.localhost`
+
+Result on local Docker Desktop:
+- Effective proxy ports become `8081/8443` (from `.env.local`).
+- Effective local domains become `pma.localhost` / `pga.localhost` (from `.env.local`).
+
+Result on remote server:
+- Use only `deploy/server/.env` (or keep `.env.local` empty/unused).
+- Effective proxy ports stay `80/443`.
+
+Then each app deploy joins external networks `nginx-proxy` and `infra`.
+
+Custom per-domain nginx overrides are in `deploy/server/nginx-vhost/`.

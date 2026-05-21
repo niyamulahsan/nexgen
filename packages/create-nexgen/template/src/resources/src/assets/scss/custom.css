@@ -1,0 +1,217 @@
+[class*="col"] > .card {
+  height: 100%;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+.fs-7 {
+  font-size: 12px;
+}
+
+.datatable thead tr > th,
+.datatable tbody tr > td {
+  padding: 7.5px 10px;
+}
+
+.datatable thead tr > th {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.datatable thead tr > th:nth-child(-n + 2) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.datatable thead tr > th:nth-child(-n + 1),
+.datatable tbody tr > td:nth-child(-n + 1) {
+  padding-left: 6px !important;
+  padding-right: 5px !important;
+}
+
+.datatable-pagination .page-item .page-link {
+  border-radius: 5px;
+  margin-left: 0;
+  border: 1px solid #dfdfdf;
+}
+
+.datatable-general thead tr > th,
+.datatable-general tbody tr > td {
+  padding: 7.5px 10px;
+}
+
+.datatable-general thead tr > th {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.datatable-general thead tr > th:nth-child(-n + 1) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.datatable-general-pagination .page-item .page-link {
+  border-radius: 5px;
+  margin-left: 0;
+  border: 1px solid #dfdfdf;
+}
+
+.form-control:focus {
+  border-width: 1px;
+  padding-top: calc(0.543rem - 0px);
+  padding-bottom: calc(0.543rem - 2px);
+  box-shadow: 0 0 5px rgba(105, 108, 255, 0.4);
+}
+
+.avatar {
+  width: 2.9rem;
+  height: 2.9rem;
+}
+
+.avatar.avatar-online::after {
+  bottom: 5px;
+  right: 8px;
+}
+
+.tools {
+  margin-top: -4.37rem;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1075;
+}
+
+.layout-navbar.navbar-detached {
+  width: 100% !important;
+}
+
+.layout-navbar .navbar-dropdown .dropdown-menu,
+.layout-navbar .navbar-dropdown.dropdown-user .dropdown-menu {
+  min-width: 14rem;
+}
+
+.layout-wrapper .layout-navbar .dropdown-menu[data-bs-popper] {
+  top: 125%;
+}
+
+@media (max-width: 575.98px) {
+  .layout-navbar .navbar-nav .nav-item.dropdown .dropdown-menu {
+    top: 65px;
+  }
+  .tools-sm {
+    margin-top: 0 !important;
+    position: relative !important;
+    z-index: 0 !important;
+  }
+  .datatable-pagination .pagination {
+    position: relative;
+  }
+  .datatable-pagination .pagination .lastpage {
+    position: absolute;
+    top: 100%;
+  }
+}
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .tools {
+    position: sticky !important;
+    top: 0 !important;
+  }
+  .layout-navbar .navbar-nav .nav-item.dropdown .dropdown-menu {
+    min-width: 14rem !important;
+    width: 32%;
+    right: unset;
+    left: unset;
+  }
+  .layout-wrapper .layout-navbar .dropdown-menu[data-bs-popper] {
+    top: 105%;
+  }
+}
+@media (max-width: 991.98px) {
+  .card {
+    top: 0px !important;
+  }
+}
+@media print {
+  .d-print-inline {
+    display: inline !important;
+  }
+  .d-print-inline-block {
+    display: inline-block !important;
+  }
+  .d-print-block {
+    display: block !important;
+  }
+  .d-print-grid {
+    display: grid !important;
+  }
+  .d-print-table {
+    display: table !important;
+  }
+  .d-print-table-row {
+    display: table-row !important;
+  }
+  .d-print-table-cell {
+    display: table-cell !important;
+  }
+  .d-print-flex {
+    display: flex !important;
+  }
+  .d-print-inline-flex {
+    display: inline-flex !important;
+  }
+  .d-print-none {
+    display: none !important;
+  }
+  .card-body,
+  .content,
+  .content-page,
+  .end-bar,
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  .card.border,
+  .card-body.border {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .printarea {
+    border: initial;
+    border-radius: initial;
+    width: initial;
+    height: initial;
+    box-shadow: initial;
+    background: initial;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: visible !important;
+    margin: 0;
+  }
+  .printarea:last-child {
+    page-break-after: auto;
+  }
+  table {
+    page-break-after: auto;
+    border-collapse: collapse;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  td {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  .removeprintarea {
+    display: none !important;
+  }
+} /*# sourceMappingURL=custom.css.map */

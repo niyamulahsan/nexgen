@@ -1,0 +1,8 @@
+import { relations } from "drizzle-orm";
+import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+export const {{tableVariable}} = sqliteTable("{{tableName}}", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull()
+});
