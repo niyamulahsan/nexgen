@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   base: "/nexgen/",
-  title: "Nexgen",
+  title: "nexgen",
   description: "Full-stack TypeScript framework with Hono, Vue 3, and Drizzle ORM",
   themeConfig: {
     nav: [
