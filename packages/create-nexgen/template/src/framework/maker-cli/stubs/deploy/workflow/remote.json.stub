@@ -1,0 +1,20 @@
+{
+  "remote": {
+    "host": "127.0.0.1",
+    "user": "deploy",
+    "port": 22,
+    "keyPath": "~/.ssh/id_rsa",
+    "targetPath": "/home/deploy/nexgen"
+  },
+  "upload": {
+    "source": ".",
+    "targetSubPath": "."
+  },
+  "databaseImport": {
+    "enabled": false,
+    "file": "deploy/nexgen.sql",
+    "database": "nexgen",
+    "container": "mysql-global",
+    "user": "root"
+  }
+}

@@ -23,9 +23,14 @@ cpSync(SRC, DEST, {
   filter: (s) => {
     const parts = s.split(/[\\/]/);
     const basename = parts.pop();
-    const skipDirs = new Set(["node_modules", "dist", "deploy"]);
+    const skipDirs = new Set(["node_modules", "dist"]);
+    const skipRootDirs = new Set(["deploy"]);
     const skipFiles = new Set(["bun.lock", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"]);
-    return !parts.some((p) => skipDirs.has(p)) && !skipDirs.has(basename) && !skipFiles.has(basename);
+    const templateIdx = parts.lastIndexOf("template");
+    const depth = templateIdx >= 0 ? parts.length - templateIdx : 0;
+    return !parts.some((p) => skipDirs.has(p))
+      && !(depth === 1 && skipRootDirs.has(basename))
+      && !skipFiles.has(basename);
   },
 });
 

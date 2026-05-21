@@ -1,0 +1,73 @@
+# App deploy env template (shared for local + remote)
+# Local: use this as deploy/.env
+# Remote: use this as deploy/.env
+# ── App ────────────────────────────────────────────
+APP_HOST=localhost
+APP_PORT=3000
+APP_NAME=nexgen
+APP_ENV=production
+AUTO_MIGRATE=true
+OPEN_API={{OPEN_API}}
+LOG_LEVEL={{LOG_LEVEL}}
+# Frontend origin (only needed when frontend is on a different domain than API)
+# Leave empty if frontend is served from the same APP_URL or FRONTEND=false
+FRONTEND_URL=
+# Allowed CORS origins. Use * for any, or comma-separated for specific origins
+CORS_ORIGIN={{CORS_ORIGIN}}
+
+# ── Database ───────────────────────────────────────
+# Set the password and database name to match deploy/server/.env
+DATABASE_URL=mysql://root:change-me-root@mysql-global:3306/nexgen
+
+# ── Storage (File Uploads) ─────────────────────────
+STORAGE_DRIVER={{STORAGE_DRIVER}}
+STORAGE_DISK={{STORAGE_DISK}}
+STORAGE_BUCKET=
+STORAGE_REGION=us-east-1
+STORAGE_ENDPOINT=
+STORAGE_ACCESS_KEY_ID=
+STORAGE_SECRET_ACCESS_KEY=
+STORAGE_FORCE_PATH_STYLE=false
+STORAGE_SIGNED_URL_TTL_SECONDS=900
+
+# ── JWT Auth ───────────────────────────────────────
+JWT_ACCESS_SECRET={{JWT_ACCESS_SECRET}}
+JWT_REFRESH_SECRET={{JWT_REFRESH_SECRET}}
+JWT_ACCESS_EXPIRY=900
+JWT_REFRESH_EXPIRY=2592000
+JWT_REFRESH_REMEMBER_EXPIRY=604800
+
+# ── Session / Cookie ───────────────────────────────
+COOKIE_NAME={{COOKIE_NAME}}
+COOKIE_SECRET={{COOKIE_SECRET}}
+
+# ── Redis ──────────────────────────────────────────
+# Enables/disables cache, session, queue, events, BullBoard (all Redis-backed services)
+REDIS={{REDIS_ENABLED}}
+REDIS_URL=redis://redis-global:6379
+REDIS_PREFIX={{REDIS_PREFIX}}
+# Comma-separated emails allowed to open /bullmq (empty = no email restriction)
+BULLMQ_UI_ALLOWED_EMAILS=admin@example.com
+
+# ── Session / Cache TTL ────────────────────────────
+SESSION_COOKIE={{SESSION_COOKIE}}
+SESSION_TTL_SECONDS={{SESSION_TTL_SECONDS}}
+CACHE_TTL_SECONDS={{CACHE_TTL_SECONDS}}
+
+# ── Feature Toggles ────────────────────────────────
+# Enable/disable frontend build and serving. Set false for API-only mode
+FRONTEND={{FRONTEND}}
+# Enable/disable Socket.IO realtime server
+SOCKET={{SOCKET}}
+
+# ── Auth ───────────────────────────────────────────
+AUTH_REQUIRE_EMAIL_VERIFICATION={{AUTH_REQUIRE_EMAIL_VERIFICATION}}
+
+# ── Mail ───────────────────────────────────────────
+# When true, mail errors won't crash the request. Useful in dev without SMTP
+MAIL_FAIL_SILENT={{MAIL_FAIL_SILENT}}
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1089
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=no-reply@example.com
