@@ -4,8 +4,8 @@
   "type": "module",
   "description": "Scaffold a new Nexgen project",
   "bin": {
-    "create-nexgen": "./src/index.js",
-    "nexgen": "./src/index.js"
+    "create-nexgen": "src/index.js",
+    "nexgen": "src/index.js"
   },
   "files": [
     "src",

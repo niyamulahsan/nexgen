@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync, renameSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline";
@@ -18,6 +18,7 @@ function ask(query) {
 }
 
 function detectPackageManager() {
+  if (typeof process !== "undefined" && process.isBun) return "bun";
   const ua = process.env.npm_config_user_agent || "";
   if (ua.includes("bun")) return "bun";
   if (ua.includes("pnpm")) return "pnpm";
@@ -47,9 +48,9 @@ async function main() {
     console.log(`create-nexgen v${version}`);
     console.log();
     console.log("Usage:");
-    console.log("  npm create nexgen <project-name>");
-    console.log("  pnpm create nexgen <project-name>");
-    console.log("  bun create nexgen <project-name>");
+    console.log("  npm create nexgen@latest <project-name>");
+    console.log("  pnpm create nexgen@latest <project-name>");
+    console.log("  bun create nexgen@latest <project-name>");
     console.log("  npx nexgen@latest <project-name>");
     process.exit(0);
   }
@@ -73,7 +74,15 @@ async function main() {
   }
 
   mkdirSync(targetDir, { recursive: true });
-  cpSync(TEMPLATE_DIR, targetDir, { recursive: true, filter: (s) => !s.includes("node_modules") });
+  for (const entry of readdirSync(TEMPLATE_DIR)) {
+    if (entry === "node_modules") continue;
+    cpSync(join(TEMPLATE_DIR, entry), join(targetDir, entry), { recursive: true });
+  }
+
+  const gitignoreStub = join(targetDir, "gitignore-stub");
+  if (existsSync(gitignoreStub)) {
+    renameSync(gitignoreStub, join(targetDir, ".gitignore"));
+  }
 
   const targetPkgPath = join(targetDir, "package.json");
   if (existsSync(targetPkgPath)) {
