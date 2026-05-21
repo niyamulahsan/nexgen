@@ -7,7 +7,7 @@
 
 **nexgen** is a full-stack TypeScript framework built on [Hono](https://hono.dev), [Vue 3](https://vuejs.org), and [Drizzle ORM](https://orm.drizzle.team). It provides a modular architecture, Redis-backed services, real-time broadcasting, and Docker-based deployment out of the box.
 
-[![Documentation](https://img.shields.io/badge/docs-nexgen-3b82f6)](https://niyam.github.io/nexgen)
+[![Documentation](https://img.shields.io/badge/docs-nexgen-3b82f6)](https://niyamulahsan.github.io/nexgen)
 [![npm](https://img.shields.io/npm/v/create-nexgen)](https://www.npmjs.com/package/create-nexgen)
 
 ## Features
@@ -34,7 +34,7 @@ npm run maker dev
 
 ## Documentation
 
-Read the full documentation at **[https://niyam.github.io/nexgen](https://niyam.github.io/nexgen)**
+Read the full documentation at **[https://niyamulahsan.github.io/nexgen](https://niyamulahsan.github.io/nexgen)**
 
 - [Architecture](/guide/architecture)
 - [CLI Reference](/cli/reference)

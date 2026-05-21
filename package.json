@@ -8,6 +8,6 @@
     "docs:build": "npm -C packages/docs run build",
     "docs:preview": "npm -C packages/docs run preview",
     "prepublish:cli": "npm run sync:template",
-    "publish:cli": "npm -C packages/create-nexgen publish"
+    "publish:cli": "cd packages/create-nexgen && npm publish"
   }
 }
