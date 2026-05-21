@@ -1,13 +1,13 @@
 <a href="https://nexgen.dev">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/your-org/nexgen/main/.github/logo-dark.svg">
-    <img alt="nexgen" src="https://raw.githubusercontent.com/your-org/nexgen/main/.github/logo-light.svg" width="200">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/.github/logo-dark.svg">
+    <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/.github/logo-light.svg" width="200">
   </picture>
 </a>
 
 **nexgen** is a full-stack TypeScript framework built on [Hono](https://hono.dev), [Vue 3](https://vuejs.org), and [Drizzle ORM](https://orm.drizzle.team). It provides a modular architecture, Redis-backed services, real-time broadcasting, and Docker-based deployment out of the box.
 
-[![Documentation](https://img.shields.io/badge/docs-nexgen-3b82f6)](https://your-org.github.io/nexgen)
+[![Documentation](https://img.shields.io/badge/docs-nexgen-3b82f6)](https://niyam.github.io/nexgen)
 [![npm](https://img.shields.io/npm/v/create-nexgen)](https://www.npmjs.com/package/create-nexgen)
 
 ## Features
@@ -34,7 +34,7 @@ npm run maker dev
 
 ## Documentation
 
-Read the full documentation at **[https://your-org.github.io/nexgen](https://your-org.github.io/nexgen)**
+Read the full documentation at **[https://niyam.github.io/nexgen](https://niyam.github.io/nexgen)**
 
 - [Architecture](/guide/architecture)
 - [CLI Reference](/cli/reference)

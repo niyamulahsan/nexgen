@@ -427,7 +427,7 @@ supervisord
   └─ maker schedule:work      → Cron scheduler
 ```
 
-See the [deploy documentation](https://your-org.github.io/nexgen/deploy/overview) for full details.
+See the [deploy documentation](https://niyamulahsan.github.io/nexgen/deploy/overview) for full details.
 
 ## Optional Packages
 
@@ -444,4 +444,4 @@ npx playwright install chromium
 
 ## Full Documentation
 
-Complete documentation is available at **[https://your-org.github.io/nexgen](https://your-org.github.io/nexgen)**
+Complete documentation is available at **[https://niyamulahsan.github.io/nexgen](https://niyamulahsan.github.io/nexgen)**

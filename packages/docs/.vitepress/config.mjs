@@ -1,6 +1,7 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
+  base: "/nexgen/",
   title: "Nexgen",
   description: "Full-stack TypeScript framework with Hono, Vue 3, and Drizzle ORM",
   themeConfig: {
@@ -46,7 +47,7 @@ export default defineConfig({
       ],
     },
     socialLinks: [
-      { icon: "github", link: "https://github.com/your-org/nexgen" },
+      { icon: "github", link: "https://github.com/niyamulahsan/nexgen" },
     ],
     footer: {
       message: "Built with nexgen",
