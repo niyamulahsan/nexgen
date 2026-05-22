@@ -7,8 +7,8 @@
   --vp-layout-max-width: none;
 }
 
-.VPNavBar:not(.has-sidebar) .content {
-  padding-right: 32px;
+.VPNavBar.has-sidebar .content-body {
+  padding: 0 32px;
 }
 
 @media (min-width: 1440px) {
@@ -16,6 +16,8 @@
     max-width: 100%;
   }
 }
+
+
 
 .vp-code-group .tabs label {
   display: inline-flex;
