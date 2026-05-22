@@ -25,7 +25,7 @@ cpSync(SRC, DEST, {
     const basename = parts.pop();
     const skipDirs = new Set(["node_modules", "dist"]);
     const skipRootDirs = new Set(["deploy"]);
-    const skipFiles = new Set(["bun.lock", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"]);
+    const skipFiles = new Set(["LICENSE", "bun.lock", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"]);
     const templateIdx = parts.lastIndexOf("template");
     const depth = templateIdx >= 0 ? parts.length - templateIdx : 0;
     return !parts.some((p) => skipDirs.has(p))

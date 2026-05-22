@@ -86,33 +86,101 @@ pgadmin              dpage/pgadmin4       —                   Postgres admin U
 
 All database/Redis containers are reachable from the app container by hostname (`mysql-global:3306`, `redis-global:6379`, etc.) via the `infra` network.
 
-### Dev mode
+### Dev mode (Docker Desktop)
+
+If you don't have MySQL, PostgreSQL, or Redis installed locally, use this workflow to run all infrastructure in Docker Desktop while developing on your host machine.
+
+#### Generate dev server config
+
+This generates server infra files with Redis port exposed to the host:
 
 ::: code-group
 
 ```bash [npm]
 npm run maker deploy:create:server:dev
-npm run maker deploy:server
 ```
 
 ```bash [pnpm]
 pnpm maker deploy:create:server:dev
-pnpm maker deploy:server
 ```
 
 ```bash [yarn]
 yarn maker deploy:create:server:dev
-yarn maker deploy:server
 ```
 
 ```bash [bun]
 bun maker deploy:create:server:dev
+```
+
+:::
+
+The `--dev` flag (applied automatically by this command) exposes these ports to your host:
+
+| Container | Host Port | Default | Purpose |
+|---|---|---|---|
+| `mysql-global` | 3306 | `0.0.0.0:3306` | Connect via any MySQL client |
+| `postgres-global` | 5432 | `0.0.0.0:5432` | Connect via any Postgres client |
+| `redis-global` | 6379 | `0.0.0.0:6379` | Connect via RedisInsight, redis-cli, etc. |
+
+#### Start server infra
+
+::: code-group
+
+```bash [npm]
+npm run maker deploy:server
+```
+
+```bash [pnpm]
+pnpm maker deploy:server
+```
+
+```bash [yarn]
+yarn maker deploy:server
+```
+
+```bash [bun]
 bun maker deploy:server
 ```
 
 :::
 
-Dev mode exposes Redis on port 6379 so you can connect with local tools like RedisInsight.
+#### Configure your local `.env`
+
+Point your local `.env` to `localhost` so your dev server connects to Docker containers:
+
+```env
+DATABASE_URL=mysql://root:password@localhost:3306/nexgen
+REDIS=true
+REDIS_URL=redis://localhost:6379
+```
+
+Or for PostgreSQL:
+
+```env
+DATABASE_URL=postgres://postgres:password@localhost:5432/nexgen
+```
+
+#### Develop normally
+
+Now run `maker dev` as usual — your local API server connects to the Docker-hosted database and Redis:
+
+```
+Your Machine (host)                Docker Desktop
+     │                                   │
+     │  maker dev                        │
+     │  ├─ serve (port 3000) ──┐         │
+     │  ├─ queue:work          │         │
+     │  └─ frontend:dev        │         │
+     │                         │         │
+     │  localhost:3306 ────────┼────────>│ mysql-global
+     │  localhost:6379 ────────┼────────>│ redis-global
+     │  localhost:5432 ────────┼────────>│ postgres-global
+     │                         │         │
+     │  RedisInsight ──────────┼────────>│ redis-global
+     │  TablePlus / DBeaver ───┼────────>│ mysql-global / postgres-global
+```
+
+This way you don't need to install or manage databases on your host — Docker handles everything, and you still get hot-reload and local debugging from your IDE.
 
 ## Step 3 — Build and Start the App
 
