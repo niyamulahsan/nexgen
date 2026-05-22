@@ -1,6 +1,6 @@
 <template>
   <Pagebar title="Dashboard" />
-  <Refresh @click="hardRefresh" />
+  <!-- <Refresh @click="hardRefresh" /> -->
 
   <div class="dashboard-placeholder">
     <div class="row g-2 mb-2">
@@ -45,7 +45,7 @@ onUnmounted(() => {
   unsubscribe?.();
 });
 
-const hardRefresh = () => window.location.reload();
+// const hardRefresh = () => window.location.reload();
 </script>
 
 <style scoped>
