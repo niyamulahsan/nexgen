@@ -6,6 +6,7 @@ export default defineConfig({
   description: "Full-stack TypeScript framework with Hono, Vue 3, and Drizzle ORM",
   themeConfig: {
     nav: [
+      { text: "Home", link: "/" },
       { text: "Guide", link: "/guide/getting-started" },
       { text: "CLI", link: "/cli/reference" },
       { text: "Deploy", link: "/deploy/overview" },
