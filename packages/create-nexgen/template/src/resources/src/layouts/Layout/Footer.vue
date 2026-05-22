@@ -3,7 +3,7 @@
   <footer
     class="d-flex flex-column flex-sm-row row-gap-2 align-items-center justify-content-center justify-content-sm-between py-3 fst-italic">
     <div class="text-secondary">
-      © authstation.com {{ startYear }} - {{ currentYear }} ❤️ created by
+      © nexgen {{ startYear }} - {{ currentYear }} ❤️ created by
       <a href="#" target="_blank" class="text-decoration-none">niYam</a>
     </div>
     <div class="d-block">
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-const startYear: number = 2025;
+const startYear: number = 2026;
 const currentYear: number = new Date().getFullYear();
 </script>
 
