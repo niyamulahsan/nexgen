@@ -11,9 +11,9 @@
           <i class="bi bi-layout-text-sidebar-reverse"></i>
         </button>
         <div id="pagebar" class="card card-body nav-card order-5 order-sm-1"></div>
-        <button id="refresh" type="button" class="nav-btn order-3 order-sm-2" aria-label="button">
+        <!-- <button id="refresh" type="button" class="nav-btn order-3 order-sm-2" aria-label="button">
           <i class="bi bi-arrow-repeat"></i>
-        </button>
+        </button> -->
         <div class="btn-group order-4 order-sm-3">
           <button
             type="button"
