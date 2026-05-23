@@ -174,4 +174,7 @@ export function registerDbCommands(program, rawArgs) {
   cmd("check", "Run drizzle-kit check after schema discovery");
   cmd("studio", "Open Drizzle Studio after schema discovery", [{ flag: "--quiet", description: "Suppress output" }]);
   cmd("module:seed", "Run seeders for a specific module");
+  cmd("reset", "Drop all tables (wipe database)");
+  cmd("wipe", "Drop all tables (wipe database)");
+  cmd("migrate:reset", "Drop all tables (wipe database)");
 }
