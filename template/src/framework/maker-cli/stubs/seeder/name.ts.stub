@@ -1,6 +1,8 @@
 import { db } from "@/framework/facade.js";
 import { {{tableVariable}} } from "@/modules/{{module}}/database/models/{{name}}.js";
 
+export const table = {{tableVariable}};
+
 export default async function {{ClassName}}Seeder() {
   const rows = [
     // Add your seed data here

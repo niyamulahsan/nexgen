@@ -3,6 +3,8 @@ import { db, password } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
 import { users } from "@/modules/auth/database/models/user.js";
 
+export const table = users;
+
 export default async function UserSeeder() {
   const adminRole = await db.query.roles.findFirst({ where: eq(roles.name, "admin") });
   const userRole = await db.query.roles.findFirst({ where: eq(roles.name, "user") });

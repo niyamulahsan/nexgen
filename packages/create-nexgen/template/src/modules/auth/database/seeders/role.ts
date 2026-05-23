@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
 
+export const table = roles;
+
 export default async function RoleSeeder() {
   const rows = [
     { name: "admin" },
