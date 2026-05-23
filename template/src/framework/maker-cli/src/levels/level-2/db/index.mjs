@@ -4,6 +4,10 @@ import { assertName as assertNameLeaf } from "../../level-1/naming.mjs";
 import { showHelp } from "../../level-1/help.mjs";
 import { packageScript, runNodeScript } from "../../level-1/process.mjs";
 
+async function runMigrationHooks() {
+  await runNodeScript(packageScript("tsx", "dist/cli.mjs"), ["src/framework/database/migrate-hooks.ts"]);
+}
+
 let args = [];
 let command = "", firstArg = "", secondArg = "";
 let dbProgram = null;
@@ -32,6 +36,7 @@ async function handleFresh() {
   await generateSchema();
   await runNodeScript(packageScript("drizzle-kit", "bin.cjs"), await drizzleGenerateArgs());
   await runNodeScript(packageScript("drizzle-kit", "bin.cjs"), ["migrate"]);
+  await runMigrationHooks();
   if (args.includes("--seed")) await runSeed();
 }
 
@@ -78,6 +83,7 @@ const handlers = {
       );
     }
     await runNodeScript(packageScript("drizzle-kit", "bin.cjs"), ["migrate"]);
+    await runMigrationHooks();
     if (args.includes("--seed")) await runSeed();
   },
 
@@ -85,6 +91,7 @@ const handlers = {
     await generateSchema();
     await ensureDatabaseExists();
     await runNodeScript(packageScript("drizzle-kit", "bin.cjs"), ["migrate"]);
+    await runMigrationHooks();
   },
 
   fresh: handleFresh,

@@ -33,7 +33,8 @@ Runs in order:
 2. Generates `src/database/schema.ts` from module models
 3. Generates migration `.sql` files via Drizzle Kit
 4. Applies pending migrations to the database
-5. Runs seeders (if `--seed`)
+5. Runs model migration hooks from `src/framework/database/migrate-hooks.ts`
+6. Runs seeders (if `--seed`)
 
 If you delete migration files while the database still has tables, the command detects this and throws:
 
@@ -58,6 +59,8 @@ bun maker db:migrate:run
 
 Applies existing migration files without regenerating schema or migrations. Used when you pulled migration files from a teammate.
 
+After migrations are applied, this command also executes model migration hooks.
+
 ### `db:fresh` — Full Rebuild
 
 ```bash
@@ -71,7 +74,8 @@ Drops and recreates the database, then regenerates everything:
 3. Generates schema
 4. Generates migration files
 5. Runs migrations
-6. Runs seeders (if `--seed`)
+6. Runs model migration hooks
+7. Runs seeders (if `--seed`)
 
 Use this when:
 - Migration files were deleted or corrupted
@@ -185,6 +189,49 @@ export const usersRelations = relations(users, ({ one }) => ({
   role: one(roles, { fields: [users.roleId], references: [roles.id] })
 }));
 ```
+
+## Migration Hooks
+
+When you need DB-specific raw SQL per table, export a hook object from that model file. This is useful for advanced indexes, generated columns, and database extensions.
+
+Hook runner location:
+
+- `src/framework/database/migrate-hooks.ts`
+
+Auto-run commands:
+
+- `bun maker db:migrate`
+- `bun maker db:migrate:run`
+- `bun maker db:fresh`
+
+Model example:
+
+```ts
+export const rolesMigrationSql = {
+  __migrationSql: true,
+  postgresql: [
+    "CREATE EXTENSION IF NOT EXISTS pg_trgm",
+    "CREATE INDEX IF NOT EXISTS roles_name_trgm_idx ON roles USING GIN (name gin_trgm_ops)"
+  ],
+  mysql: [
+    "CREATE INDEX roles_name_idx ON roles (name)"
+  ],
+  sqlite: [
+    "CREATE INDEX IF NOT EXISTS roles_name_idx ON roles (name)"
+  ]
+};
+```
+
+### Dialect Setup
+
+- **PostgreSQL (`postgresql`)**
+  - Use PostgreSQL-only SQL: `CREATE EXTENSION`, `GENERATED ALWAYS AS (...) STORED`, `GIN + pg_trgm`, partial/expression indexes.
+- **MySQL (`mysql`)**
+  - Use MySQL-compatible SQL: btree/fulltext/generated columns based on your MySQL version.
+- **SQLite (`sqlite`)**
+  - Use SQLite-compatible SQL: typically simple `CREATE INDEX IF NOT EXISTS ...` statements.
+
+This keeps schema generation automatic while allowing Laravel-style per-table raw SQL where needed.
 
 ## Seeder Files
 
@@ -328,5 +375,3 @@ All three return the same structure:
 ```
 
 The response includes complete pagination metadata so frontend clients can build page navigation without additional server calls.
-
-
