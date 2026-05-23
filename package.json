@@ -9,5 +9,6 @@
     "docs:preview": "npm -C packages/docs run preview",
     "prepublish:cli": "npm run sync:template",
     "publish:cli": "cd packages/create-nexgen && npm publish"
-  }
+  },
+  "version": "0.0.1"
 }
