@@ -126,7 +126,7 @@ async function controllerFiles(moduleName, controllerName = moduleName, options 
 async function routeTemplate(moduleName, controllerName = moduleName) {
   const controller = controllerName.trim().toLowerCase();
   const routeStub = openApiEnabled() ? STUBS.route.api : STUBS.route.plain;
-  return await stub(routeStub, { module: moduleName, controller, ClassName: pascal(controller) });
+  return await stub(routeStub, { module: moduleName, controller, ClassName: pascal(controller), ModuleClass: pascal(moduleName) });
 }
 
 /** Generate a named model file for a module. */
