@@ -398,8 +398,8 @@ export const refreshToken: Handler = async (c: any) => {
       })
       .where(eq(refreshTokens.id, storedToken.id));
 
-    cookie.setAuth(c, accessToken.token);
-    cookie.setRefresh(c, newRefreshToken.token, refreshExpiry);
+    await cookie.setAuth(c, accessToken.token);
+    await cookie.setRefresh(c, newRefreshToken.token, refreshExpiry);
 
     return c.json(
       {

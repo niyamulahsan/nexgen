@@ -54,7 +54,7 @@ export function hashEmailVerificationToken(token: string) {
  * Where: Called by register/login/logout flows.
  */
 export async function revokeCurrentRefreshToken(c: any) {
-  const token = cookie.getRefresh(c);
+  const token = await cookie.getRefresh(c);
   if (!token) return;
 
   const payload = await jwt.verifyToken(token, "refresh");
@@ -103,8 +103,8 @@ export async function issueTokens(c: any, user: any, options?: { remember?: bool
     });
   }
 
-  cookie.setAuth(c, accessToken.token);
-  cookie.setRefresh(c, refreshToken.token, refreshExpiry);
+  await cookie.setAuth(c, accessToken.token);
+  await cookie.setRefresh(c, refreshToken.token, refreshExpiry);
 
   return { accessToken: accessToken.token, refreshToken: refreshToken.token };
 }

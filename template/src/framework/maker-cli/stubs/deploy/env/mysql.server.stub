@@ -40,6 +40,9 @@ JWT_REFRESH_REMEMBER_EXPIRY=604800
 # ── Session / Cookie ───────────────────────────────
 COOKIE_NAME={{COOKIE_NAME}}
 COOKIE_SECRET={{COOKIE_SECRET}}
+SESSION_COOKIE={{SESSION_COOKIE}}
+SESSION_TTL_SECONDS={{SESSION_TTL_SECONDS}}
+CACHE_TTL_SECONDS={{CACHE_TTL_SECONDS}}
 
 # ── Redis ──────────────────────────────────────────
 # Enables/disables cache, session, queue, events, BullBoard (all Redis-backed services)
@@ -48,11 +51,6 @@ REDIS_URL=redis://redis-global:6379
 REDIS_PREFIX={{REDIS_PREFIX}}
 # Comma-separated emails allowed to open /bullmq (empty = no email restriction)
 BULLMQ_UI_ALLOWED_EMAILS=admin@example.com
-
-# ── Session / Cache TTL ────────────────────────────
-SESSION_COOKIE={{SESSION_COOKIE}}
-SESSION_TTL_SECONDS={{SESSION_TTL_SECONDS}}
-CACHE_TTL_SECONDS={{CACHE_TTL_SECONDS}}
 
 # ── Feature Toggles ────────────────────────────────
 # Enable/disable frontend build and serving. Set false for API-only mode

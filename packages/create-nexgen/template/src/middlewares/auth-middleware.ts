@@ -4,7 +4,7 @@ import { cookie, db, jwt } from "@/framework/facade.js";
 import { refreshTokens, users } from "@/modules/auth/database/models/user.js";
 
 export async function authMiddleware(c: Context, next: Next) {
-  const accessToken = cookie.getAuth(c);
+  const accessToken = await cookie.getAuth(c);
 
   if (accessToken) {
     const accessPayload = await jwt.verifyToken(accessToken, "access");
@@ -32,7 +32,7 @@ export async function authMiddleware(c: Context, next: Next) {
     }
   }
 
-  const refreshToken = cookie.getRefresh(c);
+  const refreshToken = await cookie.getRefresh(c);
 
   if (!refreshToken) {
     cookie.deleteAuth(c);
@@ -86,7 +86,7 @@ export async function authMiddleware(c: Context, next: Next) {
     "access"
   );
 
-  cookie.setAuth(c, newAccessToken.token);
+  await cookie.setAuth(c, newAccessToken.token);
   c.set("auth", {
     id: user.id,
     email: user.email,

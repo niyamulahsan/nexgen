@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { env } from "@/env.js";
 
 const baseOptions = {
@@ -16,8 +16,8 @@ export const cookie = {
    * Where: Auth controllers/helpers.
    * How: Sets httpOnly cookie with configured access expiry.
    */
-  setAuth(c: Context, token: string) {
-    setCookie(c, `${env.COOKIE_NAME}_access`, token, {
+  async setAuth(c: Context, token: string) {
+    await setSignedCookie(c, `${env.COOKIE_NAME}_access`, token, env.COOKIE_SECRET, {
       ...baseOptions,
       maxAge: env.JWT_ACCESS_EXPIRY
     });
@@ -29,8 +29,8 @@ export const cookie = {
    * Where: Auth controllers/helpers.
    * How: Sets httpOnly cookie with explicit or default refresh maxAge.
    */
-  setRefresh(c: Context, token: string, maxAge?: number) {
-    setCookie(c, `${env.COOKIE_NAME}_refresh`, token, {
+  async setRefresh(c: Context, token: string, maxAge?: number) {
+    await setSignedCookie(c, `${env.COOKIE_NAME}_refresh`, token, env.COOKIE_SECRET, {
       ...baseOptions,
       maxAge: typeof maxAge === "number" ? maxAge : env.JWT_REFRESH_EXPIRY
     });
@@ -42,8 +42,9 @@ export const cookie = {
    * Where: Middleware and auth helpers.
    * How: Resolves cookie by configured access cookie name.
    */
-  getAuth(c: Context) {
-    return getCookie(c, `${env.COOKIE_NAME}_access`);
+  async getAuth(c: Context) {
+    const token = await getSignedCookie(c, env.COOKIE_SECRET, `${env.COOKIE_NAME}_access`);
+    return token || undefined;
   },
 
   /**
@@ -52,8 +53,9 @@ export const cookie = {
    * Where: Auth middleware/controllers.
    * How: Resolves cookie by configured refresh cookie name.
    */
-  getRefresh(c: Context) {
-    return getCookie(c, `${env.COOKIE_NAME}_refresh`);
+  async getRefresh(c: Context) {
+    const token = await getSignedCookie(c, env.COOKIE_SECRET, `${env.COOKIE_NAME}_refresh`);
+    return token || undefined;
   },
 
   /**

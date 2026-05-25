@@ -1,1 +1,0 @@
-import{A as e,C as t,D as n,N as r,O as i,_ as a}from"./index-Bleyx5dm.js";import{t as o}from"./admin-ui-CU34rLdN.js";var s=t({__name:`AuthLayout`,setup(t){let s=o();return i(()=>{s.initTheme()}),n(()=>{s.cleanupTheme()}),(t,n)=>{let i=r(`router-view`);return e(),a(i)}}});export{s as default};

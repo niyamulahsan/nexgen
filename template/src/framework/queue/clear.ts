@@ -1,4 +1,4 @@
-import { initRedis, redisError, redisReady } from "@/framework/redis/client.js";
+import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
 import { logger } from "@/framework/support/logger.js";
 import { clearQueue } from "@/framework/queue/queue.js";
 
@@ -18,3 +18,5 @@ if (!redisReady()) {
 
 await clearQueue();
 console.log("Queue cleared");
+await closeRedis();
+process.exit(0);
