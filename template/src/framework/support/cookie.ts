@@ -2,12 +2,31 @@ import type { Context } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { env } from "@/env.js";
 
-const baseOptions = {
-  httpOnly: true,
-  secure: false,
-  sameSite: "Lax" as const,
-  path: "/"
-};
+function originOf(url?: string) {
+  if (!url) return "";
+  try {
+    return new URL(url).origin;
+  } catch {
+    return "";
+  }
+}
+
+function needsCrossSiteCookie() {
+  const appOrigin = originOf(env.APP_URL);
+  const frontendOrigin = originOf(env.FRONTEND_URL);
+  return Boolean(appOrigin && frontendOrigin && appOrigin !== frontendOrigin);
+}
+
+function baseOptions() {
+  const crossSiteCookie = needsCrossSiteCookie();
+  const sameSite: "None" | "Lax" = crossSiteCookie ? "None" : "Lax";
+  return {
+    httpOnly: true,
+    secure: crossSiteCookie,
+    sameSite,
+    path: "/"
+  };
+}
 
 export const cookie = {
   /**
@@ -18,7 +37,7 @@ export const cookie = {
    */
   async setAuth(c: Context, token: string) {
     await setSignedCookie(c, `${env.COOKIE_NAME}_access`, token, env.COOKIE_SECRET, {
-      ...baseOptions,
+      ...baseOptions(),
       maxAge: env.JWT_ACCESS_EXPIRY
     });
   },
@@ -31,7 +50,7 @@ export const cookie = {
    */
   async setRefresh(c: Context, token: string, maxAge?: number) {
     await setSignedCookie(c, `${env.COOKIE_NAME}_refresh`, token, env.COOKIE_SECRET, {
-      ...baseOptions,
+      ...baseOptions(),
       maxAge: typeof maxAge === "number" ? maxAge : env.JWT_REFRESH_EXPIRY
     });
   },
