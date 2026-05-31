@@ -349,14 +349,10 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
     clearErrors,
     reset,
     submit,
-    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("post", url, payload, options),
-    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("put", url, payload, options),
-    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("patch", url, payload, options),
-    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("delete", url, payload, options)
+    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("post", url, payload, options),
+    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("put", url, payload, options),
+    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("patch", url, payload, options),
+    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("delete", url, payload, options)
   };
 }
 
