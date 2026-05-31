@@ -1,5 +1,5 @@
 import type { App } from "vue";
-import { computed, reactive, ref, toRaw } from "vue";
+import { computed, nextTick, reactive, ref, toRaw } from "vue";
 import { useStorage } from "@vueuse/core";
 import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
 import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
@@ -14,6 +14,7 @@ type GumVisitOptions = {
   method?: GumMethod;
   data?: Record<string, unknown> | FormData;
   query?: Record<string, unknown>;
+  routePath?: string;
   replace?: boolean;
   preserveState?: boolean;
   preserveScroll?: boolean;
@@ -21,18 +22,43 @@ type GumVisitOptions = {
   onStart?: () => void;
   onProgress?: (event: AxiosProgressEvent) => void;
   onSuccess?: (response: AxiosResponse) => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (errors: NormalizedErrors, error: AxiosError) => void;
   onFinish?: () => void;
 };
 
 type FormMethod = "post" | "put" | "patch" | "delete";
 type FormErrors<T> = Partial<Record<keyof T | string, string>>;
+type NormalizedErrors = Record<string, string[] | string>;
 type FormSubmitOptions = {
   onStart?: () => void;
   onSuccess?: () => void;
-  onError?: (error: AxiosError) => void;
+  onError?: (errors: NormalizedErrors, error: AxiosError) => void;
   onFinish?: () => void;
 };
+
+type ValidationErrorPayload = {
+  errors?: Record<string, string[] | string>;
+  error?: {
+    issues?: Array<{
+      path?: Array<string | number>;
+      message?: string;
+    }>;
+  };
+};
+
+function normalizeValidationErrors(payload?: ValidationErrorPayload): NormalizedErrors {
+  const normalized: NormalizedErrors = { ...(payload?.errors || {}) };
+
+  const issues = payload?.error?.issues;
+  if (Array.isArray(issues)) {
+    issues.forEach((issue) => {
+      const key = issue.path?.map(String).join(".");
+      if (key) normalized[key] = String(issue.message || "Invalid value");
+    });
+  }
+
+  return normalized;
+}
 
 const config: Required<GumPluginOptions> = {
   rememberPrefix: "gum",
@@ -108,6 +134,7 @@ export function useGum() {
       method = "get",
       data,
       query,
+      routePath,
       replace = false,
       preserveState = method !== "get",
       preserveScroll = false,
@@ -136,10 +163,11 @@ export function useGum() {
       });
 
       if (method === "get") {
-        if (!preserveState) clearRememberForPath(url);
+        const targetRoutePath = routePath ?? route.path;
+        if (!preserveState) clearRememberForPath(targetRoutePath);
 
         const payload = {
-          path: url,
+          path: targetRoutePath,
           query: (query ?? route.query) as LocationQueryRaw
         };
 
@@ -150,12 +178,16 @@ export function useGum() {
       onSuccess?.(response);
       return response;
     } catch (error) {
-      onError?.(error as AxiosError);
+      const err = error as AxiosError<ValidationErrorPayload>;
+      onError?.(normalizeValidationErrors(err.response?.data), error as AxiosError);
       throw error;
     } finally {
       processing.value = false;
       onFinish?.();
-      if (preserveScroll) window.scrollTo({ top: scrollY });
+      if (preserveScroll) {
+        await nextTick();
+        requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
+      }
     }
   }
 
@@ -289,14 +321,14 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
       onSuccess?.();
       return response;
     } catch (error) {
-      const err = error as AxiosError<{ errors?: Record<string, string[] | string> }>;
-      const serverErrors = err.response?.data?.errors;
-      if (serverErrors) {
-        Object.entries(serverErrors).forEach(([key, value]) => {
-          errors[String(key)] = Array.isArray(value) ? value[0] : value;
-        });
-      }
-      onError?.(error as AxiosError);
+      const err = error as AxiosError<ValidationErrorPayload>;
+      const normalizedErrors = normalizeValidationErrors(err.response?.data);
+
+      Object.entries(normalizedErrors).forEach(([key, value]) => {
+        errors[String(key)] = Array.isArray(value) ? value[0] : value;
+      });
+
+      onError?.(normalizedErrors, error as AxiosError);
       throw error;
     } finally {
       processing.value = false;

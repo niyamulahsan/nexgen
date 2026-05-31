@@ -81,6 +81,7 @@
 <script setup lang="ts">
 import { reactive, computed, watchEffect } from "vue";
 import { useGum } from "@/composables/useGum";
+import { useRoute } from "vue-router";
 import { formatCompactNumber } from "@/helpers/nformatter";
 import Input from "../Input.vue";
 
@@ -102,6 +103,7 @@ const props = withDefaults(defineProps<PaginationProps>(), {
   search: ""
 });
 const gum = useGum();
+const route = useRoute();
 
 const page = reactive({ page: 1, from: 0, to: 0, total: 0 });
 
@@ -122,6 +124,7 @@ const loadPage = (pageNo: string | number) => {
 
   return gum.get(props.data.path, {
     query: { page: p, size: props.selectedoption, search: props.search },
+    routePath: route.path,
     preserveState: true,
     preserveScroll: true
   });

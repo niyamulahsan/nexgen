@@ -26,7 +26,14 @@ export default defineConfig({
         { text: "Cache", link: "/guide/cache" },
         { text: "Session", link: "/guide/session" },
         { text: "Authentication", link: "/guide/auth" },
-        { text: "Resources", link: "/guide/resources" },
+        {
+          text: "Resources",
+          collapsed: false,
+          items: [
+            { text: "Overview", link: "/guide/resources/" },
+            { text: "Gum", link: "/guide/resources/gum" },
+          ],
+        },
         {
           text: "Support",
           collapsed: true,

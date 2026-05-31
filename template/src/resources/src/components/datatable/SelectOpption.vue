@@ -14,8 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useGum } from "@/composables/useGum";
+import { useRoute } from "vue-router";
 
 interface DataPage {
   path: string;
@@ -36,15 +37,22 @@ const props = withDefaults(defineProps<SelectOptionProps>(), {
   option: () => []
 });
 const gum = useGum();
+const route = useRoute();
 
 // select option and pass SelectOption component
 const selectedoption = ref<string | number | undefined>(props.selectedoption);
+
+watch(() => props.selectedoption, (value) => {
+  selectedoption.value = value;
+});
+
 const selectOption = (e: Event) => {
   const target = e.target as HTMLSelectElement;
   selectedoption.value = target.value;
 
   return gum.get(props.data.path, {
     query: { page: props.data.current_page, size: selectedoption.value, search: props.search },
+    routePath: route.path,
     preserveState: true,
     preserveScroll: true
   });

@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { Modal } from "bootstrap";
+import Modal from "bootstrap/js/dist/modal.js";
 
 type ModalSize = "sm" | "md" | "lg" | "xl" | string;
 

@@ -336,163 +336,18 @@ onUnmounted(() => {
 
 ### Gum (Page Visits & Forms)
 
-Gum provides an **Inertia-like API** for programmatic page visits and form handling using axios and Vue Router. It handles navigation, loading state, validation errors, upload progress, and persistent page state.
+Gum provides the frontend's Inertia-style visit layer for axios requests, Vue Router query updates, scroll preservation, form state, and remembered local UI state.
 
-```ts
-import { useGum, useGumForm, useGumRemember } from "@/plugins/gum";
-```
+Use it for:
 
-#### `useGum()` — Page Visits
+- paginated listing pages with reload-safe query params
+- search/filter/sort visits
+- `preserveScroll` table interactions
+- create/update/delete request lifecycle hooks
+- form processing, validation errors, and upload progress
+- local UI state through `useGumRemember()`
 
-Use for GET requests that navigate, or for data mutations that don't need form state tracking.
-
-```ts
-const { processing, visit, get, post, put, patch, delete: del, reload } = useGum();
-```
-
-| Return | Purpose |
-|---|---|
-| `processing` | Ref — `true` while a request is in flight |
-| `visit(url, options)` | Core method — send any HTTP method with full options |
-| `get(url, options)` | GET request + navigates to the URL |
-| `post(url, data, options)` | POST request with body data |
-| `put(url, data, options)` | PUT request with body data |
-| `patch(url, data, options)` | PATCH request with body data |
-| `delete(url, options)` | DELETE request |
-| `reload(options)` | Re-fetch the current page (preserves query) |
-
-**`visit` options:**
-
-| Option | Type | Default | Purpose |
-|---|---|---|---|
-| `method` | `"get" \| "post" \| "put" \| "patch" \| "delete"` | `"get"` | HTTP method |
-| `data` | `object \| FormData` | — | Request body (for non-GET) |
-| `query` | `object` | — | Query params appended to URL |
-| `replace` | `boolean` | `false` | Use `router.replace()` instead of `router.push()` |
-| `preserveState` | `boolean` | `true` for GET, else `false` | Keep remembered state across navigation |
-| `preserveScroll` | `boolean` | `false` | Restore scroll position after navigation |
-| `onBefore` | `() => boolean \| void` | — | Return `false` to cancel the visit |
-| `onStart` | `() => void` | — | Called when request begins |
-| `onProgress` | `(event) => void` | — | Upload progress events |
-| `onSuccess` | `(response) => void` | — | Called on 2xx response |
-| `onError` | `(error) => void` | — | Called on failure |
-| `onFinish` | `() => void` | — | Called in both success and error |
-
-```ts
-const { get, post, processing } = useGum();
-
-// GET — navigate to posts index
-await get("/posts");
-
-// GET with query params and state preservation
-await get("/posts", { query: { page: 2, search: "vue" }, preserveState: true });
-
-// POST — create a resource without navigating
-await post("/api/posts", { title: "Hello", body: "World" }, {
-  onSuccess: () => showToast("Created!"),
-  onError: (err) => console.error(err),
-});
-
-// DELETE with confirmation
-async function deletePost(id: number) {
-  const confirmed = await dialog.confirm("Delete this post?");
-  if (!confirmed) return;
-  await del(`/api/posts/${id}`, { onSuccess: () => fetchPosts() });
-}
-
-// Reload current page
-await reload({ preserveScroll: true });
-```
-
-#### `useGumForm()` — Form Handling
-
-Use for forms that need validation error tracking, dirty detection, and upload progress.
-
-```ts
-const form = useGumForm({ title: "", body: "", category: "general" });
-```
-
-| Return | Purpose |
-|---|---|
-| `form.data` | Reactive form values — mutate directly with `form.data.title = "New"` |
-| `form.errors` | Reactive validation errors keyed by field name (from server 422 or manual) |
-| `form.progress` | Upload progress percentage (0–100), `null` when idle |
-| `form.processing` | `true` while the form is submitting |
-| `form.wasSuccessful` | `true` after a successful submission |
-| `form.recentlySuccessful` | `true` for 2 seconds after success (useful for showing a brief checkmark) |
-| `form.isDirty` | Computed — `true` if any field differs from initial values |
-| `form.setError(field, message)` | Manually set a validation error for a field |
-| `form.clearErrors(...fields)` | Clear all errors, or specific fields if provided |
-| `form.reset(...fields)` | Reset form to initial values — all fields, or specific ones |
-| `form.submit(method, url, payload?, options?)` | Core method — submit with any HTTP method |
-
-**Shorthand submit methods:**
-
-| Method | Purpose |
-|---|---|
-| `form.post(url, payload?, options?)` | POST submit |
-| `form.put(url, payload?, options?)` | PUT submit |
-| `form.patch(url, payload?, options?)` | PATCH submit |
-| `form.delete(url, payload?, options?)` | DELETE submit |
-
-```ts
-const form = useGumForm({ email: "", password: "" });
-
-async function handleLogin() {
-  await form.post("/api/auth/login", undefined, {
-    onSuccess: () => router.push("/dashboard"),
-    onError: (err) => console.error("Login failed", err),
-  });
-}
-```
-
-```vue
-<template>
-  <form @submit.prevent="handleLogin">
-    <Input v-model="form.data.email" label="Email" :error="form.errors.email" />
-    <InputPasswordToggle v-model="form.data.password" label="Password" :error="form.errors.password" />
-    <Button label="Sign In" type="submit" :loading="form.processing" block />
-  </form>
-</template>
-```
-
-**Upload with progress:**
-
-```ts
-const uploadForm = useGumForm({ file: null as File | null });
-
-async function handleUpload() {
-  const fd = new FormData();
-  fd.append("file", uploadForm.data.file!);
-
-  await uploadForm.post("/api/upload", fd, {
-    onProgress: (event) => console.log(`${uploadForm.progress}%`),
-    onSuccess: () => showToast("Uploaded!"),
-  });
-}
-```
-
-#### `useGumRemember()` — Persistent Page State
-
-Persist page-local UI state (filters, search terms, tab selection) across navigations and reloads using localStorage.
-
-```ts
-// src/pages/posts/index.vue
-const search = useGumRemember("posts:search", "");
-const activeTab = useGumRemember("posts:tab", "published");
-const page = useGumRemember("posts:page", 1);
-
-// These values survive:
-// - navigating away and pressing "Back"
-// - page reload
-// - programmatic visits with preserveState: true
-```
-
-| Return | Purpose |
-|---|---|
-| `useGumRemember(key, initial)` | Returns a ref-like value persisted to localStorage under `gum:<key>`. Merges defaults on first access. |
-
-The state is automatically cleared on GET visits that do not set `preserveState: true`. This mirrors Inertia's `preserveState: false` behavior.
+See the dedicated [Gum guide](/guide/resources/gum) for complete examples.
 
 ### Dialog
 
@@ -618,42 +473,37 @@ interface PaginatedData {
 
 ```vue
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
 import DataTable from "@/components/datatable/index.vue";
-import { useGum } from "@/plugins/gum";
+import { usePostsStore } from "@/stores/posts";
 
-const { get, processing } = useGum();
+const route = useRoute();
+const store = usePostsStore();
+const { posts } = storeToRefs(store);
 
-interface Post {
-  id: number;
-  title: string;
-  author: string;
-  created_at: string;
-}
+const search = computed(() => String(route.query.search || ""));
 
-const pageData = reactive<{ data: Post[]; current_page: number; last_page: number; per_page: number; total: number; path: string }>({
-  data: [],
-  current_page: 1,
-  last_page: 1,
-  per_page: 10,
-  total: 0,
-  path: "/api/posts"
-});
-
-onMounted(async () => {
-  await get("/api/posts", {
-    query: { page: 1, size: 10 },
-    preserveState: false,
-    onSuccess: (res) => Object.assign(pageData, res.data.posts),
-  });
-});
+watch(
+  () => route.query,
+  async () => {
+    await store.fetchPosts({
+      page: Number(route.query.page || 1),
+      size: Number(route.query.size || 10),
+      search: String(route.query.search || "")
+    });
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <div class="card">
     <div class="card-body">
       <DataTable
-        :data="pageData"
+        :data="posts"
+        :search="search"
         :option="[10, 25, 50, 100]"
         :removable="true"
         :countable="true"
@@ -832,43 +682,61 @@ Theme is managed by `admin-ui` store and toggled via `useAdminUiStore().toggleTh
 
 ```vue
 <script setup lang="ts">
-import { reactive, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { usePostsStore } from "@/stores/posts";
 import { pulse } from "@/plugins/pulse";
-import { useGum } from "@/plugins/gum";
+import { useGum } from "@/composables/useGum";
 
 import Pagebar from "@/components/Pagebar.vue";
 import DataTable from "@/components/datatable/index.vue";
-import Button from "@/components/Button.vue";
 
+const route = useRoute();
 const auth = useAuthStore();
-const { get } = useGum();
+const store = usePostsStore();
+const { posts } = storeToRefs(store);
+const gum = useGum();
 
-const pageData = reactive({
-  data: [] as any[],
-  current_page: 1,
-  last_page: 1,
-  per_page: 10,
-  total: 0,
-  path: "/api/posts"
-});
+const search = computed(() => String(route.query.search || ""));
+
+function queryParams() {
+  return {
+    page: Number(route.query.page || 1),
+    size: Number(route.query.size || 10),
+    search: String(route.query.search || "")
+  };
+}
 
 let channel: any;
 
-onMounted(async () => {
-  await get("/api/posts", {
-    query: { page: 1, size: 10 },
-    preserveState: false,
-    onSuccess: (res) => Object.assign(pageData, res.data.posts),
-  });
+watch(
+  () => route.query,
+  async () => {
+    await store.fetchPosts(queryParams());
+  },
+  { immediate: true }
+);
 
+onMounted(() => {
   if (auth.user) {
     channel = pulse.channel(`user:${auth.user.id}`);
-    channel.listen("post.created", (data: any) => {
-      get("/api/posts", { query: { page: 1, size: pageData.per_page }, preserveState: true });
+    channel.listen("post.created", async () => {
+      await store.fetchPosts(queryParams());
     });
   }
 });
+
+async function remove(ids: number[]) {
+  await gum.delete(`/api/posts/${ids[0]}`, {
+    preserveScroll: true,
+    preserveState: true,
+    onSuccess: async () => {
+      await store.fetchPosts(queryParams());
+    }
+  });
+}
 
 onUnmounted(() => {
   if (channel) {
@@ -884,9 +752,10 @@ onUnmounted(() => {
   <div class="card">
     <div class="card-body">
       <DataTable
-        :data="pageData"
+        :data="posts"
+        :search="search"
         :option="[10, 25, 50]"
-        @remove="(ids) => get('/api/posts/bulk-delete', { data: { ids }, onSuccess: () => get('/api/posts', { query: { page: 1, size: pageData.per_page } }) })">
+        @remove="remove">
         <template #thead>
           <th>Title</th>
           <th>Status</th>

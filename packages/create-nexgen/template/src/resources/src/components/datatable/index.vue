@@ -99,9 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, useSlots, watchEffect } from "vue";
+import { computed, reactive, ref, useSlots, watch, watchEffect } from "vue";
 import { debounce } from "lodash-es";
 import { useGum } from "@/composables/useGum";
+import { useRoute } from "vue-router";
 
 import Checkbox from "../Checkbox.vue";
 import Button from "../Button.vue";
@@ -148,6 +149,7 @@ const props = withDefaults(defineProps<DataTableProps>(), {
   disabled: false
 });
 const gum = useGum();
+const route = useRoute();
 
 const slots = useSlots();
 
@@ -200,6 +202,7 @@ const searchMe = debounce(() => {
       size: selectedoption.value,
       search: searchdata.value
     },
+    routePath: route.path,
     preserveState: true,
     preserveScroll: true
   });
@@ -208,6 +211,10 @@ const searchMe = debounce(() => {
 // watch instantce
 watchEffect(() => {
   selectedoption.value = props.option.find((x) => Number(x) === Number(props.data.per_page));
+});
+
+watch(() => props.search, (value) => {
+  searchdata.value = value || "";
 });
 </script>
 
