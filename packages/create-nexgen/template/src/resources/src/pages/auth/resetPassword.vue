@@ -19,22 +19,22 @@
           <div class="mb-4">
             <Input
               id="password"
-              v-model="form.password"
+              v-model="form.data.password"
               type="password"
               label="new password"
               placeholder="Enter new password..."
-              :err="false"
+              :err="form.errors.password"
               focus
               must />
           </div>
           <div class="mb-4">
             <Input
               id="password_confirmation"
-              v-model="form.password_confirmation"
+              v-model="form.data.password_confirmation"
               type="password"
               label="confirm password"
               placeholder="Confirm new password..."
-              :err="false"
+              :err="form.errors.password_confirmation"
               must />
           </div>
           <Button
@@ -42,7 +42,7 @@
             label="Reset Password"
             class="btn btn-primary d-grid w-100"
             icon="bi bi-key ms-2"
-            :disabled="auth.processing" />
+            :disabled="processing" />
         </form>
         <div class="text-center mt-2">
           <router-link to="/login">
@@ -56,34 +56,30 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useHead } from "@vueuse/head";
 import Input from "../../components/Input.vue";
 import Button from "../../components/Button.vue";
-import { useAuthStore } from "@/stores/auth";
+import { useGumForm } from "@/plugins/gum";
 
 useHead({ title: "Reset Password" });
 
 const route = useRoute();
 const router = useRouter();
-const auth = useAuthStore();
 
-interface ResetPasswordForm {
-  email: string;
-  token: string;
-  password: string;
-  password_confirmation: string;
-}
+const email = String(route.query.email || "");
+const token = String(route.query.token || "");
 
-const form = reactive<ResetPasswordForm>({
-  email: String(route.query.email || ""),
-  token: String(route.query.token || ""),
+const form = useGumForm({
+  email,
+  token,
   password: "",
   password_confirmation: ""
 });
 
-const isLinkValid = !!(form.token && form.email);
+const processing = form.processing;
+const isLinkValid = !!(token && email);
 const message = ref(
   isLinkValid ? "Set your new password" : "Invalid reset link. Please request a new one."
 );
@@ -95,24 +91,28 @@ const onSubmit = async () => {
   message.value = "";
   isError.value = false;
 
-  if (form.password !== form.password_confirmation) {
+  if (form.data.password !== form.data.password_confirmation) {
     isError.value = true;
     message.value = "Password confirmation does not match";
     return;
   }
 
-  try {
-    message.value = await auth.resetPassword({
-      email: form.email.trim(),
-      token: form.token.trim(),
-      password: form.password,
-      password_confirmation: form.password_confirmation
-    });
-    await router.push("/login");
-  } catch (error: unknown) {
-    isError.value = true;
-    message.value = error instanceof Error ? error.message : "Failed to reset password";
-  }
+  await form.post("/api/auth/reset-password", {
+    email: String(form.data.email || "").trim(),
+    token: String(form.data.token || "").trim(),
+    password: form.data.password,
+    password_confirmation: form.data.password_confirmation
+  }, {
+    onSuccess: () => {
+      isError.value = false;
+      message.value = "Password reset successfully. Redirecting to login...";
+      router.push("/login");
+    },
+    onError: (errors, error) => {
+      isError.value = true;
+      message.value = error instanceof Error ? error.message : "Failed to reset password";
+    }
+  });
 };
 </script>
 

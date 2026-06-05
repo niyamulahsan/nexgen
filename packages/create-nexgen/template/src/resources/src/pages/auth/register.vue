@@ -16,43 +16,43 @@
           <div class="mb-4">
             <Input
               id="name"
-              v-model="form.name"
+              v-model="form.data.name"
               type="text"
               label="name"
               placeholder="Enter your name..."
-              :err="false"
+              :err="form.errors.name"
               focus
               must />
           </div>
           <div class="mb-4">
             <Input
               id="email"
-              v-model="form.email"
+              v-model="form.data.email"
               type="email"
               label="email"
               placeholder="Enter your email..."
-              :err="false"
+              :err="form.errors.email"
               must />
           </div>
           <div class="mb-4">
             <InputPasswordToggle
               id="password"
-              v-model="form.password"
+              v-model="form.data.password"
               label="password"
               placeholder="Create a password..."
-              :err="false"
+              :err="form.errors.password"
               must />
           </div>
           <div class="mb-4">
             <InputPasswordToggle
               id="password_confirmation"
-              v-model="form.password_confirmation"
+              v-model="form.data.password_confirmation"
               label="confirm password"
               placeholder="Confirm your password..."
-              :err="false"
+              :err="form.errors.password_confirmation"
               must />
           </div>
-          <button type="submit" class="btn btn-primary w-100" :disabled="auth.processing">
+          <button type="submit" class="btn btn-primary w-100" :disabled="processing">
             <span>Create Account</span>
             <i class="bi bi-person-plus ms-2"></i>
           </button>
@@ -67,10 +67,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@vueuse/head";
 import { useAuthStore } from "@/stores/auth";
+import { useGumForm } from "@/plugins/gum";
 import Input from "@/components/Input.vue";
 import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
 
@@ -79,20 +80,14 @@ useHead({ title: "Register" });
 const router = useRouter();
 const auth = useAuthStore();
 
-interface RegisterForm {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-}
-
-const form = reactive<RegisterForm>({
+const form = useGumForm({
   name: "",
   email: "",
   password: "",
   password_confirmation: ""
 });
 
+const processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
@@ -100,30 +95,35 @@ const onSubmit = async () => {
   message.value = "";
   isError.value = false;
 
-  if (form.password !== form.password_confirmation) {
+  if (form.data.password !== form.data.password_confirmation) {
     isError.value = true;
     message.value = "Password confirmation does not match";
     return;
   }
 
-  try {
-    const result = await auth.register({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      password: form.password,
-      password_confirmation: form.password_confirmation
-    });
+  await form.post("/api/auth/register", {
+    name: String(form.data.name || "").trim(),
+    email: String(form.data.email || "").trim(),
+    password: form.data.password,
+    password_confirmation: form.data.password_confirmation
+  }, {
+    onSuccess: async () => {
+      auth.initialized = false;
+      await auth.bootstrap();
 
-    if (auth.isAuthenticated) {
-      await router.push("/");
-      return;
+      if (auth.isAuthenticated) {
+        await router.push("/");
+        return;
+      }
+
+      message.value = "Registration successful. Please verify your email.";
+      form.reset();
+    },
+    onError: (errors, error) => {
+      isError.value = true;
+      message.value = error instanceof Error ? error.message : "Unable to register right now";
     }
-
-    message.value = result || "Registration successful. Please verify your email.";
-  } catch (error: unknown) {
-    isError.value = true;
-    message.value = error instanceof Error ? error.message : "Unable to register right now";
-  }
+  });
 };
 </script>
 

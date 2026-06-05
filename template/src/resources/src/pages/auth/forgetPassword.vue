@@ -16,11 +16,11 @@
           <div class="mb-4">
             <Input
               id="email"
-              v-model="form.email"
+              v-model="form.data.email"
               type="email"
               label="email"
               placeholder="Enter your email..."
-              :err="false"
+              :err="form.errors.email"
               focus
               must />
           </div>
@@ -29,7 +29,7 @@
             label="Send Reset Link"
             class="btn btn-primary d-grid w-100"
             icon="bi bi-send ms-2"
-            :disabled="auth.processing" />
+            :disabled="processing" />
         </form>
         <div class="text-center mt-2">
           <router-link to="/login">
@@ -43,33 +43,35 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { useHead } from "@vueuse/head";
 import Input from "../../components/Input.vue";
 import Button from "../../components/Button.vue";
-import { useAuthStore } from "@/stores/auth";
+import { useGumForm } from "@/plugins/gum";
 
 useHead({ title: "Forget Password" });
 
-const auth = useAuthStore();
-
-interface ForgotPasswordForm {
-  email: string;
-}
-
-const form = reactive<ForgotPasswordForm>({ email: "" });
+const form = useGumForm({ email: "" });
+const processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
 const onSubmit = async () => {
   message.value = "";
   isError.value = false;
-  try {
-    message.value = await auth.forgotPassword({ email: form.email.trim() });
-  } catch (error: unknown) {
-    isError.value = true;
-    message.value = error instanceof Error ? error.message : "Failed to process request";
-  }
+  await form.post("/api/auth/forgot-password", {
+    email: String(form.data.email || "").trim()
+  }, {
+    onSuccess: () => {
+      isError.value = false;
+      message.value = "If this email exists, a reset link has been sent.";
+      form.reset();
+    },
+    onError: (errors, error) => {
+      isError.value = true;
+      message.value = error instanceof Error ? error.message : "Failed to process request";
+    }
+  });
 };
 </script>
 

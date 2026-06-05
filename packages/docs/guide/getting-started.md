@@ -74,7 +74,7 @@ DATABASE_URL=mysql://root:password@localhost:3306/nexgen
 DATABASE_URL=postgres://user:password@localhost:5432/nexgen
 
 # SQLite
-DATABASE_URL=sqlite:./storage/dev.sqlite
+DATABASE_URL=sqlite:./src/storage/database/nexgen.sqlite
 ```
 
 ## Setup Database

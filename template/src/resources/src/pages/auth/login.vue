@@ -12,28 +12,28 @@
           <div class="mb-4">
             <Input
               id="email"
-              v-model="form.email"
+              v-model="form.data.email"
               type="email"
               label="email"
               placeholder="Enter your email..."
-              :err="false"
+              :err="form.errors.email"
               focus
               must />
           </div>
           <div class="mb-4">
             <input-password-toggle
               id="password"
-              v-model="form.password"
+              v-model="form.data.password"
               label="password"
               placeholder="Enter your password..."
-              :err="false"
+              :err="form.errors.password"
               must />
           </div>
           <div class="mb-4 d-flex align-items-center justify-content-between">
-            <Checkbox id="remember-me" v-model="form.remember" label="Remember me" />
+            <Checkbox id="remember-me" v-model="form.data.remember" label="Remember me" />
             <router-link to="/forget-password" class="text-decoration-none mb-1">Forget Password?</router-link>
           </div>
-          <button type="submit" class="btn btn-primary w-100" :disabled="auth.processing">
+          <button type="submit" class="btn btn-primary w-100" :disabled="processing">
             <span>Login</span>
             <i class="bi bi-box-arrow-in-right ms-2"></i>
           </button>
@@ -48,10 +48,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useHead } from "@vueuse/head";
 import { useAuthStore } from "@/stores/auth";
+import { useGumForm } from "@/plugins/gum";
 
 import Input from "@/components/Input.vue";
 import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
@@ -63,30 +64,32 @@ const router = useRouter();
 const auth = useAuthStore();
 const errorMessage = ref("");
 
-interface LoginForm {
-  email: string;
-  password: string;
-  remember: boolean;
-}
-
-const form = reactive<LoginForm>({
+const form = useGumForm({
   email: "",
   password: "",
   remember: false
 });
 
+const processing = form.processing;
+
 const onSubmit = async () => {
   errorMessage.value = "";
-  try {
-    await auth.login({
-      email: form.email.trim(),
-      password: form.password,
-      remember: form.remember
-    });
-    await router.push("/");
-  } catch (error: unknown) {
-    errorMessage.value = error instanceof Error ? error.message : "Unable to login right now";
-  }
+  await form.post("/api/auth/login", {
+    email: String(form.data.email || "").trim(),
+    password: form.data.password,
+    remember: !!form.data.remember
+  }, {
+    onSuccess: async () => {
+      auth.initialized = false;
+      await auth.bootstrap();
+      form.reset("password");
+      await router.push("/");
+    },
+    onError: (errors, error) => {
+      errorMessage.value = error instanceof Error ? error.message : "Unable to login right now";
+      form.reset("password");
+    }
+  });
 };
 </script>
 

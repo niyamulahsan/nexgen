@@ -138,6 +138,7 @@ src/framework/
 ├── cache/                 # Redis/in-memory cache
 ├── database/              # Connection, pagination, schema, seed
 ├── events/                # Command & event dispatcher
+│   └── dispatcher.ts      # dispatchEvent, dispatchCommand
 ├── maker-cli/             # CLI tool and stubs
 ├── modules/               # Module discovery and route registration
 ├── notification/          # Database-persisted notifications
@@ -147,6 +148,11 @@ src/framework/
 │   ├── ui.ts              # BullBoard dashboard
 │   └── clear.ts           # Queue key cleanup
 ├── realtime/              # Socket.IO server, auth, broadcast, admin UI
+│   ├── index.ts           # Realtime entrypoint (isAvailable, enabled)
+│   ├── socket.ts          # Socket.IO server init, room joining, admin UI
+│   ├── socket-cookie.ts   # Cookie-based Socket.IO auth
+│   ├── broadcast.ts       # dispatchEvent → Socket.IO broadcast
+│   └── types.ts           # TypeScript types for realtime events
 ├── redis/                 # Redis client connection
 ├── scheduler/             # Cron scheduler
 │   ├── scheduler.ts       # Schedule registration and execution

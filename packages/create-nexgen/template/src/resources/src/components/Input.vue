@@ -42,10 +42,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, nextTick, useAttrs } from "vue";
-import useBrowserDetect from "../composables/useBrowserDetect";
+import { browserDetect } from "@/plugins/browserDetect";
 
-defineOptions({ name: "Input", inheritAttrs: false });
-const { isFirefox } = useBrowserDetect();
+const { isFirefox } = browserDetect;
 
 const $attrs = useAttrs();
 type InputCategory =

@@ -10,5 +10,5 @@
     "prepublish:cli": "npm run sync:template",
     "publish:cli": "cd packages/create-nexgen && npm publish"
   },
-  "version": "0.0.1"
+  "version": "2.1.0"
 }

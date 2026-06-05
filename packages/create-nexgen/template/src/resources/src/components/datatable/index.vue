@@ -99,9 +99,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, useSlots, watch, watchEffect } from "vue";
+import { computed, reactive, ref, useSlots, watchEffect } from "vue";
 import { debounce } from "lodash-es";
-import { useGum } from "@/composables/useGum";
+import { useGum } from "@/plugins/gum";
 import { useRoute } from "vue-router";
 
 import Checkbox from "../Checkbox.vue";
@@ -113,22 +113,16 @@ import Input from "../Input.vue";
 
 interface DataRow {
   id: string | number;
-  [key: string]: unknown;
+  [key: string]: any;
 }
-interface PaginatedData {
-  data: DataRow[];
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  path: string;
-}
+
 interface DataPage {
   path: string;
   current_page: number;
 }
+
 interface DataTableProps {
-  data: PaginatedData;
+  data: any;
   search?: string;
   loop?: DataRow[] | false;
   option?: Array<string | number>;
@@ -158,7 +152,7 @@ const emit = defineEmits<{
 }>();
 
 // checkbox select
-let checked = reactive<{ check: boolean; checkcolumn: Array<string | number> }>({
+let checked = reactive<{ check: boolean; checkcolumn: Array<string | number>; }>({
   check: false,
   checkcolumn: []
 });
@@ -211,10 +205,7 @@ const searchMe = debounce(() => {
 // watch instantce
 watchEffect(() => {
   selectedoption.value = props.option.find((x) => Number(x) === Number(props.data.per_page));
-});
-
-watch(() => props.search, (value) => {
-  searchdata.value = value || "";
+  searchdata.value = props.search || "";
 });
 </script>
 

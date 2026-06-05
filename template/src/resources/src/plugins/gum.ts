@@ -18,22 +18,22 @@ type GumVisitOptions = {
   replace?: boolean;
   preserveState?: boolean;
   preserveScroll?: boolean;
-  onBefore?: () => boolean | void;
-  onStart?: () => void;
+  onBefore?: () => boolean | void | Promise<boolean | void>;
+  onStart?: () => void | Promise<void>;
   onProgress?: (event: AxiosProgressEvent) => void;
-  onSuccess?: (response: AxiosResponse) => void;
-  onError?: (errors: NormalizedErrors, error: AxiosError) => void;
-  onFinish?: () => void;
+  onSuccess?: (response: AxiosResponse) => void | Promise<void>;
+  onError?: (errors: NormalizedErrors, error: AxiosError) => void | Promise<void>;
+  onFinish?: () => void | Promise<void>;
 };
 
 type FormMethod = "post" | "put" | "patch" | "delete";
 type FormErrors<T> = Partial<Record<keyof T | string, string>>;
 type NormalizedErrors = Record<string, string[] | string>;
 type FormSubmitOptions = {
-  onStart?: () => void;
-  onSuccess?: () => void;
-  onError?: (errors: NormalizedErrors, error: AxiosError) => void;
-  onFinish?: () => void;
+  onStart?: () => void | Promise<void>;
+  onSuccess?: () => void | Promise<void>;
+  onError?: (errors: NormalizedErrors, error: AxiosError) => void | Promise<void>;
+  onFinish?: () => void | Promise<void>;
 };
 
 type ValidationErrorPayload = {
@@ -146,12 +146,12 @@ export function useGum() {
       onFinish
     } = options;
 
-    const allow = onBefore?.();
+    const allow = await onBefore?.();
     if (allow === false) return;
 
     const scrollY = window.scrollY;
     processing.value = true;
-    onStart?.();
+    await onStart?.();
 
     try {
       const response = await axios.request({
@@ -175,15 +175,16 @@ export function useGum() {
         else await router.push(payload);
       }
 
-      onSuccess?.(response);
+      await onSuccess?.(response);
       return response;
     } catch (error) {
       const err = error as AxiosError<ValidationErrorPayload>;
-      onError?.(normalizeValidationErrors(err.response?.data), error as AxiosError);
-      throw error;
+      const handled = !!options.onError;
+      await onError?.(normalizeValidationErrors(err.response?.data), error as AxiosError);
+      if (!handled) throw error;
     } finally {
       processing.value = false;
-      onFinish?.();
+      await onFinish?.();
       if (preserveScroll) {
         await nextTick();
         requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
@@ -300,7 +301,7 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
     wasSuccessful.value = false;
     clearErrors();
     processing.value = true;
-    onStart?.();
+    await onStart?.();
 
     try {
       const response = await axios.request({
@@ -318,7 +319,7 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
       setTimeout(() => {
         recentlySuccessful.value = false;
       }, config.recentlySuccessfulDuration);
-      onSuccess?.();
+      await onSuccess?.();
       return response;
     } catch (error) {
       const err = error as AxiosError<ValidationErrorPayload>;
@@ -328,12 +329,13 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
         errors[String(key)] = Array.isArray(value) ? value[0] : value;
       });
 
-      onError?.(normalizedErrors, error as AxiosError);
-      throw error;
+      const handled = !!options.onError;
+      await onError?.(normalizedErrors, error as AxiosError);
+      if (!handled) throw error;
     } finally {
       processing.value = false;
       progress.value = null;
-      onFinish?.();
+      await onFinish?.();
     }
   }
 

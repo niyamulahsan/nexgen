@@ -16,8 +16,8 @@ Controls all Redis-backed subsystems. When `REDIS=false`, the framework skips Re
 | Subsystem | `REDIS=true` | `REDIS=false` |
 |---|---|---|
 | **Queue** (BullMQ) | Jobs processed by persistent worker with retries, backoff, and job events | Queue worker refuses to start. Jobs dispatched via `queueJob()` return `null`. **Dispatched events with `{ queue: true }` are silently dropped** |
-| **Cache** (`cache.ts:79`) | Redis-backed TTL cache. Entries survive restarts | In-memory `Map` cache. Entries lost on process restart. Cache `get()` always returns `null` after restart |
-| **Session** (`session.ts:136`) | Redis-backed session store. Sessions shared across instances | Cookie-based sessions (encrypted JWT in the session cookie). Not shareable across instances without Redis |
+| **Cache** (`cache.ts:22`) | Redis-backed TTL cache. Entries survive restarts | All methods return `null` / fallback value. No in-memory fallback — cache is a no-op |
+| **Session** (`session.ts:36`) | Redis-backed session store. Sessions shared across instances | All methods return `null` / `false`. The session cookie is still set, but no data is stored |
 | **Realtime** (`socket.ts:42`) | Socket.IO uses Redis adapter for cross-instance event broadcasting | Socket.IO works in single-instance mode only. Events broadcast only to clients connected to the same process |
 | **Scheduler** (`scheduler/lock.ts`) | Distributed Redis lock prevents duplicate cron execution across instances | Falls back to database-level locking using `scheduler_locks` table |
 | **BullBoard** (`queue/ui.ts:52`) | Live queue dashboard with job details, retry, and stats | Dashboard shows "unavailable" page |
@@ -86,7 +86,7 @@ Controls whether the Vue 3 frontend build is served from the same API server.
 
 When your frontend is hosted on a **different origin** than the API, set `FRONTEND_URL` to the frontend's origin (e.g., `https://app.example.com`). This affects:
 
-**Session cookie (`src/framework/session/session.ts:7`):**
+**Session cookie (`src/framework/session/session.ts:18`):**
 - If `APP_URL` and `FRONTEND_URL` are on different origins, the session cookie is set with `SameSite=None; Secure` — required by browsers to send cookies across origins.
 - If both are on the same origin (or `FRONTEND_URL` is empty), the cookie uses `SameSite=Lax` — more secure and works without HTTPS locally.
 
@@ -112,14 +112,14 @@ When your frontend is hosted on a **different origin** than the API, set `FRONTE
 
 Controls the OpenAPI / Scalar documentation endpoint.
 
-**Code path:** `src/framework/http/app.ts:37` — `createHttpApp()` conditionally calls `configureOpenApi()` which registers the Scalar UI at `/api-docs` and the JSON spec at `/reference/*`.
+**Code path:** `src/framework/http/openapi.ts:11` — `configureOpenApi()` registers the Scalar UI at `/api-docs` and the JSON spec at `/doc`.
 
 **Behavior:**
 
 | Aspect | `OPEN_API=true` | `OPEN_API=false` |
 |---|---|---|
 | **Scalar UI** | Available at `/api-docs` | Not registered |
-| **OpenAPI JSON spec** | Available at `/reference/*` | Not registered |
+| **OpenAPI JSON spec** | Available at `/doc` | Not registered |
 | **Route registration** | All `@hono/zod-openapi` routes are fully documented with schemas | Routes still work — just the documentation endpoints are removed |
 | **`/health` route** (`http/app.ts:53`) | Registered as an OpenAPI route with Zod schema | Registered as a plain GET route (no OpenAPI wrapping) |
 
@@ -168,7 +168,7 @@ SOCKET=true
 FRONTEND=true  → API + SPA monolith (no CORS, cookies use SameSite=Lax)
 FRONTEND=false → API-only (set FRONTEND_URL for CORS + cross-site cookies)
 
-OPEN_API=true  → /api-docs + /reference/*
+OPEN_API=true  → /api-docs + /doc
 OPEN_API=false → bare API, no docs endpoints
 
 AUTH_REQUIRE_EMAIL_VERIFICATION=true
@@ -220,8 +220,8 @@ AUTH_REQUIRE_EMAIL_VERIFICATION=true
 
 | Variable | Default | Description |
 |---|---|---|
-| `SESSION_COOKIE` | `nexgen_session` | Session cookie name |
-| `SESSION_TTL_SECONDS` | `7200` | Session TTL (2 hours) |
+| `SESSION_COOKIE` | — | Session cookie name (required) |
+| `SESSION_TTL_SECONDS` | — | Session TTL in seconds (required) |
 | `CACHE_TTL_SECONDS` | `3600` | Default cache TTL (1 hour) |
 
 ## JWT & Cookies

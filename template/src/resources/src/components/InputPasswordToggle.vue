@@ -52,10 +52,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, nextTick, useAttrs, ref } from "vue";
-import useBrowserDetect from "../composables/useBrowserDetect";
+import { browserDetect } from "@/plugins/browserDetect";
 
 defineOptions({ name: "InputPasswordToggle", inheritAttrs: false });
-const { isFirefox } = useBrowserDetect();
+const { isFirefox } = browserDetect;
 
 const $attrs = useAttrs();
 type InputPasswordCategory =

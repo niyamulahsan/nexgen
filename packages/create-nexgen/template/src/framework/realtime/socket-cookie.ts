@@ -43,11 +43,14 @@ function rolesFromPayload(payload: Record<string, unknown>) {
  */
 export async function authFromSocketHandshake(socket: Socket): Promise<RealtimeAuthContext> {
   const cookies = parseCookieHeader(socket.handshake.headers.cookie);
-  const token = cookies[`${env.COOKIE_NAME}_access`];
+  const rawToken = cookies[`${env.COOKIE_NAME}_access`];
 
-  if (!token) {
+  if (!rawToken) {
     return unauthenticatedRealtimeAuth();
   }
+
+  // Strip Hono's signed-cookie HMAC signature (last .<base64> part appended by setSignedCookie)
+  const token = rawToken.lastIndexOf(".") > 0 ? rawToken.substring(0, rawToken.lastIndexOf(".")) : rawToken;
 
   const payload = await jwt.verifyToken(token, "access");
   if (!payload) {

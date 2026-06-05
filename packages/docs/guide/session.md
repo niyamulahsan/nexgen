@@ -73,8 +73,8 @@ const newId = await session.start({ source: "webhook", ref: "abc" });
 
 | Variable | Default | Description |
 |---|---|---|
-| `SESSION_COOKIE` | `nexgen_session` | Name of the session cookie |
-| `SESSION_TTL_SECONDS` | `7200` (2 hours) | Session TTL in seconds, refreshed on each request |
+| `SESSION_COOKIE` | — | Name of the session cookie (required) |
+| `SESSION_TTL_SECONDS` | — | Session TTL in seconds, refreshed on each request (required) |
 
 ### Destroy a session
 

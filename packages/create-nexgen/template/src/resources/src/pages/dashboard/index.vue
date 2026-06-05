@@ -31,18 +31,10 @@ useHead({ title: "Dashboard" });
 
 const { user } = useAuth();
 
-let unsubscribe: (() => void) | null = null;
-
 onMounted(() => {
-  if (!user.value) return;
-
-  const channel = pulse.channel(`user:${user.value.id}`);
-  channel.listen("user.registered", () => alert("me"));
-  unsubscribe = () => channel.stopListening("user.registered");
-});
-
-onUnmounted(() => {
-  unsubscribe?.();
+  const ch = pulse.channel("user");
+  ch.listen("user.changed", () => alert("me"));
+  onUnmounted(() => ch.stopListening("user.changed"));
 });
 
 // const hardRefresh = () => window.location.reload();

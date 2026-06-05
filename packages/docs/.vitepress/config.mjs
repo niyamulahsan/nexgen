@@ -31,7 +31,27 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: "Overview", link: "/guide/resources/" },
-            { text: "Gum", link: "/guide/resources/gum" },
+            { text: "Entry Point", link: "/guide/resources/entry-point" },
+            { text: "Vite Config", link: "/guide/resources/vite-config" },
+            { text: "Router", link: "/guide/resources/router" },
+            { text: "Pages", link: "/guide/resources/pages" },
+            { text: "Layouts", link: "/guide/resources/layouts" },
+            {
+              text: "Plugins",
+              collapsed: false,
+              items: [
+                { text: "Gum", link: "/guide/resources/gum" },
+                { text: "Pulse", link: "/guide/resources/pulse" },
+                { text: "Dialog", link: "/guide/resources/dialog" },
+              ],
+            },
+            { text: "Stores", link: "/guide/resources/stores" },
+            { text: "Composables", link: "/guide/resources/composables" },
+            { text: "Components", link: "/guide/resources/components" },
+            { text: "Helpers", link: "/guide/resources/helpers" },
+            { text: "Assets & Theme", link: "/guide/resources/assets" },
+            { text: "Axios", link: "/guide/resources/axios" },
+            { text: "Validation", link: "/guide/resources/validation" },
           ],
         },
         {

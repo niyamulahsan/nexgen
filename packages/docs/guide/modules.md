@@ -10,7 +10,8 @@ src/modules/<module>/
 │   ├── models/
 │   └── seeders/
 ├── jobs/
-└── console/
+├── console/
+└── schedules/
 ```
 
 ## Creating a Module
@@ -222,6 +223,6 @@ Or set it in your `.env` to persist the choice. The CLI will print which mode it
 
 - **Routes** from `*/routes/*.ts`
 - **Jobs** from `*/jobs/*.ts` with `shouldQueue`
-- **Console** from `*/console/*.ts` with `defineSchedule`
+- **Schedules** from `*/schedules/*.ts` or `*/console/*.ts` with `defineSchedule`
 - **Models** from `*/database/models/*.ts`
 - **Seeders** from `*/database/seeders/*.ts`

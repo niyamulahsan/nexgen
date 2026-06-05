@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { reactive, computed, watchEffect } from "vue";
-import { useGum } from "@/composables/useGum";
+import { useGum } from "@/plugins/gum";
 import { useRoute } from "vue-router";
 import { formatCompactNumber } from "@/helpers/nformatter";
 import Input from "../Input.vue";

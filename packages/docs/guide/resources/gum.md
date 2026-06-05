@@ -7,7 +7,7 @@ Use Gum when a page needs SPA-style visits without replacing the Pinia store pat
 ## Imports
 
 ```ts
-import { useGum, useGumForm, useGumRemember } from "@/composables/useGum";
+import { useGum, useGumForm, useGumRemember } from "@/plugins/gum";
 ```
 
 The composable re-exports the plugin from `src/resources/src/plugins/gum.ts`.
@@ -62,12 +62,12 @@ Options:
 | `replace` | `boolean` | `false` | Use `router.replace()` instead of `router.push()` |
 | `preserveState` | `boolean` | `false` for GET, `true` for mutations | Keep `useGumRemember()` state |
 | `preserveScroll` | `boolean` | `false` | Restore scroll after request and router update |
-| `onBefore` | `() => boolean \| void` | — | Return `false` to cancel |
-| `onStart` | `() => void` | — | Runs before request |
+| `onBefore` | `() => boolean \| void \| Promise<boolean \| void>` | — | Return `false` to cancel |
+| `onStart` | `() => void \| Promise<void>` | — | Runs before request |
 | `onProgress` | `(event) => void` | — | Upload progress |
-| `onSuccess` | `(response) => void` | — | Runs on successful response |
-| `onError` | `(errors, error) => void` | — | Runs on failed response with normalized validation errors and the raw Axios error |
-| `onFinish` | `() => void` | — | Always runs after request |
+| `onSuccess` | `(response) => void \| Promise<void>` | — | Runs on successful response |
+| `onError` | `(errors, error) => void \| Promise<void>` | — | Runs on failed response with normalized validation errors and the raw Axios error. Error is **not** rethrown when `onError` is provided — no try/catch needed. |
+| `onFinish` | `() => void \| Promise<void>` | — | Always runs after request |
 
 ## GET Visits
 
@@ -304,6 +304,8 @@ Use this when Pinia owns the list data.
 
 `useGum()` normalizes common backend validation shapes before calling `onError`.
 
+When `onError` is provided, the error is considered handled and does **not** rethrow — no try/catch wrapper needed. If `onError` is omitted, the error throws as normal for external handling.
+
 It supports Laravel-style errors:
 
 ```json
@@ -373,7 +375,7 @@ Use `useGumForm()` when a form needs processing state, validation errors, dirty 
 
 ```vue
 <script setup lang="ts">
-import { useGumForm } from "@/composables/useGum";
+import { useGumForm } from "@/plugins/gum";
 
 const form = useGumForm({
   title: "",
@@ -396,6 +398,22 @@ async function submit() {
 </template>
 ```
 
+When the request payload differs from the form's data shape, pass it explicitly as the second argument:
+
+```ts
+await form.post("/api/auth/login", {
+  email: form.data.email.trim(),
+  password: form.data.password
+}, {
+  onSuccess: async () => {
+    // handle success
+  },
+  onError: (errors, error) => {
+    // handle error — no try/catch needed
+  }
+});
+```
+
 Form helpers:
 
 | Helper | Purpose |
@@ -414,6 +432,8 @@ Form helpers:
 ### Form Errors
 
 `useGumForm()` also normalizes both backend validation shapes before calling `onError`.
+
+Same behavior as `useGum()` — when `onError` is provided, the error does **not** rethrow, so no try/catch is needed around the submit call.
 
 You can either bind directly to `form.errors`:
 
@@ -524,7 +544,7 @@ Returning `false` from `onBefore` cancels the request.
 import { computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
-import { useGum, useGumForm, useGumRemember } from "@/composables/useGum";
+import { useGum, useGumForm, useGumRemember } from "@/plugins/gum";
 import { usePostsStore } from "@/stores/posts";
 import DataTable from "@/components/datatable/index.vue";
 

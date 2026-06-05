@@ -1,3 +1,5 @@
+import { env } from "@/env.js";
+import { redisClientIfReady } from "@/framework/redis/client.js";
 import { socketServer } from "@/framework/realtime/index.js";
 
 export type BroadcastOptions = {
@@ -12,9 +14,10 @@ export type BroadcastOptions = {
  * Why: Emits realtime events to targeted audiences.
  * When: Domain events need websocket fan-out.
  * Where: Event dispatcher and module jobs.
- * How: Emits to all/auth/users/roles/custom rooms using Socket.IO rooms.
+ * How: Emits via Socket.IO if available; otherwise relays through Redis pub/sub
+ *      so the main process (which has Socket.IO) can broadcast it.
  */
-export function broadcast(event: string, payload: any, options: BroadcastOptions = {}) {
+function emitViaIo(event: string, payload: any, options: BroadcastOptions) {
   const io = socketServer();
   if (!io) return;
 
@@ -24,4 +27,20 @@ export function broadcast(event: string, payload: any, options: BroadcastOptions
   for (const user of options.users || []) io.to(`user:${user}`).emit(event, payload);
   for (const role of options.roles || []) io.to(`role:${role}`).emit(event, payload);
   for (const room of options.rooms || []) io.to(room).emit(event, payload);
+}
+
+export function broadcast(event: string, payload: any, options: BroadcastOptions = {}) {
+  const io = socketServer();
+
+  if (io) {
+    emitViaIo(event, payload, options);
+    return;
+  }
+
+  // No Socket.IO in this process — relay through Redis so the main process can broadcast
+  const redis = redisClientIfReady();
+  if (!redis) return;
+
+  const channel = `${env.REDIS_PREFIX}:broadcast`;
+  redis.publish(channel, JSON.stringify({ event, payload, options }));
 }

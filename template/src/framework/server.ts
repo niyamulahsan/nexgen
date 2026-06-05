@@ -5,9 +5,9 @@ import chalk from "chalk";
 import { env } from "@/env.js";
 import { createKernel } from "@/framework/kernel.js";
 import { stopQueueRuntime } from "@/framework/queue/queue.js";
-import { closeRealtime, initRealtime } from "@/framework/realtime/index.js";
+import { broadcast, closeRealtime, initRealtime } from "@/framework/realtime/index.js";
 import { setupSocketAdminUI } from "@/framework/realtime/ui.js";
-import { closeRedis, redisError, redisReady } from "@/framework/redis/client.js";
+import { closeRedis, redisClientIfReady, redisError, redisReady } from "@/framework/redis/client.js";
 import { parseCsvOrFallback, registerShutdownSignals, type ShutdownSignal } from "@/framework/support/lifecycle.js";
 import { logger } from "@/framework/support/logger.js";
 
@@ -55,6 +55,7 @@ const server = serve({
 });
 
 let shuttingDown = false;
+let broadcastSubClient: ReturnType<typeof redisClientIfReady> | null = null;
 
 /**
  * Why: Gracefully closes HTTP server listener.
@@ -79,6 +80,10 @@ async function shutdown(signal: ShutdownSignal) {
   shuttingDown = true;
 
   logger.info("Shutdown signal received", { signal });
+  if (broadcastSubClient) {
+    try { await broadcastSubClient.quit(); } catch { broadcastSubClient.disconnect(); }
+    broadcastSubClient = null;
+  }
   await Promise.allSettled([
     closeRealtime(),
     stopQueueRuntime(),
@@ -93,6 +98,25 @@ registerShutdownSignals(shutdown);
 
 const io = await initRealtime(server);
 const socketAdmin = setupSocketAdminUI(io);
+
+if (env.REDIS && io) {
+  const redis = redisClientIfReady();
+  if (redis) {
+    broadcastSubClient = redis.duplicate();
+    await broadcastSubClient.connect();
+    const channel = `${env.REDIS_PREFIX}:broadcast`;
+    await broadcastSubClient.subscribe(channel);
+    broadcastSubClient.on("message", (_ch: string, message: string) => {
+      try {
+        const { event, payload, options } = JSON.parse(message);
+        if (event) broadcast(event, payload, options);
+      } catch (error) {
+        logger.error("Broadcast relay error", { error });
+      }
+    });
+  }
+}
+
 const views = devViews();
 let redisWarnColor: ((text: string) => string) | null = null;
 console.log(`API Docs: ${serverUrl(server, "/api-docs")}`);

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useGum } from "@/composables/useGum";
+import { useGum } from "@/plugins/gum";
 import { useRoute } from "vue-router";
 
 interface DataPage {

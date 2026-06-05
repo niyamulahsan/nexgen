@@ -1,1 +1,0 @@
-import{A as e,C as t,D as n,M as r,O as i,_ as a}from"./index-DITre5DM.js";import{t as o}from"./admin-ui-XP67h7yy.js";var s=t({__name:`AuthLayout`,setup(t){let s=o();return i(()=>{s.initTheme()}),n(()=>{s.cleanupTheme()}),(t,n)=>{let i=r(`router-view`);return e(),a(i)}}});export{s as default};

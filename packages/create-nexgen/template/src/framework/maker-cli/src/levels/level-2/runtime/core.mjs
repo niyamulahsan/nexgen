@@ -55,6 +55,18 @@ function redisConnectionArgs() {
   return result;
 }
 
+/** Poll the API health endpoint until it responds or retries exhausted. */
+async function waitForHealth(url, maxRetries = 60, intervalMs = 500) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return;
+    } catch {}
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error(`API health-check failed after ${maxRetries} attempts (${url})`);
+}
+
 /** Run the full dev stack: API, frontend, queue worker, and optional UI tools. */
 async function runDevStack(flags = []) {
   const commands = [
@@ -109,15 +121,44 @@ async function runDevStack(flags = []) {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 
-  await new Promise((resolve, reject) => {
-    for (const command of commands) {
-      const extraEnv =
-        command.label === "api"
-          ? { NEXGEN_DEV_VIEWS: views.join(","), NEXGEN_FRONTEND_URL: "http://localhost:5173" }
-          : {};
+  const apiCmd = commands.find((c) => c.label === "api");
+  const rest = commands.filter((c) => c.label !== "api");
+
+  await new Promise(async (resolve, reject) => {
+    const apiChild = spawn(process.execPath, [process.argv[1], ...apiCmd.args], {
+      stdio: "inherit",
+      env: { ...process.env, NEXGEN_DEV_VIEWS: views.join(","), NEXGEN_FRONTEND_URL: "http://localhost:5173" }
+    });
+    children.push(apiChild);
+
+    apiChild.on("exit", (code, signal) => {
+      if (settled) return;
+      if (!shuttingDown && (code !== null || signal !== null)) {
+        settled = true;
+        shutdown();
+        reject(new Error(`api exited (${signal || code})`));
+      }
+    });
+    apiChild.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      shutdown();
+      reject(error);
+    });
+
+    try {
+      await waitForHealth("http://localhost:3000/health");
+    } catch (err) {
+      settled = true;
+      shutdown();
+      reject(err);
+      return;
+    }
+
+    for (const command of rest) {
       const child = spawn(process.execPath, [process.argv[1], ...command.args], {
-        stdio: command.label === "api" || command.label === "queue-worker" ? "inherit" : ["ignore", "pipe", "inherit"],
-        env: { ...process.env, ...extraEnv }
+        stdio: command.label === "queue-worker" ? "inherit" : ["ignore", "pipe", "inherit"],
+        env: { ...process.env }
       });
       children.push(child);
 
@@ -149,8 +190,6 @@ async function runDevStack(flags = []) {
         reject(error);
       });
     }
-
-
   }).finally(() => {
     process.off("SIGINT", shutdown);
     process.off("SIGTERM", shutdown);

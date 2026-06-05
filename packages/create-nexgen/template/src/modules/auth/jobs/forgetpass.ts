@@ -1,4 +1,4 @@
-import { mail, shouldQueue } from "@/framework/facade.js";
+import { mail, shouldQueue, dispatchEvent } from "@/framework/facade.js";
 
 shouldQueue("user:forget-password", "mail", async (job) => {
   const { email, name, resetUrl } = job.data;
@@ -13,6 +13,8 @@ shouldQueue("user:forget-password", "mail", async (job) => {
       <p>This link will expire in 15 minutes.</p>
     `
   });
+
+  await dispatchEvent("user.changed", { email: email }, { broadcast: { auth: true } });
 
   return { ok: true, resetUrl };
 });

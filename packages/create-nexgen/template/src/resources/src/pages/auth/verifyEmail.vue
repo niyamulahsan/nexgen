@@ -26,17 +26,18 @@
 import { ref } from "vue";
 import { useHead } from "@vueuse/head";
 import { useRoute } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
+import { useGum } from "@/plugins/gum";
 
 useHead({ title: "Verify Email" });
 
 const route = useRoute();
-const auth = useAuthStore();
 
 const email = String(route.query.email || "").trim();
 const token = String(route.query.token || "").trim();
 const message = ref("Verifying your email...");
 const isError = ref(false);
+
+const { post } = useGum();
 
 const verify = async () => {
   if (!email || !token) {
@@ -45,13 +46,16 @@ const verify = async () => {
     return;
   }
 
-  try {
-    message.value = await auth.verifyEmail({ email, token });
-    isError.value = false;
-  } catch (error: unknown) {
-    isError.value = true;
-    message.value = error instanceof Error ? error.message : "Failed to verify email";
-  }
+  await post("/api/auth/verify-email", { email, token }, {
+    onSuccess: () => {
+      isError.value = false;
+      message.value = "Email verified successfully. You can now login.";
+    },
+    onError: (errors, error) => {
+      isError.value = true;
+      message.value = error instanceof Error ? error.message : "Failed to verify email";
+    }
+  });
 };
 
 void verify();
