@@ -22,11 +22,11 @@ interface HrefProps {
 defineOptions({ name: "Href", inheritAttrs: false });
 
 const slots = useSlots();
-const props = withDefaults(defineProps<HrefProps>(), {
+const _props = withDefaults(defineProps<HrefProps>(), {
   to: "#"
 });
 
-const hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
+const _hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
 </script>
 
 <style lang="scss" scoped></style>

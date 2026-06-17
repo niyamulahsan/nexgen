@@ -48,15 +48,11 @@
 </template>
 
 <script setup lang="ts">
+import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useHead } from "@vueuse/head";
-import { useAuthStore } from "@/stores/auth";
 import { useGumForm } from "@/plugins/gum";
-
-import Input from "@/components/Input.vue";
-import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
-import Checkbox from "@/components/Checkbox.vue";
+import { useAuthStore } from "@/stores/auth";
 
 useHead({ title: "Login" });
 
@@ -70,26 +66,30 @@ const form = useGumForm({
   remember: false
 });
 
-const processing = form.processing;
+const _processing = form.processing;
 
-const onSubmit = async () => {
+const _onSubmit = async () => {
   errorMessage.value = "";
-  await form.post("/api/auth/login", {
-    email: String(form.data.email || "").trim(),
-    password: form.data.password,
-    remember: !!form.data.remember
-  }, {
-    onSuccess: async () => {
-      auth.initialized = false;
-      await auth.bootstrap();
-      form.reset("password");
-      await router.push("/");
+  await form.post(
+    "/api/auth/login",
+    {
+      email: String(form.data.email || "").trim(),
+      password: form.data.password,
+      remember: !!form.data.remember
     },
-    onError: (errors, error) => {
-      errorMessage.value = error instanceof Error ? error.message : "Unable to login right now";
-      form.reset("password");
+    {
+      onSuccess: async () => {
+        auth.initialized = false;
+        await auth.bootstrap();
+        form.reset("password");
+        await router.push("/");
+      },
+      onError: (_errors, error) => {
+        errorMessage.value = error instanceof Error ? error.message : "Unable to login right now";
+        form.reset("password");
+      }
     }
-  });
+  );
 };
 </script>
 

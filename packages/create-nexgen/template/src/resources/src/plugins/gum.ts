@@ -1,8 +1,8 @@
+import { useStorage } from "@vueuse/core";
+import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
 import type { App } from "vue";
 import { computed, nextTick, reactive, ref, toRaw } from "vue";
-import { useStorage } from "@vueuse/core";
-import { useRoute, useRouter, type LocationQueryRaw } from "vue-router";
-import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
+import { type LocationQueryRaw, useRoute, useRouter } from "vue-router";
 
 export type GumPluginOptions = {
   rememberPrefix?: string;
@@ -18,7 +18,8 @@ type GumVisitOptions = {
   replace?: boolean;
   preserveState?: boolean;
   preserveScroll?: boolean;
-  onBefore?: () => boolean | void | Promise<boolean | void>;
+  skipFetch?: boolean;
+  onBefore?: () => boolean | undefined | Promise<boolean | undefined>;
   onStart?: () => void | Promise<void>;
   onProgress?: (event: AxiosProgressEvent) => void;
   onSuccess?: (response: AxiosResponse) => void | Promise<void>;
@@ -138,6 +139,7 @@ export function useGum() {
       replace = false,
       preserveState = method !== "get",
       preserveScroll = false,
+      skipFetch = false,
       onBefore,
       onStart,
       onProgress,
@@ -153,14 +155,19 @@ export function useGum() {
     processing.value = true;
     await onStart?.();
 
+    let response: AxiosResponse | undefined;
+
     try {
-      const response = await axios.request({
-        method,
-        url,
-        params: method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
-        data: method === "get" ? undefined : data,
-        onUploadProgress: (event) => onProgress?.(event)
-      });
+      if (!skipFetch) {
+        response = await axios.request({
+          method,
+          url,
+          params:
+            method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
+          data: method === "get" ? undefined : data,
+          onUploadProgress: (event) => onProgress?.(event)
+        });
+      }
 
       if (method === "get") {
         const targetRoutePath = routePath ?? route.path;
@@ -175,7 +182,7 @@ export function useGum() {
         else await router.push(payload);
       }
 
-      await onSuccess?.(response);
+      await onSuccess?.(response!);
       return response;
     } catch (error) {
       const err = error as AxiosError<ValidationErrorPayload>;
@@ -351,10 +358,14 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
     clearErrors,
     reset,
     submit,
-    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("post", url, payload, options),
-    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("put", url, payload, options),
-    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("patch", url, payload, options),
-    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("delete", url, payload, options)
+    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("post", url, payload, options),
+    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("put", url, payload, options),
+    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("patch", url, payload, options),
+    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
+      submit("delete", url, payload, options)
   };
 }
 

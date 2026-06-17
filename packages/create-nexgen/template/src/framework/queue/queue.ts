@@ -1,4 +1,4 @@
-import { Job, Queue, QueueEvents, Worker, type JobsOptions } from "bullmq";
+import { type Job, type JobsOptions, Queue, QueueEvents, Worker } from "bullmq";
 import { env } from "@/env.js";
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
@@ -42,7 +42,7 @@ export function getQueue(queue = "default") {
     queues.set(
       queue,
       new Queue(queue, {
-        connection: client,
+        connection: client as any,
         prefix: queuePrefix(),
         defaultJobOptions: {
           attempts: 3,
@@ -151,7 +151,7 @@ export async function startQueueWorker(queueNames = ["default"]) {
     if (!events.has(queueName)) {
       events.set(
         queueName,
-        new QueueEvents(queueName, { connection: client, prefix: queuePrefix() })
+        new QueueEvents(queueName, { connection: client as any, prefix: queuePrefix() })
       );
     }
 
@@ -163,7 +163,7 @@ export async function startQueueWorker(queueNames = ["default"]) {
         if (!handler) throw new Error(`No handler registered for ${queueName}:${job.name}`);
         return await handler(job);
       },
-      { connection: client, prefix: queuePrefix(), concurrency: 10 }
+      { connection: client as any, prefix: queuePrefix(), concurrency: 10 }
     );
 
     worker.on("completed", (job) => {
@@ -172,7 +172,9 @@ export async function startQueueWorker(queueNames = ["default"]) {
 
     worker.on("failed", (job, error) => {
       const jobName = job?.name ?? "unknown";
-      console.log(`[${new Date().toLocaleTimeString()}] Failed:     ${jobName} (${queueName}) - ${error.message}`);
+      console.log(
+        `[${new Date().toLocaleTimeString()}] Failed:     ${jobName} (${queueName}) - ${error.message}`
+      );
     });
 
     workers.push(worker);

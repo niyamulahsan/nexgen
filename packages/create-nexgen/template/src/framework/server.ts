@@ -1,14 +1,23 @@
-import { serve } from "@hono/node-server";
-import type { AddressInfo } from "node:net";
 import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import { serve } from "@hono/node-server";
 import chalk from "chalk";
 import { env } from "@/env.js";
 import { createKernel } from "@/framework/kernel.js";
 import { stopQueueRuntime } from "@/framework/queue/queue.js";
 import { broadcast, closeRealtime, initRealtime } from "@/framework/realtime/index.js";
 import { setupSocketAdminUI } from "@/framework/realtime/ui.js";
-import { closeRedis, redisClientIfReady, redisError, redisReady } from "@/framework/redis/client.js";
-import { parseCsvOrFallback, registerShutdownSignals, type ShutdownSignal } from "@/framework/support/lifecycle.js";
+import {
+  closeRedis,
+  redisClientIfReady,
+  redisError,
+  redisReady
+} from "@/framework/redis/client.js";
+import {
+  parseCsvOrFallback,
+  registerShutdownSignals,
+  type ShutdownSignal
+} from "@/framework/support/lifecycle.js";
 import { logger } from "@/framework/support/logger.js";
 
 const redisBackedServices = "cache, session, queue, events, BullBoard";
@@ -19,7 +28,7 @@ const redisBackedServices = "cache, session, queue, events, BullBoard";
  * Where: Server runtime logging.
  * How: Derives bound port from server address and normalizes hostname.
  */
-function serverUrl(server: { address(): string | AddressInfo | null; }, pathname = "") {
+function serverUrl(server: { address(): string | AddressInfo | null }, pathname = "") {
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : env.APP_PORT;
 
@@ -45,7 +54,9 @@ const { app, bullBoard } = await createKernel();
  * How: Reads `NEXGEN_DEV_VIEWS` comma-separated env and returns a set.
  */
 function devViews() {
-  return new Set(parseCsvOrFallback(process.env.NEXGEN_DEV_VIEWS, []).map((view) => view.toLowerCase()));
+  return new Set(
+    parseCsvOrFallback(process.env.NEXGEN_DEV_VIEWS, []).map((view) => view.toLowerCase())
+  );
 }
 
 const server = serve({
@@ -81,15 +92,14 @@ async function shutdown(signal: ShutdownSignal) {
 
   logger.info("Shutdown signal received", { signal });
   if (broadcastSubClient) {
-    try { await broadcastSubClient.quit(); } catch { broadcastSubClient.disconnect(); }
+    try {
+      await broadcastSubClient.quit();
+    } catch {
+      broadcastSubClient.disconnect();
+    }
     broadcastSubClient = null;
   }
-  await Promise.allSettled([
-    closeRealtime(),
-    stopQueueRuntime(),
-    closeRedis(),
-    closeHttpServer()
-  ]);
+  await Promise.allSettled([closeRealtime(), stopQueueRuntime(), closeRedis(), closeHttpServer()]);
 
   process.exit(0);
 }
@@ -160,7 +170,7 @@ if (views.has("redis")) {
 
 if (env.FRONTEND) {
   if (process.env.NEXGEN_FRONTEND_URL) {
-    console.log("Frontend UI: " + process.env.NEXGEN_FRONTEND_URL);
+    console.log(`Frontend UI: ${process.env.NEXGEN_FRONTEND_URL}`);
   } else {
     console.log("Frontend enabled");
   }

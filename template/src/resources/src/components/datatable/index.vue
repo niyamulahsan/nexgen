@@ -33,7 +33,7 @@
               <Input
                 v-model="searchdata"
                 type="text"
-                class="form-control w-auto rounded-0 rounded-end"
+                class="w-auto rounded-0 rounded-end"
                 topclass="mb-0"
                 placeholder="Search..."
                 @keyup.enter="searchMe"
@@ -99,17 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, useSlots, watchEffect } from "vue";
 import { debounce } from "lodash-es";
-import { useGum } from "@/plugins/gum";
+import { computed, reactive, ref, useSlots, watchEffect } from "vue";
 import { useRoute } from "vue-router";
-
-import Checkbox from "../Checkbox.vue";
-import Button from "../Button.vue";
-import SelectOption from "./SelectOpption.vue";
-import Pagination from "./Pagination.vue";
-
-import Input from "../Input.vue";
+import { useGum } from "@/plugins/gum";
 
 interface DataRow {
   id: string | number;
@@ -145,18 +138,16 @@ const props = withDefaults(defineProps<DataTableProps>(), {
 const gum = useGum();
 const route = useRoute();
 
-const slots = useSlots();
+const _slots = useSlots();
 
-const emit = defineEmits<{
-  (event: "remove", value: Array<string | number>): void;
-}>();
+const emit = defineEmits<(event: "remove", value: Array<string | number>) => void>();
 
 // checkbox select
-let checked = reactive<{ check: boolean; checkcolumn: Array<string | number>; }>({
+let checked = reactive<{ check: boolean; checkcolumn: Array<string | number> }>({
   check: false,
   checkcolumn: []
 });
-const checkAll = () => {
+const _checkAll = () => {
   if (!checked.check) {
     props.data.data.forEach((dt: DataRow) => {
       if (!checked.checkcolumn.includes(dt.id)) {
@@ -167,38 +158,39 @@ const checkAll = () => {
     checked.checkcolumn = [];
   }
 };
-const updateChecked = () =>
-  checked.checkcolumn.length == props.data.data.length
+const _updateChecked = () =>
+  checked.checkcolumn.length === props.data.data.length
     ? (checked.check = true)
     : (checked.check = false);
 
 // remove from parent
-const remove = () => {
+const _remove = () => {
   emit("remove", checked.checkcolumn);
   checked.check = false;
 };
 
 // for change data size show
 const selectedoption = ref<string | number | undefined>(undefined);
-const dataForOption = computed<DataPage>(() => ({
+const _dataForOption = computed<DataPage>(() => ({
   path: props.data.path,
   current_page: props.data.current_page
 }));
-const tableRows = computed<DataRow[]>(() => (props.loop ? props.loop : props.data.data));
+const _tableRows = computed<DataRow[]>(() => (props.loop ? props.loop : props.data.data));
 
 // search data
 const searchdata = ref(props.search || "");
-const searchMe = debounce(() => {
+const _searchMe = debounce(() => {
   const isSearching = !!searchdata.value && searchdata.value.trim() !== "";
   gum.get(props.data.path, {
     query: {
-      page: isSearching ? 1 : props.data.current_page, // Go to page 1 if searching
+      page: isSearching ? 1 : props.data.current_page,
       size: selectedoption.value,
       search: searchdata.value
     },
     routePath: route.path,
     preserveState: true,
-    preserveScroll: true
+    preserveScroll: true,
+    skipFetch: true
   });
 }, 500);
 

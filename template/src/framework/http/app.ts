@@ -1,13 +1,13 @@
-import { serveEmojiFavicon } from "stoker/middlewares";
 import { createRoute, z } from "@hono/zod-openapi";
+import { serveEmojiFavicon } from "stoker/middlewares";
 import { env } from "@/env.js";
-import { configureOpenApi } from "@/framework/http/openapi.js";
 import { corsMiddleware } from "@/framework/http/cors.js";
+import { loggerMiddleware, notFound, onError } from "@/framework/http/logger.js";
+import { configureOpenApi } from "@/framework/http/openapi.js";
 import { rateLimiterMiddleware } from "@/framework/http/ratelimiter.js";
+import { createRouter } from "@/framework/http/router.js";
 import { hasFrontendBuild, storageStaticMiddleware } from "@/framework/http/static.js";
 import { sessionMiddleware } from "@/framework/session/session.js";
-import { loggerMiddleware, notFound, onError } from "@/framework/http/logger.js";
-import { createRouter } from "@/framework/http/router.js";
 
 /**
  * Why: Builds the main HTTP app with middleware, health, and error handlers.

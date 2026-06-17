@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="float-button position-fixed text-center removeprintarea"
-    :style="floatStyle"
-    v-bind="$attrs">
+  <div class="float-button position-fixed text-center removeprintarea" :style="floatStyle" v-bind="$attrs">
     <slot></slot>
   </div>
 </template>
@@ -22,7 +19,7 @@ const props = withDefaults(defineProps<FloatButtonProps>(), {
   zIndex: 100
 });
 
-const floatStyle = computed(() => ({
+const _floatStyle = computed(() => ({
   top: props.top,
   right: props.right,
   zIndex: props.zIndex

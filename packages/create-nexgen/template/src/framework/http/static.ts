@@ -1,5 +1,5 @@
-import { serveStatic } from "@hono/node-server/serve-static";
 import fsSync from "node:fs";
+import { serveStatic } from "@hono/node-server/serve-static";
 
 export function hasFrontendBuild() {
   return fsSync.existsSync("public/index.html");

@@ -35,8 +35,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
 import Modal from "bootstrap/js/dist/modal.js";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 type ModalSize = "sm" | "md" | "lg" | "xl" | string;
 
@@ -48,7 +48,7 @@ interface ModalProps {
 
 defineOptions({ name: "Modal", inheritAttrs: false });
 
-const props = withDefaults(defineProps<ModalProps>(), {
+const _props = withDefaults(defineProps<ModalProps>(), {
   title: "",
   size: "md"
 });
@@ -89,6 +89,13 @@ const close = () => {
     document.activeElement.blur(); // to avoid aria-hidden warning
   }
   instance.hide();
+
+  // Bootstrap can leave the backdrop when DOM updates race with hide animation
+  setTimeout(() => {
+    document.querySelectorAll(".modal-backdrop").forEach((b) => b.remove());
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("padding-right");
+  }, 350);
 };
 
 onBeforeUnmount(() => {

@@ -17,10 +17,10 @@
     "redis:view": "node src/framework/maker-cli/src/index.mjs redis:view",
     "db:studio": "node src/framework/maker-cli/src/index.mjs db:studio",
     "maker": "node src/framework/maker-cli/src/index.mjs",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
@@ -70,22 +70,14 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@biomejs/biome": "^2.5.0",
     "@types/bootstrap": "^5.2.10",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^25.9.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
     "drizzle-kit": "^0.31.10",
-    "eslint": "^10.4.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-vue": "^10.9.1",
-    "globals": "^17.6.0",
-    "prettier": "^3.8.3",
     "tsc-alias": "^1.8.17",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3",
-    "vue-eslint-parser": "^10.4.0"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=24 <25",

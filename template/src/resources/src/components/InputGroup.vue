@@ -19,6 +19,7 @@
       <div class="input-group">
         <div class="position-relative" :style="props.half ? 'width: 50%;' : 'width: 35%;'">
           <input
+            ref="inputRef"
             :id="inputId"
             type="text"
             class="form-control flex-grow-0 px-1 text-center rounded-0 rounded-start"
@@ -48,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, useAttrs } from "vue";
+import { computed, nextTick, onMounted, ref, useAttrs } from "vue";
 
 defineOptions({ name: "InputGroup", inheritAttrs: false });
 
@@ -66,41 +67,40 @@ interface InputGroupProps {
 }
 
 const $attrs = useAttrs();
+const inputRef = ref<HTMLInputElement | null>(null);
 const props = withDefaults(defineProps<InputGroupProps>(), {
   err: false,
   modelValue: "",
   calcdata: ""
 });
 
-const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
-const inputId = computed(() => ($attrs.id as string | undefined) || "");
-const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
-const placeholder1 = computed(() => ($attrs.placeholder1 as string | undefined) || "");
+const _topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
+const _inputId = computed(() => ($attrs.id as string | undefined) || "");
+const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const _placeholder1 = computed(() => ($attrs.placeholder1 as string | undefined) || "");
 
 const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
 
-const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
-const maxCounter = computed(() =>
+const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const _maxCounter = computed(() =>
   max.value == null ? "" : max.value - String(props.modelValue).length
 );
 
-const hoodHtml = computed(() =>
+const _hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
-const hoodClass = computed(() => [
+const _hoodClass = computed(() => [
   "text-uppercase w-50 text-end text-primary fw-semibold",
   props.half ? "w-50" : "w-100",
   !props.hood && "d-none"
 ]);
 
-const emit = defineEmits<{
-  (event: "update:modelValue", value: string | number): void;
-}>();
+const emit = defineEmits<(event: "update:modelValue", value: string | number) => void>();
 
-const updateModel = (e: Event) => {
+const _updateModel = (e: Event) => {
   const target = e.target as HTMLInputElement;
 
   if (props.category === "number") {
@@ -111,7 +111,7 @@ const updateModel = (e: Event) => {
 
     const parts = val.split(".");
     if (parts.length > 2) {
-      val = parts[0] + "." + parts.slice(1).join("");
+      val = `${parts[0]}.${parts.slice(1).join("")}`;
     }
 
     emit("update:modelValue", (target.value = val));
@@ -119,7 +119,7 @@ const updateModel = (e: Event) => {
     const digits = target.value.replace(/[^\d]/g, "");
     let val = digits;
     if (target.value.includes("+")) {
-      val = "+" + digits;
+      val = `+${digits}`;
     }
     emit("update:modelValue", (target.value = val));
   } else {
@@ -128,14 +128,10 @@ const updateModel = (e: Event) => {
 };
 
 onMounted(() => {
-  if (!props.focus || !inputId.value) {
-    return;
-  }
+  const shouldFocus = props.focus !== false && props.focus !== undefined;
+  if (!shouldFocus) return;
 
-  nextTick(() => {
-    const input = document.querySelector(`#${inputId.value}`) as HTMLInputElement | null;
-    input?.focus();
-  });
+  nextTick(() => inputRef.value?.focus());
 });
 </script>
 

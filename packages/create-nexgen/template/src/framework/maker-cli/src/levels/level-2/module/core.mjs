@@ -2,11 +2,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { glob } from "glob";
 import { detectDialect, openApiEnabled } from "../../level-1/env-db.mjs";
+import { writeFileAlways, writeFiles } from "../../level-1/file-ops.mjs";
 import { hasFlag } from "../../level-1/flags.mjs";
 import { assertName, pascal } from "../../level-1/naming.mjs";
-import { writeFileAlways, writeFiles } from "../../level-1/file-ops.mjs";
 import { packageScript, runNodeScript } from "../../level-1/process.mjs";
-import { drizzleGenerateArgs, ensureDatabaseDirectory, ensureMigrationMeta, syncMigrationDialect } from "../db/core.mjs";
+import {
+  drizzleGenerateArgs,
+  ensureDatabaseDirectory,
+  ensureMigrationMeta,
+  syncMigrationDialect
+} from "../db/core.mjs";
 
 const stubsRoot = path.resolve(import.meta.dirname, "../../../../stubs");
 
@@ -87,7 +92,9 @@ async function assertModuleExists(moduleName) {
   try {
     stats = await fs.stat(root);
   } catch {
-    throw new Error(`Module does not exist: ${moduleName}. Create it first with: bun maker module:make ${moduleName}`);
+    throw new Error(
+      `Module does not exist: ${moduleName}. Create it first with: bun maker module:make ${moduleName}`
+    );
   }
   if (!stats.isDirectory()) {
     throw new Error(`Module path is not a directory: src/modules/${moduleName}`);
@@ -126,7 +133,12 @@ async function controllerFiles(moduleName, controllerName = moduleName, options 
 async function routeTemplate(moduleName, controllerName = moduleName) {
   const controller = controllerName.trim().toLowerCase();
   const routeStub = openApiEnabled() ? STUBS.route.api : STUBS.route.plain;
-  return await stub(routeStub, { module: moduleName, controller, ClassName: pascal(controller), ModuleClass: pascal(moduleName) });
+  return await stub(routeStub, {
+    module: moduleName,
+    controller,
+    ClassName: pascal(controller),
+    ModuleClass: pascal(moduleName)
+  });
 }
 
 /** Generate a named model file for a module. */
@@ -155,7 +167,10 @@ async function namedSeederTemplate(moduleName, modelName, className) {
 
 /** Comment out every line of content (used for seeders generated without --force). */
 function asCommentedSeeder(content) {
-  return content.split("\n").map((line) => (line ? `// ${line}` : "//")).join("\n");
+  return content
+    .split("\n")
+    .map((line) => (line ? `// ${line}` : "//"))
+    .join("\n");
 }
 
 /** Check if a file path exists on disk. */
@@ -178,7 +193,8 @@ async function resolveRouteControllerName(moduleRootPath, moduleName, preferredN
       `${preferred}.controller.ts`
     );
     const preferredSchema = path.join(moduleRootPath, "controllers", `${preferred}.schema.ts`);
-    if ((await pathExists(preferredController)) && (await pathExists(preferredSchema))) return preferred;
+    if ((await pathExists(preferredController)) && (await pathExists(preferredSchema)))
+      return preferred;
   }
 
   const controllerDir = path.join(moduleRootPath, "controllers");
@@ -250,8 +266,12 @@ export async function makeExampleModule(rawName = "example") {
   const moduleName = assertName(rawName || "example", "Module name");
   const root = path.resolve(process.cwd(), "src/modules", moduleName);
   await writeFiles(root, {
-    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.example.schema, { module: moduleName }),
-    [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.example.controller, { module: moduleName }),
+    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.example.schema, {
+      module: moduleName
+    }),
+    [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.example.controller, {
+      module: moduleName
+    }),
     "routes/api.ts": await stub(STUBS.example.routeApi, { module: moduleName }),
     [`jobs/${moduleName}.ts`]: await stub(STUBS.example.job, { module: moduleName }),
     [`console/${moduleName}.ts`]: await stub(STUBS.example.console, { module: moduleName })
@@ -284,8 +304,14 @@ export async function makeRoute(rawModule, rawControllerOrFlag, extraFlags = [])
   const force = hasFlag(flags, "--force") || hasFlag(flags, "--yes");
   if (dryRun) return;
   let exists = false;
-  try { await fs.access(routePath); exists = true; } catch { }
-  if (exists && !force) throw new Error(`Route file already exists: ${path.relative(process.cwd(), routePath)}. Re-run with --force to overwrite.`);
+  try {
+    await fs.access(routePath);
+    exists = true;
+  } catch {}
+  if (exists && !force)
+    throw new Error(
+      `Route file already exists: ${path.relative(process.cwd(), routePath)}. Re-run with --force to overwrite.`
+    );
   await fs.mkdir(path.dirname(routePath), { recursive: true });
   await fs.writeFile(routePath, route);
   console.log(`Route ready: ${path.relative(process.cwd(), routePath)}`);
@@ -295,7 +321,11 @@ export async function makeRoute(rawModule, rawControllerOrFlag, extraFlags = [])
 async function addNotificationRoute(moduleName) {
   const filePath = path.resolve(process.cwd(), "src/resources/src/router/index.ts");
   let content;
-  try { content = await fs.readFile(filePath, "utf-8"); } catch { return; }
+  try {
+    content = await fs.readFile(filePath, "utf-8");
+  } catch {
+    return;
+  }
   if (content.includes(`path: "/${moduleName}s"`)) return;
 
   const block = `\
@@ -317,7 +347,11 @@ async function addNotificationRoute(moduleName) {
 async function removeNotificationRoute(moduleName) {
   const filePath = path.resolve(process.cwd(), "src/resources/src/router/index.ts");
   let content;
-  try { content = await fs.readFile(filePath, "utf-8"); } catch { return; }
+  try {
+    content = await fs.readFile(filePath, "utf-8");
+  } catch {
+    return;
+  }
 
   const route = `\
       {
@@ -337,7 +371,11 @@ async function removeNotificationRoute(moduleName) {
 async function addNotificationBellToHeader() {
   const filePath = path.resolve(process.cwd(), "src/resources/src/layouts/Layout/Header.vue");
   let content;
-  try { content = await fs.readFile(filePath, "utf-8"); } catch { return; }
+  try {
+    content = await fs.readFile(filePath, "utf-8");
+  } catch {
+    return;
+  }
 
   if (content.includes("NotificationBell")) return;
 
@@ -359,7 +397,11 @@ async function addNotificationBellToHeader() {
 async function removeNotificationBellFromHeader() {
   const filePath = path.resolve(process.cwd(), "src/resources/src/layouts/Layout/Header.vue");
   let content;
-  try { content = await fs.readFile(filePath, "utf-8"); } catch { return; }
+  try {
+    content = await fs.readFile(filePath, "utf-8");
+  } catch {
+    return;
+  }
 
   const importLine = `import NotificationBell from "@/components/NotificationBell.vue";\n`;
   const componentLine = `<NotificationBell class="order-2 order-sm-3" />\n        `;
@@ -377,10 +419,14 @@ export async function makeNotificationModule(rawName = "notification") {
   const root = path.resolve(process.cwd(), "src/modules", moduleName);
 
   await writeFiles(root, {
-    [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.notification.controller, { module: moduleName }),
-    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.notification.schema, { module: moduleName }),
+    [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.notification.controller, {
+      module: moduleName
+    }),
+    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.notification.schema, {
+      module: moduleName
+    }),
     "routes/api.ts": await stub(STUBS.notification.routeApi, { module: moduleName }),
-    [`jobs/${moduleName}.ts`]: await stub(STUBS.notification.job, { module: moduleName }),
+    [`jobs/${moduleName}.ts`]: await stub(STUBS.notification.job, { module: moduleName })
   });
 
   await writeFileAlways(
@@ -404,14 +450,22 @@ export async function makeNotificationModule(rawName = "notification") {
 export async function deleteModule(rawName, flags = []) {
   const name = assertName(rawName, "Module name");
   if (name === "notification") {
-    console.log("Use `bun maker module:delete-notification` to remove the notification module (removes frontend files too).");
+    console.log(
+      "Use `bun maker module:delete-notification` to remove the notification module (removes frontend files too)."
+    );
     return;
   }
   const modulesRoot = path.resolve(process.cwd(), "src/modules");
   const modulePath = path.resolve(modulesRoot, name);
   const relative = path.relative(modulesRoot, modulePath);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("Unsafe module path.");
-  let stats; try { stats = await fs.stat(modulePath); } catch { throw new Error(`Module not found: ${name}`); }
+  if (relative.startsWith("..") || path.isAbsolute(relative))
+    throw new Error("Unsafe module path.");
+  let stats;
+  try {
+    stats = await fs.stat(modulePath);
+  } catch {
+    throw new Error(`Module not found: ${name}`);
+  }
   if (!stats.isDirectory()) throw new Error(`Module path is not a directory: src/modules/${name}`);
   const trashRoot = path.resolve(process.cwd(), "src/storage/trash/modules");
   const stamp = new Date().toISOString().replace(/[.:]/g, "-");
@@ -419,7 +473,10 @@ export async function deleteModule(rawName, flags = []) {
   const dryRun = hasFlag(flags, "--dry-run");
   const confirmed = hasFlag(flags, "--yes") || hasFlag(flags, "--force");
   if (dryRun) return;
-  if (!confirmed) throw new Error(`Refusing to delete module without confirmation. Re-run with: bun maker module:delete ${name} --yes`);
+  if (!confirmed)
+    throw new Error(
+      `Refusing to delete module without confirmation. Re-run with: bun maker module:delete ${name} --yes`
+    );
   await fs.mkdir(trashRoot, { recursive: true });
   try {
     await fs.rename(modulePath, trashPath);
@@ -442,8 +499,14 @@ export async function deleteNotificationModule(rawName = "notification", flags =
 
   const tasks = [
     { path: path.resolve(process.cwd(), "src/modules", moduleName), label: "Module" },
-    { path: path.resolve(process.cwd(), "src/resources/src/components/NotificationBell.vue"), label: "Bell component" },
-    { path: path.resolve(process.cwd(), `src/resources/src/pages/${moduleName}s`), label: "Notifications page" },
+    {
+      path: path.resolve(process.cwd(), "src/resources/src/components/NotificationBell.vue"),
+      label: "Bell component"
+    },
+    {
+      path: path.resolve(process.cwd(), `src/resources/src/pages/${moduleName}s`),
+      label: "Notifications page"
+    }
   ];
 
   const trashRoot = path.resolve(process.cwd(), "src/storage/trash/modules");
@@ -451,7 +514,10 @@ export async function deleteNotificationModule(rawName = "notification", flags =
 
   if (dryRun) {
     for (const task of tasks) {
-      const exists = await fs.stat(task.path).then(() => true).catch(() => false);
+      const exists = await fs
+        .stat(task.path)
+        .then(() => true)
+        .catch(() => false);
       if (exists) console.log(`Would delete: ${path.relative(process.cwd(), task.path)}`);
     }
     return;
@@ -466,7 +532,10 @@ export async function deleteNotificationModule(rawName = "notification", flags =
   await fs.mkdir(trashRoot, { recursive: true });
 
   for (const task of tasks) {
-    const exists = await fs.stat(task.path).then(() => true).catch(() => false);
+    const exists = await fs
+      .stat(task.path)
+      .then(() => true)
+      .catch(() => false);
     if (!exists) continue;
 
     const relPath = path.relative(process.cwd(), task.path);
@@ -497,13 +566,32 @@ export async function cleanModuleTrash(rawName, flags = []) {
   const dryRun = hasFlag(flags, "--dry-run");
   const confirmed = hasFlag(flags, "--yes") || hasFlag(flags, "--force");
   let entries = [];
-  try { entries = await fs.readdir(trashRoot, { withFileTypes: true }); } catch { if (dryRun) return; console.log("No trash entries found"); return; }
+  try {
+    entries = await fs.readdir(trashRoot, { withFileTypes: true });
+  } catch {
+    if (dryRun) return;
+    console.log("No trash entries found");
+    return;
+  }
   const targetName = rawName && !rawName.startsWith("--") ? assertName(rawName, "Module name") : "";
-  const matches = entries.map((e) => e.name).filter((name) => !targetName || name === targetName || name.startsWith(`${targetName}-`));
-  if (!matches.length) { console.log(targetName ? `No trash entries found for module '${targetName}'` : "No trash entries found"); return; }
+  const matches = entries
+    .map((e) => e.name)
+    .filter((name) => !targetName || name === targetName || name.startsWith(`${targetName}-`));
+  if (!matches.length) {
+    console.log(
+      targetName ? `No trash entries found for module '${targetName}'` : "No trash entries found"
+    );
+    return;
+  }
   if (dryRun) return;
-  if (!confirmed) throw new Error(targetName ? `Refusing to clean trash for '${targetName}' without confirmation. Re-run with: bun maker module:trash:clean ${targetName} --yes` : "Refusing to clean all trash without confirmation. Re-run with: bun maker module:trash:clean --yes");
-  for (const name of matches) await fs.rm(path.join(trashRoot, name), { recursive: true, force: true });
+  if (!confirmed)
+    throw new Error(
+      targetName
+        ? `Refusing to clean trash for '${targetName}' without confirmation. Re-run with: bun maker module:trash:clean ${targetName} --yes`
+        : "Refusing to clean all trash without confirmation. Re-run with: bun maker module:trash:clean --yes"
+    );
+  for (const name of matches)
+    await fs.rm(path.join(trashRoot, name), { recursive: true, force: true });
 }
 
 /** Generate a controller for an existing module. */
@@ -629,8 +717,14 @@ export async function listModules() {
   const modulesRoot = path.resolve(process.cwd(), "src/modules");
   try {
     const entries = await fs.readdir(modulesRoot, { withFileTypes: true });
-    const modules = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
-    if (!modules.length) { console.log("No modules found."); return; }
+    const modules = entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    if (!modules.length) {
+      console.log("No modules found.");
+      return;
+    }
     console.log("Modules:");
     for (const module of modules) console.log(`  - ${module}`);
   } catch {
@@ -641,19 +735,30 @@ export async function listModules() {
 /** Check that a module has at least one seeder file. */
 export async function assertModuleHasSeeders(moduleName) {
   await assertModuleExists(moduleName);
-  const files = await glob(`${moduleName}/database/seeders/*.{ts,js}`, { cwd: path.resolve(process.cwd(), "src/modules"), nodir: true, windowsPathsNoEscape: true });
+  const files = await glob(`${moduleName}/database/seeders/*.{ts,js}`, {
+    cwd: path.resolve(process.cwd(), "src/modules"),
+    nodir: true,
+    windowsPathsNoEscape: true
+  });
   if (!files.length) throw new Error(`No seeders found for module '${moduleName}'.`);
 }
 
 /** Generate src/database/schema.ts by aggregating all module model exports. */
 export async function generateSchema(options = {}) {
   const backendSrc = path.resolve(process.cwd(), "src");
-  const files = await glob("modules/**/database/models/*.{ts,js}", { cwd: backendSrc, nodir: true, windowsPathsNoEscape: true });
+  const files = await glob("modules/**/database/models/*.{ts,js}", {
+    cwd: backendSrc,
+    nodir: true,
+    windowsPathsNoEscape: true
+  });
   const exports = [];
   for (const file of files.sort()) {
     const absoluteFile = path.join(backendSrc, file);
     const outputDir = path.join(backendSrc, "database");
-    const relativePath = path.relative(outputDir, absoluteFile).replace(/\\/g, "/").replace(/\.(ts|js)$/, ".js");
+    const relativePath = path
+      .relative(outputDir, absoluteFile)
+      .replace(/\\/g, "/")
+      .replace(/\.(ts|js)$/, ".js");
     const importPath = relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
     exports.push(`export * from "${importPath}";`);
   }
@@ -667,7 +772,11 @@ export async function generateSchema(options = {}) {
 async function generateModuleSchemaTemp(moduleName) {
   await assertModuleExists(moduleName);
   const backendSrc = path.resolve(process.cwd(), "src");
-  const files = await glob(`modules/${moduleName}/database/models/*.{ts,js}`, { cwd: backendSrc, nodir: true, windowsPathsNoEscape: true });
+  const files = await glob(`modules/${moduleName}/database/models/*.{ts,js}`, {
+    cwd: backendSrc,
+    nodir: true,
+    windowsPathsNoEscape: true
+  });
   if (!files.length) throw new Error(`No model files found for module '${moduleName}'.`);
   const exports = [];
   const tempDir = path.resolve(process.cwd(), "src/storage/tmp");
@@ -676,7 +785,10 @@ async function generateModuleSchemaTemp(moduleName) {
   const tempSchemaDir = path.dirname(tempSchemaPath);
   for (const file of files.sort()) {
     const absoluteFile = path.join(backendSrc, file);
-    const relativePath = path.relative(tempSchemaDir, absoluteFile).replace(/\\/g, "/").replace(/\.(ts|js)$/, ".ts");
+    const relativePath = path
+      .relative(tempSchemaDir, absoluteFile)
+      .replace(/\\/g, "/")
+      .replace(/\.(ts|js)$/, ".ts");
     const importPath = relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
     exports.push(`export * from "${importPath}";`);
   }
@@ -702,6 +814,6 @@ export async function runModuleMigrate(rawModuleName, rawArgs = []) {
   } finally {
     if (previousSchema == null) delete process.env.DRIZZLE_SCHEMA;
     else process.env.DRIZZLE_SCHEMA = previousSchema;
-    if (!keepTemp) await fs.rm(tempSchemaPath, { force: true }).catch(() => { });
+    if (!keepTemp) await fs.rm(tempSchemaPath, { force: true }).catch(() => {});
   }
 }

@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import {
-  ref,
-  reactive,
-  onMounted,
-  nextTick,
-  computed,
-  onBeforeUnmount,
-  watch,
-  useAttrs
-} from "vue";
-import { debounce } from "lodash-es";
 import axios from "axios";
-import vSelect from "vue-select";
+import { debounce } from "lodash-es";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  useAttrs,
+  watch
+} from "vue";
 import "vue-select/dist/vue-select.css";
 import { empty } from "../helpers/utils";
 
@@ -27,18 +26,14 @@ interface FetchPack {
   params?: AnyRecord;
   mapFn?: (x: AnyRecord) => AnyRecord;
   option?:
-  | ((value: unknown) => void | Promise<void>)
-  | Array<(value: unknown) => void | Promise<void>>;
+    | ((value: unknown) => void | Promise<void>)
+    | Array<(value: unknown) => void | Promise<void>>;
   reset?: boolean;
   reload?: boolean;
 }
 
 interface SelectProps {
-  fetched?: (payload: {
-    search: string;
-    reset?: boolean;
-    reload?: boolean;
-  }) => Promise<FetchPack | null | undefined> | FetchPack | null | undefined;
+  fetched?: (payload: Record<string, any>) => any;
   must?: boolean;
   err?: string | boolean;
   hood?: string | boolean;
@@ -65,14 +60,14 @@ let observer = ref<IntersectionObserver | null>(null);
 let load = ref<HTMLElement | null>(null);
 
 // store callbacks coming from fetchedDropdown(pack)
-const hooks = ref<{ option: OptionHook | OptionHook[]; }>({ option: null }); // function | function[] | null
+const hooks = ref<{ option: OptionHook | OptionHook[] }>({ option: null }); // function | function[] | null
 
 // remember last fetch config and search so the child can refetch/append by itself
 const lastPack = ref<FetchPack | null>(null); // { url, data, params, mapFn }
 const lastSearch = ref(""); // current search term
 
 const hasNextPage = computed(() => {
-  const total = Number((fieldData.value as { total?: number; }).total ?? 0);
+  const total = Number((fieldData.value as { total?: number }).total ?? 0);
   return field.all.length < total;
 });
 
@@ -84,13 +79,13 @@ const callParentFetched = async (search: string, opts: Partial<FetchPack> = {}) 
   }
 };
 
-const onClear = () => {
+const _onClear = () => {
   resetMe(); // clear options + selected value
   skipNextSearch.value = true; // suppress the immediate empty search
   emit("clear"); // notify parent that clear button was clicked
 };
 
-const onOpen = async () => {
+const _onOpen = async () => {
   // if empty, load page 1 via parent fetcher (no boolean flags)
   if (!field.all.length) {
     if (lastPack.value) {
@@ -107,11 +102,11 @@ const onOpen = async () => {
   }
 };
 
-const onClose = async () => {
+const _onClose = async () => {
   observer.value?.disconnect();
 };
 
-const onModelUpdate = async (val: unknown) => {
+const _onModelUpdate = async (val: unknown) => {
   const optHooks = Array.isArray(hooks.value.option)
     ? hooks.value.option
     : hooks.value.option
@@ -138,13 +133,13 @@ const onModelUpdate = async (val: unknown) => {
   }
 };
 
-const inputSearch = debounce(async (search: string, loading: (value: boolean) => void) => {
-  if (skipNextSearch.value && (!search || !search.trim().length)) {
+const _inputSearch = debounce(async (search: string, loading: (value: boolean) => void) => {
+  if (skipNextSearch.value && !search?.trim().length) {
     skipNextSearch.value = false; // consume the flag
     return;
   }
 
-  if (search && search.trim().length) {
+  if (search?.trim().length) {
     loading(true);
     if (lastPack.value) {
       await fetchedDropdown(search, { ...lastPack.value, reset: true }).finally(() =>
@@ -157,7 +152,7 @@ const inputSearch = debounce(async (search: string, loading: (value: boolean) =>
     // user erased the query manually
     field.page = 0;
     if (lastPack.value) {
-      await fetchedDropdown("", { ...lastPack.value }); // no reset → keep list
+      await fetchedDropdown("", { ...lastPack.value, reset: true });
     } else {
       await callParentFetched("");
     }
@@ -168,17 +163,21 @@ const inputSearch = debounce(async (search: string, loading: (value: boolean) =>
 
 const infiniteScroll = async ([{ isIntersecting, target }]: IntersectionObserverEntry[]) => {
   if (!isIntersecting) return;
+
   const ul =
     target instanceof HTMLElement && target.offsetParent instanceof HTMLElement
       ? target.offsetParent
       : null;
   const scrollTop = ul?.scrollTop ?? 0;
+
   if (lastPack.value) {
     await fetchedDropdown(lastSearch.value, { ...lastPack.value }); // next page of current mode
   } else {
     await callParentFetched(lastSearch.value || "");
   }
+
   await nextTick();
+
   if (ul) ul.scrollTop = scrollTop;
 };
 
@@ -199,7 +198,7 @@ onBeforeUnmount(() => {
 });
 
 // prototype and it will call from parent
-const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number; }>({
+const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number }>({
   all: [],
   val: "",
   page: 0,
@@ -227,7 +226,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   const reload = !!pack?.reload;
 
   // make option sticky: only overwrite if caller provided it
-  if (Object.prototype.hasOwnProperty.call(pack ?? {}, "option")) {
+  if (Object.hasOwn(pack ?? {}, "option")) {
     const pOpt = pack?.option;
     hooks.value.option = Array.isArray(pOpt)
       ? pOpt.filter((fn) => typeof fn === "function")
@@ -256,12 +255,17 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
     return;
   }
 
-  const key = await axios.get(url, { params: params ? { ...params, ...param } : param });
+  let key;
+  try {
+    key = await axios.get(url, { params: params ? { ...params, ...param } : param });
+  } catch {
+    return; // failed to fetch (e.g. cascade with missing parent)
+  }
   const payload = key.data[data as string] as AnyRecord;
 
   fieldData.value = payload;
-  const rows = Array.isArray((payload as { data?: unknown; }).data)
-    ? (payload as { data: AnyRecord[]; }).data
+  const rows = Array.isArray((payload as { data?: unknown }).data)
+    ? (payload as { data: AnyRecord[] }).data
     : [];
   // console.log('Fetched', payload?.data);
   rows.forEach((dt) => {
@@ -271,8 +275,8 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
     if (
       !field.all.some(
         (o) =>
-          ((o as { id?: unknown; title?: unknown; }).id ??
-            (o as { id?: unknown; title?: unknown; }).title ??
+          ((o as { id?: unknown; title?: unknown }).id ??
+            (o as { id?: unknown; title?: unknown }).title ??
             JSON.stringify(o)) === key
       )
     ) {
@@ -310,7 +314,6 @@ watch(
         ? [hooks.value.option]
         : [];
 
-    resetMe(); // clears field.all, field.page, field.val
     model.value = "";
 
     // Notify hooks that selection is gone
@@ -321,16 +324,20 @@ watch(
     }
 
     skipNextSearch.value = true; // avoid instant empty-search call
-    await callParentFetched("", { reset: true, reload: true });
+    if (newVal == null) {
+      lastPack.value = null;
+      return;
+    } // parent cleared, don't fetch with null key
+    await callParentFetched("", { reload: true });
   }
 );
 
 defineExpose({ field, fieldData, fetchedDropdown, reload });
 
-const parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
-const inputId = computed(() => ($attrs.id as string | undefined) || "");
-const inputTitle = computed(() => ($attrs.title as string | undefined) || "");
-const hoodHtml = computed(() =>
+const _parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
+
+const _inputTitle = computed(() => ($attrs.title as string | undefined) || "");
+const _hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
 </script>
@@ -338,7 +345,6 @@ const hoodHtml = computed(() =>
 <template>
   <div :class="parentClass">
     <label
-      :for="inputId"
       class="text-capitalize d-flex align-items-center mb-1"
       :class="{ 'd-none': !inputTitle }">
       <div class="position-relative">

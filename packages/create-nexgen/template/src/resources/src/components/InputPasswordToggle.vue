@@ -17,6 +17,7 @@
 
       <div class="input-group mb-3">
         <input
+          ref="inputRef"
           class="form-control border-0"
           :type="showPassword ? 'text' : 'password'"
           :value="props.modelValue"
@@ -51,13 +52,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, nextTick, useAttrs, ref } from "vue";
+import { computed, nextTick, onMounted, ref, useAttrs } from "vue";
 import { browserDetect } from "@/plugins/browserDetect";
 
 defineOptions({ name: "InputPasswordToggle", inheritAttrs: false });
 const { isFirefox } = browserDetect;
 
 const $attrs = useAttrs();
+const inputRef = ref<HTMLInputElement | null>(null);
 type InputPasswordCategory =
   | "number"
   | "decimal"
@@ -82,22 +84,22 @@ const props = withDefaults(defineProps<InputPasswordProps>(), {
   modelValue: ""
 });
 
-const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
-const inputId = computed(() => ($attrs.id as string | undefined) || "");
-const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const _topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
+const _inputId = computed(() => ($attrs.id as string | undefined) || "");
+const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
 const inputType = computed(() => ($attrs.type as string | undefined) || "text");
 
 const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
-const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 
-const hoodHtml = computed(() =>
+const _hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
 
-const maxCounter = computed(() => {
+const _maxCounter = computed(() => {
   if (max.value == null) {
     return "";
   }
@@ -109,10 +111,8 @@ const maxCounter = computed(() => {
   return max.value - String(props.modelValue).length;
 });
 
-const emit = defineEmits<{
-  (event: "update:modelValue", value: string | number): void;
-}>();
-const updateModel = (e: Event) => {
+const emit = defineEmits<(event: "update:modelValue", value: string | number) => void>();
+const _updateModel = (e: Event) => {
   const target = e.target as HTMLInputElement;
 
   if (props.category === "number") {
@@ -122,14 +122,14 @@ const updateModel = (e: Event) => {
     const parts = val.split(".");
     val = parts[0];
     if (parts.length > 1) {
-      val += "." + parts.slice(1).join("");
+      val += `.${parts.slice(1).join("")}`;
     }
     emit("update:modelValue", (target.value = val));
   } else if (props.category === "mobile") {
     let digits = target.value.replace(/[^\d]/g, ""); // only digits
     let val = digits;
     if (target.value.includes("+")) {
-      val = "+" + digits;
+      val = `+${digits}`;
     }
     emit("update:modelValue", (target.value = val));
   } else if (props.category === "tax-period") {
@@ -151,7 +151,7 @@ const updateModel = (e: Event) => {
         month = m.toString().padStart(2, "0");
       }
 
-      val = year + "-" + month;
+      val = `${year}-${month}`;
     }
 
     emit("update:modelValue", (target.value = val));
@@ -160,7 +160,7 @@ const updateModel = (e: Event) => {
     digits = digits.slice(0, 14);
     let formatted = digits;
     if (digits.length > 9) {
-      formatted = digits.slice(0, 9) + "-" + digits.slice(9, 14);
+      formatted = `${digits.slice(0, 9)}-${digits.slice(9, 14)}`;
     }
     emit("update:modelValue", (target.value = formatted));
   } else if (props.category === "challan-number") {
@@ -168,7 +168,7 @@ const updateModel = (e: Event) => {
     digits = digits.slice(0, 16);
     let formatted = digits;
     if (digits.length > 4) {
-      formatted = digits.slice(0, 4) + "-" + digits.slice(4, 16);
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 16)}`;
     }
     emit("update:modelValue", (target.value = formatted));
   } else {
@@ -177,17 +177,13 @@ const updateModel = (e: Event) => {
 };
 
 const showPassword = ref(false);
-const togglePassword = () => (showPassword.value = !showPassword.value);
+const _togglePassword = () => (showPassword.value = !showPassword.value);
 
 onMounted(() => {
-  if (!props.focus || !inputId.value) {
-    return;
-  }
+  const shouldFocus = props.focus !== false && props.focus !== undefined;
+  if (!shouldFocus) return;
 
-  nextTick(() => {
-    const input = document.querySelector(`#${inputId.value}`) as HTMLInputElement | null;
-    input?.focus();
-  });
+  nextTick(() => inputRef.value?.focus());
 });
 </script>
 

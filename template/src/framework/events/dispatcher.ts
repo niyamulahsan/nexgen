@@ -1,5 +1,5 @@
 import { queueJob } from "@/framework/queue/queue.js";
-import { broadcast, type BroadcastOptions } from "@/framework/realtime/broadcast.js";
+import { type BroadcastOptions, broadcast } from "@/framework/realtime/broadcast.js";
 
 type CommandHandler = (payload: any) => Promise<any>;
 

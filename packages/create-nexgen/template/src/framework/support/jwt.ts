@@ -1,5 +1,5 @@
-import { sign, verify } from "hono/jwt";
 import { randomUUID } from "node:crypto";
+import { sign, verify } from "hono/jwt";
 import { env } from "@/env.js";
 
 export const jwt = {
@@ -11,8 +11,9 @@ export const jwt = {
    */
   async generateToken(payload: any, type: "access" | "refresh", expirySeconds?: number) {
     const now = Math.floor(Date.now() / 1000);
-    const exp = now
-      + (typeof expirySeconds === "number"
+    const exp =
+      now +
+      (typeof expirySeconds === "number"
         ? expirySeconds
         : type === "refresh"
           ? env.JWT_REFRESH_EXPIRY
@@ -42,4 +43,3 @@ export const jwt = {
     }
   }
 };
-

@@ -38,9 +38,11 @@ const topclass = computed(() => ($attrs.topclass as string | undefined) || "");
 
 const isChecked = computed(() => Boolean(props.checked));
 
-const wrapperClass = computed(() => (props.vertical ? `text-center ${topclass.value}`.trim() : ""));
+const _wrapperClass = computed(() =>
+  props.vertical ? `text-center ${topclass.value}`.trim() : ""
+);
 
-const statusHtml = computed(() => {
+const _statusHtml = computed(() => {
   if (isChecked.value) {
     return `<div class='d-flex justify-content-center'><span>${textLabel.value}</span><div class='rounded-circle bg-success indicator'></div></div>`;
   }

@@ -1,5 +1,5 @@
-import type { Handler } from "hono";
 import { eq } from "drizzle-orm";
+import type { Handler } from "hono";
 import { db, HttpStatusCodes } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
 

@@ -24,6 +24,7 @@ export default defineConfig({
         { text: "Notifications", link: "/guide/notification" },
         { text: "Storage", link: "/guide/storage" },
         { text: "Cache", link: "/guide/cache" },
+        { text: "Rate Limiter", link: "/guide/rate-limiter" },
         { text: "Session", link: "/guide/session" },
         { text: "Authentication", link: "/guide/auth" },
         {

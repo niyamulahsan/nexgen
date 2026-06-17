@@ -1,11 +1,11 @@
-import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 import { closeDatabase, initDatabase } from "@/framework/database/connection.js";
+import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 
 const NAME_SYMBOL = Symbol.for("drizzle:Name");
 const FK_SYMBOLS = [
   Symbol.for("drizzle:PgInlineForeignKeys"),
   Symbol.for("drizzle:MySqlInlineForeignKeys"),
-  Symbol.for("drizzle:SQLiteInlineForeignKeys"),
+  Symbol.for("drizzle:SQLiteInlineForeignKeys")
 ];
 
 interface SeederEntry {
@@ -51,7 +51,10 @@ try {
       const table: any = mod.table;
       const entry: SeederEntry = {
         file,
-        name: file.split(/[\\/]/).pop()!.replace(/\.(ts|js)$/, ""),
+        name: file
+          .split(/[\\/]/)
+          .pop()!
+          .replace(/\.(ts|js)$/, ""),
         execute: () => mod.default(),
         dependsOn: table ? getTableDeps(table) : []
       };

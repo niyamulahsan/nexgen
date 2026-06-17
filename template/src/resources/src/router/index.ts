@@ -14,7 +14,7 @@ export const routes = [
         name: "dashboard",
         component: () => import("@/pages/dashboard/index.vue"),
         meta: { requiresAuth: true }
-      },
+      }
     ]
   },
   {

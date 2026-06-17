@@ -5,10 +5,7 @@ import { roles } from "@/modules/auth/database/models/role.js";
 export const table = roles;
 
 export default async function RoleSeeder() {
-  const rows = [
-    { name: "admin" },
-    { name: "user" }
-  ];
+  const rows = [{ name: "admin" }, { name: "user" }];
 
   for (const row of rows) {
     const existing = await db.query.roles.findFirst({ where: eq(roles.name, row.name) });

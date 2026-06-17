@@ -22,12 +22,9 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import Footer from "./Footer.vue";
-import Header from "./Header.vue";
-import Sidebar from "./Sidebar.vue";
 import { storeToRefs } from "pinia";
+import { onBeforeUnmount, onMounted, provide, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useAdminUiStore } from "@/stores/admin-ui";
 import { useAuthStore } from "@/stores/auth";
 
@@ -37,8 +34,19 @@ const router = useRouter();
 const { themeMode, sidebarOpen } = storeToRefs(ui);
 const headerScrolled = ref(false);
 const disableTransition = ref(true);
+const featureButtons = reactive<
+  Array<{
+    id: symbol;
+    icon?: string;
+    label: string;
+    title: string;
+    attrs?: Record<string, string>;
+    onClick: () => void;
+  }>
+>([]);
+provide("featureButtons", featureButtons);
 
-async function logout() {
+async function _logout() {
   await auth.logout();
   await router.push("/login");
 }

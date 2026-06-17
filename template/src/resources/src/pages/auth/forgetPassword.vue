@@ -43,35 +43,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useHead } from "@vueuse/head";
-import Input from "../../components/Input.vue";
-import Button from "../../components/Button.vue";
+import { ref } from "vue";
 import { useGumForm } from "@/plugins/gum";
 
 useHead({ title: "Forget Password" });
 
 const form = useGumForm({ email: "" });
-const processing = form.processing;
+const _processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
-const onSubmit = async () => {
+const _onSubmit = async () => {
   message.value = "";
   isError.value = false;
-  await form.post("/api/auth/forgot-password", {
-    email: String(form.data.email || "").trim()
-  }, {
-    onSuccess: () => {
-      isError.value = false;
-      message.value = "If this email exists, a reset link has been sent.";
-      form.reset();
+  await form.post(
+    "/api/auth/forgot-password",
+    {
+      email: String(form.data.email || "").trim()
     },
-    onError: (errors, error) => {
-      isError.value = true;
-      message.value = error instanceof Error ? error.message : "Failed to process request";
+    {
+      onSuccess: () => {
+        isError.value = false;
+        message.value = "If this email exists, a reset link has been sent.";
+        form.reset();
+      },
+      onError: (_errors, error) => {
+        isError.value = true;
+        message.value = error instanceof Error ? error.message : "Failed to process request";
+      }
     }
-  });
+  );
 };
 </script>
 

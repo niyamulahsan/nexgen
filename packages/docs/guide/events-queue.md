@@ -165,8 +165,7 @@ await dispatchCommand("calculate-tax", { subtotal: 100 }, { async: true });
 Define job handlers in `src/modules/<module>/jobs/*.ts`. Each file registers a handler with `shouldQueue()` at module scope:
 
 ```ts
-import { logger } from "@/framework/support/logger.js";
-import { shouldQueue } from "@/framework/queue/queue.js";
+import { logger, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("post.publish", "default", async (job) => {
   logger.info("Post publish job processed", { data: job.data });

@@ -1,4 +1,4 @@
-import { runRuntime, runUi, runVite, clearViteCache } from "./core.mjs";
+import { clearViteCache, runRuntime, runUi, runVite } from "./core.mjs";
 
 /** Register runtime commands (dev, serve, queue, schedule, UI tools) on the CLI program. */
 export function registerRuntimeCommands(program, rawArgs) {

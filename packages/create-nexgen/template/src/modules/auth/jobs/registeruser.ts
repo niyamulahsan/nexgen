@@ -1,5 +1,5 @@
-import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 import { DateTime as Datetime } from "luxon";
+import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("user:signup", "mail", async (job) => {
   const { email, name, password, userId } = job.data;

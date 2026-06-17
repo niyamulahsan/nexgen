@@ -62,6 +62,7 @@ Options:
 | `replace` | `boolean` | `false` | Use `router.replace()` instead of `router.push()` |
 | `preserveState` | `boolean` | `false` for GET, `true` for mutations | Keep `useGumRemember()` state |
 | `preserveScroll` | `boolean` | `false` | Restore scroll after request and router update |
+| `skipFetch` | `boolean` | `false` | Skip the API call — only navigate and preserve scroll/state. Used by datatable components (page watcher handles the data fetch) |
 | `onBefore` | `() => boolean \| void \| Promise<boolean \| void>` | — | Return `false` to cancel |
 | `onStart` | `() => void \| Promise<void>` | — | Runs before request |
 | `onProgress` | `(event) => void` | — | Upload progress |
@@ -203,11 +204,12 @@ gum.get(props.data.path, {
     search
   },
   preserveState: true,
-  preserveScroll: true
+  preserveScroll: true,
+  skipFetch: true
 });
 ```
 
-The page still needs the `route.query` watcher shown above. Gum updates the URL; the page watcher updates the store.
+`skipFetch: true` tells Gum to **skip the API call** and only navigate (update URL, preserve scroll, preserve state). The page's `route.query` watcher handles the single data fetch via the Pinia store — no duplicate requests.
 
 ## Search
 
@@ -306,7 +308,7 @@ Use this when Pinia owns the list data.
 
 When `onError` is provided, the error is considered handled and does **not** rethrow — no try/catch wrapper needed. If `onError` is omitted, the error throws as normal for external handling.
 
-It supports Laravel-style errors:
+It supports common field-error responses:
 
 ```json
 {

@@ -1,6 +1,6 @@
+import { clearQueue } from "@/framework/queue/queue.js";
 import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
 import { logger } from "@/framework/support/logger.js";
-import { clearQueue } from "@/framework/queue/queue.js";
 
 /**
  * Why: Clears Redis queue keys used by BullMQ runtime.

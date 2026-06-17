@@ -1,10 +1,31 @@
-import type { Handler } from "hono";
 import { and, eq, gt, lt } from "drizzle-orm";
+import type { Handler } from "hono";
 import { env } from "@/env.js";
-import { HttpStatusCodes, cookie, db, dispatchEvent, jwt, password, urls } from "@/framework/facade.js";
+import {
+  cookie,
+  db,
+  dispatchEvent,
+  HttpStatusCodes,
+  jwt,
+  password,
+  urls
+} from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
-import { emailVerificationTokens, passwordResetTokens, refreshTokens, users } from "@/modules/auth/database/models/user.js";
-import { hashEmailVerificationToken, hashResetToken, issueTokens, makeEmailVerificationToken, makeResetToken, revokeCurrentRefreshToken, sanitizeUser } from "./auth.helpers.js";
+import {
+  emailVerificationTokens,
+  passwordResetTokens,
+  refreshTokens,
+  users
+} from "@/modules/auth/database/models/user.js";
+import {
+  hashEmailVerificationToken,
+  hashResetToken,
+  issueTokens,
+  makeEmailVerificationToken,
+  makeResetToken,
+  revokeCurrentRefreshToken,
+  sanitizeUser
+} from "./auth.helpers.js";
 
 /**
  * Why: Creates a new user, issues tokens, and triggers signup side effects.
@@ -56,14 +77,19 @@ export const register: Handler = async (c: any) => {
         createdAt: new Date()
       });
 
-      const verifyUrl = urls.url(`/verify-email?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
+      const verifyUrl = urls.url(
+        `/verify-email?token=${plainToken}&email=${encodeURIComponent(user.email)}`
+      );
       await dispatchEvent(
         "user:verify-email",
         { email: user.email, name: user.name, verifyUrl },
         { queue: "mail" }
       );
 
-      return c.json({ message: "User registered successfully. Please verify your email before logging in." }, HttpStatusCodes.CREATED);
+      return c.json(
+        { message: "User registered successfully. Please verify your email before logging in." },
+        HttpStatusCodes.CREATED
+      );
     }
 
     await revokeCurrentRefreshToken(c);
@@ -226,7 +252,9 @@ export const forgotPassword: Handler = async (c: any) => {
       createdAt: new Date()
     });
 
-    const resetUrl = urls.url(`/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
+    const resetUrl = urls.url(
+      `/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`
+    );
     await dispatchEvent(
       "user:forget-password",
       { email: user.email, name: user.name, resetUrl },

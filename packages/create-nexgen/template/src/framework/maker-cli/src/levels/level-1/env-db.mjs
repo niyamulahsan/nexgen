@@ -30,13 +30,17 @@ export function databaseNameFromUrl(url) {
 
 /** Check if OPEN_API env is enabled (defaults to true). */
 export function openApiEnabled() {
-  const value = String(process.env.OPEN_API ?? "true").trim().toLowerCase();
+  const value = String(process.env.OPEN_API ?? "true")
+    .trim()
+    .toLowerCase();
   return value !== "false" && value !== "0" && value !== "no";
 }
 
 /** Check if REDIS env is enabled (defaults to false). */
 export function redisEnabled() {
-  const value = String(process.env.REDIS ?? "false").trim().toLowerCase();
+  const value = String(process.env.REDIS ?? "false")
+    .trim()
+    .toLowerCase();
   return value === "true" || value === "1" || value === "yes";
 }
 

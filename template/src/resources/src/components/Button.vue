@@ -25,11 +25,11 @@ interface ButtonProps {
 defineOptions({ name: "Button", inheritAttrs: false });
 
 const slots = useSlots();
-const props = withDefaults(defineProps<ButtonProps>(), {
+const _props = withDefaults(defineProps<ButtonProps>(), {
   type: "button"
 });
 
-const hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
+const _hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
 </script>
 
 <style lang="scss" scoped></style>

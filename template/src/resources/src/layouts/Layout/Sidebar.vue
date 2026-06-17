@@ -121,12 +121,12 @@ import { onBeforeUnmount, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useAdminUiStore } from "@/stores/admin-ui";
 
-const props = defineProps<{ onToggleSidebar: () => void; }>();
+const _props = defineProps<{ onToggleSidebar: () => void }>();
 
 const ui = useAdminUiStore();
 const route = useRoute();
 
-function isActive(path: string) {
+function _isActive(path: string) {
   return route.path === path;
 }
 

@@ -56,11 +56,9 @@
 </template>
 
 <script setup lang="ts">
+import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useHead } from "@vueuse/head";
-import Input from "../../components/Input.vue";
-import Button from "../../components/Button.vue";
 import { useGumForm } from "@/plugins/gum";
 
 useHead({ title: "Reset Password" });
@@ -78,14 +76,14 @@ const form = useGumForm({
   password_confirmation: ""
 });
 
-const processing = form.processing;
+const _processing = form.processing;
 const isLinkValid = !!(token && email);
 const message = ref(
   isLinkValid ? "Set your new password" : "Invalid reset link. Please request a new one."
 );
 const isError = ref(!isLinkValid);
 
-const onSubmit = async () => {
+const _onSubmit = async () => {
   if (!isLinkValid) return;
 
   message.value = "";
@@ -97,22 +95,26 @@ const onSubmit = async () => {
     return;
   }
 
-  await form.post("/api/auth/reset-password", {
-    email: String(form.data.email || "").trim(),
-    token: String(form.data.token || "").trim(),
-    password: form.data.password,
-    password_confirmation: form.data.password_confirmation
-  }, {
-    onSuccess: () => {
-      isError.value = false;
-      message.value = "Password reset successfully. Redirecting to login...";
-      router.push("/login");
+  await form.post(
+    "/api/auth/reset-password",
+    {
+      email: String(form.data.email || "").trim(),
+      token: String(form.data.token || "").trim(),
+      password: form.data.password,
+      password_confirmation: form.data.password_confirmation
     },
-    onError: (errors, error) => {
-      isError.value = true;
-      message.value = error instanceof Error ? error.message : "Failed to reset password";
+    {
+      onSuccess: () => {
+        isError.value = false;
+        message.value = "Password reset successfully. Redirecting to login...";
+        router.push("/login");
+      },
+      onError: (_errors, error) => {
+        isError.value = true;
+        message.value = error instanceof Error ? error.message : "Failed to reset password";
+      }
     }
-  });
+  );
 };
 </script>
 

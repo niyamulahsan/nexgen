@@ -1,5 +1,5 @@
 import { initDatabase } from "@/framework/database/connection.js";
-import { stopQueueRuntime, bootQueueJobs } from "@/framework/queue/queue.js";
+import { bootQueueJobs, stopQueueRuntime } from "@/framework/queue/queue.js";
 import { closeRedis, initRedis } from "@/framework/redis/client.js";
 import { startScheduler, stopScheduler } from "@/framework/scheduler/scheduler.js";
 import { registerShutdownSignals, type ShutdownSignal } from "@/framework/support/lifecycle.js";

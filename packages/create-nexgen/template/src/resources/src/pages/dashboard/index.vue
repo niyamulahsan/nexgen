@@ -1,6 +1,5 @@
 <template>
   <Pagebar title="Dashboard" />
-  <!-- <Refresh @click="hardRefresh" /> -->
 
   <div class="dashboard-placeholder">
     <div class="row g-2 mb-2">
@@ -20,12 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
 import { useHead } from "@vueuse/head";
-import { pulse } from "@/plugins/pulse";
+import { onMounted, onUnmounted } from "vue";
 import { useAuth } from "@/composables/useAuth";
-import Pagebar from "@/components/Pagebar.vue";
-import Refresh from "@/components/Refresh.vue";
+import { pulse } from "@/plugins/pulse";
 
 useHead({ title: "Dashboard" });
 

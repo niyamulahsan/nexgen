@@ -216,6 +216,14 @@ AUTH_REQUIRE_EMAIL_VERIFICATION=true
 | `BULLMQ_UI_ALLOWED_EMAILS` | — | Comma-separated emails allowed to view the BullMQ dashboard |
 | `REDIS_COMMANDER_PORT` | `1369` | Redis Commander GUI port |
 
+## Rate Limiter
+
+| Variable | Default | Description |
+|---|---|---|
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate limit window in milliseconds (1 min) |
+| `RATE_LIMIT_MAX` | `500` | Max requests per window (global) |
+| `RATE_LIMIT_LOGIN_MAX` | `10` | Max login requests per window per IP |
+
 ## Session & Cache
 
 | Variable | Default | Description |

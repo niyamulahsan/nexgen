@@ -103,7 +103,7 @@ Regenerates `src/database/schema.ts` from model files. Normally unnecessary — 
 
 ```bash
 bun maker db:seed
-bun maker db:seed welcome        # seed a specific module
+bun maker db:module:seed welcome  # seed a specific module
 ```
 
 Runs the seeder files for all modules (or a specific one). Useful after a `db:reset` to repopulate test data.
@@ -231,7 +231,7 @@ export const rolesMigrationSql = {
 - **SQLite (`sqlite`)**
   - Use SQLite-compatible SQL: typically simple `CREATE INDEX IF NOT EXISTS ...` statements.
 
-This keeps schema generation automatic while allowing Laravel-style per-table raw SQL where needed.
+This keeps schema generation automatic while allowing per-table raw SQL where needed.
 
 ## Seeder Files
 
@@ -303,14 +303,27 @@ Drizzle model stubs use the correct types per dialect. Migration files are store
 
 ## Pagination
 
-Drizzle ORM does not include a built-in pagination helper. **nexgen** provides three pagination utilities in `src/framework/database/paginate.ts` that wrap your Drizzle queries with page/per_page parsing, total count, and link generation.
+Drizzle ORM does not include a built-in pagination helper. **nexgen** provides pagination utilities in `src/framework/database/paginate.ts` that wrap your Drizzle queries with page/per_page parsing, total count, and link generation.
 
-### `paginate(c, query, perPage)` — From Request
+> **Performance note**: All three use a **lean count subquery** (`SELECT count(*) FROM (SELECT 1 FROM ...) AS _inner`) instead of wrapping the full SELECT with all columns. This avoids materializing column data just for counting, giving significant speed improvements on wide tables or complex joins.
 
-For route handlers. Reads `page`, `per_page`, and `size` from the request query string:
+### Which one to use?
+
+| Function | When to use |
+|----------|-------------|
+| `paginate()` | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query. |
+| `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata. |
+| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed. |
+| `paginateQuery()` | **Count and data queries are structurally different** — e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
+
+### `paginate(c, query, perPage)` — From Request (recommended)
+
+For route handlers. Reads `page`, `per_page`, and `size` from the request query string. Handles joins, GROUP BY, HAVING, DISTINCT correctly:
 
 ```ts
+import { desc } from "drizzle-orm";
 import { db, paginate } from "@/framework/facade.js";
+import { posts } from "@/modules/blog/database/models/post.js";
 
 const query = db.select().from(posts).orderBy(desc(posts.id));
 const result = await paginate(c, query, 15);
@@ -318,12 +331,131 @@ const result = await paginate(c, query, 15);
 
 Request example: `GET /posts?page=2&per_page=20`
 
-### `paginateTable(db, table, options)` — Direct Table
+With joins:
+```ts
+import { desc, eq } from "drizzle-orm";
+import { db, paginate } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { posts } from "@/modules/blog/database/models/post.js";
 
-For simple table queries with optional filters and sorting. No need to build a query object:
+const query = db.select({
+  id: posts.id,
+  title: posts.title,
+  authorName: users.name
+}).from(posts)
+  .leftJoin(users, eq(posts.authorId, users.id))
+  .where(eq(posts.published, true))
+  .orderBy(desc(posts.id));
+
+const result = await paginate(c, query, 15);
+```
+
+### `paginateModel(c, options)` — Relational Eager Loading
+
+Use `paginateModel` when you want Drizzle relational eager loading with `db.query.<table>.findMany({ with })`.
 
 ```ts
-import { db, paginateTable, eq } from "@/framework/facade.js";
+import { desc, eq } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+const result = await paginateModel(c, {
+  table: users,
+  query: db.query.users,
+  where: eq(users.status, "1"),
+  with: {
+    role: true,
+    profile: true
+  },
+  orderBy: desc(users.id),
+  perPage: 10,
+  path: c.req.path
+});
+```
+
+Internally, `paginateModel` runs a count query against the base table, then runs `findMany` with `limit`, `offset`, and your eager-loaded relations.
+
+Nested eager loading:
+
+```ts
+const result = await paginateModel(c, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: {
+    role: true,
+    userarea: {
+      with: {
+        area: {
+          with: {
+            commissionerate: true,
+            division: true,
+            circle: true,
+            sector: true
+          }
+        }
+      }
+    }
+  },
+  orderBy: desc(users.id)
+});
+```
+
+For relation filters, build the SQL condition first, then pass it to `paginateModel`. Use subqueries for relation checks so the final condition still belongs to the base query and count stays automatic.
+
+```ts
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { roles } from "@/modules/auth/database/models/role.js";
+
+const where = and(
+  eq(users.status, "1"),
+  inArray(
+    users.roleId,
+    db.select({ id: roles.id }).from(roles).where(eq(roles.name, "admin"))
+  )
+);
+
+const result = await paginateModel(c, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: { role: true },
+  orderBy: desc(users.id)
+});
+```
+
+If a query needs special count or data behavior, provide callbacks:
+
+```ts
+import { count, desc } from "drizzle-orm";
+
+const result = await paginateModel(c, {
+  total: async () => {
+    const [row] = await db.select({ total: count() }).from(users).where(where);
+    return Number(row?.total ?? 0);
+  },
+  data: async ({ limit, offset }) => {
+    return db.query.users.findMany({
+      where,
+      with: { role: true },
+      limit,
+      offset,
+      orderBy: desc(users.id)
+    });
+  }
+});
+```
+
+### `paginateTable(db, table, options)` — Direct Table
+
+For simple single-table queries with optional filters and sorting. No joins, no GROUP BY:
+
+```ts
+import { desc, eq } from "drizzle-orm";
+import { db, paginateTable } from "@/framework/facade.js";
+import { posts } from "@/modules/blog/database/models/post.js";
 
 const result = await paginateTable(db, posts, {
   page: 1,
@@ -335,14 +467,34 @@ const result = await paginateTable(db, posts, {
 
 ### `paginateQuery(options)` — Custom Callbacks
 
-For complex queries where you need full control over the total count and data fetch:
+For complex queries where **the count must be different from the data query**:
 
 ```ts
+import { count, eq, gt, sum } from "drizzle-orm";
+import { db, paginateQuery } from "@/framework/facade.js";
+import { orders } from "@/modules/sales/database/models/order.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
 const result = await paginateQuery({
   page: 1,
   perPage: 15,
-  total: async () => { /* custom count logic */ },
-  data: async (limit, offset) => { /* custom fetch with limit/offset */ }
+  total: async () => {
+    // Count all active users (ignore GROUP BY/HAVING)
+    const [row] = await db.select({ total: count() }).from(users).where(eq(users.active, true));
+    return Number(row?.total ?? 0);
+  },
+  data: async (limit, offset) => {
+    // Data: only users with >5 orders
+    return db.select({
+      id: users.id,
+      name: users.name,
+      orderCount: count(orders.id),
+      totalSpent: sum(orders.amount)
+    }).from(users)
+      .leftJoin(orders, eq(users.id, orders.userId))
+      .groupBy(users.id).having(gt(count(orders.id), 5))
+      .limit(limit).offset(offset);
+  }
 });
 ```
 

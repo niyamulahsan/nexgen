@@ -54,11 +54,11 @@ const props = withDefaults(defineProps<TextAreaProps>(), {
 });
 
 const inputId = computed(() => ($attrs.id as string | undefined) || "");
-const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
-const placeholderText = computed(() => ($attrs.placeholder as string | undefined) || "");
+const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const _placeholderText = computed(() => ($attrs.placeholder as string | undefined) || "");
 const topclass = computed(() => ($attrs.topclass as string | undefined) || "");
 
-const wrapperClass = computed(() =>
+const _wrapperClass = computed(() =>
   topclass.value ? `${topclass.value} position-relative` : "mb-2"
 );
 
@@ -66,15 +66,13 @@ const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
-const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
-const maxCounter = computed(() =>
+const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const _maxCounter = computed(() =>
   max.value == null ? "" : max.value - String(props.modelValue).length
 );
 
-const emit = defineEmits<{
-  (event: "update:modelValue", value: string): void;
-}>();
-const updateModel = (e: Event) => {
+const emit = defineEmits<(event: "update:modelValue", value: string) => void>();
+const _updateModel = (e: Event) => {
   const target = e.target as HTMLTextAreaElement;
   emit("update:modelValue", target.value);
 };

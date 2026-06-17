@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { mysqlTable, int, varchar, text, timestamp, boolean } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { roles } from "@/modules/auth/database/models/role.js";
 
 export const users = mysqlTable("users", {

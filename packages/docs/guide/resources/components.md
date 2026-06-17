@@ -133,7 +133,7 @@ watch(
 
 ## Select
 
-A searchable select component with infinite-scroll pagination and API data fetching. Built on `vue-select` — handles everything from simple static option lists to server-side paginated searches.
+A searchable select component with infinite-scroll pagination and API data fetching. Built on `vue-select` — handles everything from simple static option lists to server-side paginated searches with dependent (cascade) dropdowns.
 
 **Import:**
 ```vue
@@ -144,12 +144,12 @@ import Select from "@/components/Select.vue";
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `fetched` | `(payload) => FetchPack \| null` | — | Callback that returns the fetch config for a given search term |
+| `fetched` | `() => FetchPack` | — | Function that returns the fetch config `{ url, data, mapFn, params?, option? }`. Zero-param standard — search/reset/reload handled internally |
 | `must` | `boolean` | — | Show a required-field indicator (red dot next to label) |
 | `err` | `string \| boolean` | — | Validation error text to display below the select |
 | `hood` | `string \| boolean` | — | Optional hint/helper text displayed inline next to the label |
 | `defaultValue` | `SelectValue` | `null` | Pre-select a value on mount |
-| `resetKey` | `any` | `null` | When this value changes, the select clears and reloads |
+| `resetKey` | `any` | `null` | **Cascade key.** When this value changes, the select clears + reloads. Used for dependent dropdowns (e.g., subcriteria reloads when criteria changes) |
 
 ### Inherited via `v-bind="$attrs"`
 
@@ -180,14 +180,16 @@ import Select from "@/components/Select.vue";
 ```ts
 interface FetchPack {
   url: string;
-  data: string;
-  params?: Record<string, unknown>;
-  mapFn?: (item) => Record<string, unknown>;
-  option?: (value) => void;
+  data: string;              // key in API response that holds paginated data
+  params?: Record<string, any>;  // extra query params (e.g., filter by parent)
+  mapFn?: (item) => Record<string, unknown>;  // transform API row → { id, title }
+  option?: (value) => void;  // callback fired when selection changes
 }
 ```
 
-### Basic usage — API-fetched with pagination
+### Basic usage — API-fetched (zero-param)
+
+The standard pattern: `fetched` is a zero-param function returning the fetch config. Search, reset, and reload are handled internally by the component.
 
 ```vue
 <script setup lang="ts">
@@ -195,61 +197,123 @@ import Select from "@/components/Select.vue";
 
 const user = ref(null);
 
-function fetchUsers({ search, reset, reload }) {
-  return {
-    url: "/api/users",
-    data: "users",
-    params: { search },
-    mapFn: (row) => ({ id: row.id, title: row.name }),
-  };
-}
+const fetchUsers = () => ({
+  url: "/api/users",
+  data: "users",
+  mapFn: (row: any) => ({ id: row.id, title: row.name }),
+});
 </script>
 
 <template>
   <Select
     v-model="user"
-    id="user-select"
     title="Select User"
     :fetched="fetchUsers"
     :err="form.errors?.user_id" />
 </template>
 ```
 
-### Usage with multiple and reset
+### Dependent (cascade) dropdown with `resetKey`
+
+When a parent select changes, the child automatically reloads via `resetKey`. The child's `fetched` function reactively reads the parent's value for its `params`.
 
 ```vue
 <script setup lang="ts">
 import Select from "@/components/Select.vue";
 
-const categories = ref([]);
-const categoryResetKey = ref(null);
+const form = reactive({ country: null, city: null });
 
-function fetchCategories({ search, reset, reload }) {
-  return {
-    url: "/api/categories",
-    data: "categories",
-    params: { search },
-    mapFn: (row) => ({ id: row.id, title: row.name }),
-  };
-}
+const fetchCities = () => ({
+  url: "/api/cities",
+  data: "cities",
+  params: { country_id: form.country?.id },
+  mapFn: (row: any) => ({ id: row.id, title: row.name }),
+});
+</script>
 
-function clearCategories() {
-  categoryResetKey.value = Date.now();
-}
+<template>
+  <Select v-model="form.country" title="Country" :fetched="fetchCountries" />
+
+  <Select
+    v-model="form.city"
+    title="City"
+    :fetched="fetchCities"
+    :reset-key="form.country?.id" />
+</template>
+```
+
+When `form.country` changes → `resetKey` changes on city select → select clears + reloads → `fetchCities` runs again, picks up the new `form.country?.id` in params.
+
+### Wrapper when store function needs form data
+
+When the fetch function lives in a store and needs component-scoped values, wrap it in an arrow:
+
+**Store:**
+```ts
+// stores/city.ts
+export const useCityStore = defineStore("city", () => {
+  const fetchCities = ({ countryId }: { countryId?: number } = {}) => ({
+    url: "/api/cities",
+    data: "cities",
+    params: { country_id: countryId },
+    mapFn: (row: any) => ({ id: row.id, title: row.name }),
+  });
+
+  return { fetchCities };
+});
+```
+
+**Component:**
+```vue
+<script setup lang="ts">
+import { useCityStore } from "@/stores/city";
+const cityStore = useCityStore();
 </script>
 
 <template>
   <Select
-    v-model="categories"
-    id="category-select"
-    title="Categories"
-    :fetched="fetchCategories"
-    :reset-key="categoryResetKey"
-    multiple />
+    v-model="form.city"
+    title="City"
+    :fetched="() => cityStore.fetchCities({ countryId: form.country?.id })"
+    :reset-key="form.country?.id" />
 </template>
 ```
 
-### Usage with static options (no API)
+### `option` callback for side effects
+
+Use `option` to react when selection changes (e.g., clear dependent selects):
+
+```vue
+<script setup lang="ts">
+const fetchCategories = () => ({
+  url: "/api/categories",
+  data: "categories",
+  mapFn: (row: any) => ({ id: row.id, title: row.name }),
+  option: (val: any) => {
+    form.category = val;
+    form.subcategory = null; // clear child on category change
+  },
+});
+
+const fetchSubcategories = () => ({
+  url: "/api/subcategories",
+  data: "subcategories",
+  params: { category_id: form.category?.id },
+  mapFn: (row: any) => ({ id: row.id, title: row.name }),
+});
+</script>
+
+<template>
+  <Select v-model="form.category" title="Category" :fetched="fetchCategories" />
+  <Select
+    v-model="form.subcategory"
+    title="Subcategory"
+    :fetched="fetchSubcategories"
+    :reset-key="form.category?.id" />
+</template>
+```
+
+### Static options (no API)
 
 ```vue
 <script setup lang="ts">
@@ -264,10 +328,59 @@ const roles = [
 </script>
 
 <template>
-  <Select
-    v-model="role"
-    title="Role"
-    :options="roles"
-    label="title" />
+  <Select v-model="role" title="Role" :options="roles" label="title" />
 </template>
 ```
+
+### Edit mode — populating cascading dropdowns
+
+When editing a record that has cascade-dependent selects, you **must** `await nextTick()` between each cascade level in `setForm`. This gives the child Select's `resetKey` watch time to fire, clear the old value, and reload options before you set the next level's value.
+
+```vue
+<script setup lang="ts">
+import { nextTick } from "vue";
+import Select from "@/components/Select.vue";
+
+const form = reactive({
+  country: null,
+  city: null,
+  area: null,
+});
+
+const setForm = async (row: any) => {
+  form.country = row.countryId
+    ? { id: row.countryId, title: row.countryName }
+    : null;
+  await nextTick(); // let city select reset + reload with new countryId
+
+  form.city = row.cityId
+    ? { id: row.cityId, title: row.cityName }
+    : null;
+  await nextTick(); // let area select reset + reload with new cityId
+
+  form.area = row.areaId
+    ? { id: row.areaId, title: row.areaName }
+    : null;
+};
+</script>
+
+<template>
+  <Select v-model="form.country" title="Country" :fetched="fetchCountries" />
+
+  <Select
+    v-model="form.city"
+    title="City"
+    :fetched="() => fetchCities({ countryId: form.country?.id })"
+    :reset-key="form.country?.id" />
+
+  <Select
+    v-model="form.area"
+    title="Area"
+    :fetched="() => fetchAreas({ cityId: form.city?.id })"
+    :reset-key="form.city?.id" />
+</template>
+```
+
+**Why `nextTick` is required:** When you set `form.country`, the city Select's `resetKey` changes, triggering its internal watch. That watch clears the city model (setting it to `null`) and fetches fresh options. Without `nextTick`, setting `form.city` immediately after `form.country` would be overwritten by the watch. `nextTick` lets the flush complete so the child resets first, then you can safely set its value.
+
+**Do NOT use `nextTick` for user cascade.** The `resetKey` watch handles that automatically — user changes a parent → watch fires → child clears + reloads. `nextTick` is only needed in `setForm` when programmatically restoring all cascade levels at once.

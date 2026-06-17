@@ -1,11 +1,15 @@
 import { env } from "@/env.js";
-import { createHttpApp } from "@/framework/http/app.js";
-import { registerModuleRoutes } from "@/framework/modules/routes.js";
 import { initDatabase } from "@/framework/database/connection.js";
-import { initRedis } from "@/framework/redis/client.js";
+import { createHttpApp } from "@/framework/http/app.js";
+import {
+  frontendIndexMiddleware,
+  frontendStaticMiddleware,
+  hasFrontendBuild
+} from "@/framework/http/static.js";
+import { registerModuleRoutes } from "@/framework/modules/routes.js";
 import { bootQueueJobs } from "@/framework/queue/queue.js";
 import { setupBullBoard } from "@/framework/queue/ui.js";
-import { frontendIndexMiddleware, frontendStaticMiddleware, hasFrontendBuild } from "@/framework/http/static.js";
+import { initRedis } from "@/framework/redis/client.js";
 import { storage } from "@/framework/storage/storage.js";
 
 /**
@@ -17,10 +21,11 @@ import { storage } from "@/framework/storage/storage.js";
 export async function createKernel() {
   await storage.init();
 
+  await initRedis();
+
   const app = createHttpApp();
 
   await initDatabase();
-  await initRedis();
   await bootQueueJobs();
   await registerModuleRoutes(app);
 

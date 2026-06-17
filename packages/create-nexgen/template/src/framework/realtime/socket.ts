@@ -1,13 +1,13 @@
-import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
+import { Server } from "socket.io";
 import { env } from "@/env.js";
-import { logger } from "@/framework/support/logger.js";
 import {
   authFromSocketHandshake,
   unauthenticatedRealtimeAuth
 } from "@/framework/realtime/socket-cookie.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+import { logger } from "@/framework/support/logger.js";
 
 let io: Server | null = null;
 let adapterSubClient: ReturnType<typeof redisClientIfReady> | null = null;

@@ -12,7 +12,7 @@ export function inArray<T>(needle: T, haystack: T[], strict = false): boolean {
   }
 
   for (const value of haystack) {
-    if (value == needle) {
+    if (value === needle) {
       return true;
     }
 

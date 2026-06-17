@@ -29,8 +29,8 @@ body,
 
 .datatable thead tr > th:nth-child(-n + 1),
 .datatable tbody tr > td:nth-child(-n + 1) {
-  padding-left: 6px !important;
-  padding-right: 5px !important;
+  padding-left: 6px;
+  padding-right: 5px;
 }
 
 .datatable-pagination .page-item .page-link {
@@ -79,13 +79,13 @@ body,
 
 .tools {
   margin-top: -4.37rem;
-  position: sticky !important;
-  top: 0 !important;
+  position: sticky;
+  top: 0;
   z-index: 1075;
 }
 
 .layout-navbar.navbar-detached {
-  width: 100% !important;
+  width: 100%;
 }
 
 .layout-navbar .navbar-dropdown .dropdown-menu,
@@ -102,9 +102,9 @@ body,
     top: 65px;
   }
   .tools-sm {
-    margin-top: 0 !important;
-    position: relative !important;
-    z-index: 0 !important;
+    margin-top: 0;
+    position: relative;
+    z-index: 0;
   }
   .datatable-pagination .pagination {
     position: relative;
@@ -116,11 +116,11 @@ body,
 }
 @media (min-width: 576px) and (max-width: 767.98px) {
   .tools {
-    position: sticky !important;
-    top: 0 !important;
+    position: sticky;
+    top: 0;
   }
   .layout-navbar .navbar-nav .nav-item.dropdown .dropdown-menu {
-    min-width: 14rem !important;
+    min-width: 14rem;
     width: 32%;
     right: unset;
     left: unset;
@@ -131,39 +131,39 @@ body,
 }
 @media (max-width: 991.98px) {
   .card {
-    top: 0px !important;
+    top: 0px;
   }
 }
 @media print {
   .d-print-inline {
-    display: inline !important;
+    display: inline;
   }
   .d-print-inline-block {
-    display: inline-block !important;
+    display: inline-block;
   }
   .d-print-block {
-    display: block !important;
+    display: block;
   }
   .d-print-grid {
-    display: grid !important;
+    display: grid;
   }
   .d-print-table {
-    display: table !important;
+    display: table;
   }
   .d-print-table-row {
-    display: table-row !important;
+    display: table-row;
   }
   .d-print-table-cell {
-    display: table-cell !important;
+    display: table-cell;
   }
   .d-print-flex {
-    display: flex !important;
+    display: flex;
   }
   .d-print-inline-flex {
-    display: inline-flex !important;
+    display: inline-flex;
   }
   .d-print-none {
-    display: none !important;
+    display: none;
   }
   .card-body,
   .content,
@@ -175,8 +175,8 @@ body,
   }
   .card.border,
   .card-body.border {
-    border: none !important;
-    box-shadow: none !important;
+    border: none;
+    box-shadow: none;
   }
   .printarea {
     border: initial;
@@ -187,7 +187,7 @@ body,
     background: initial;
     page-break-after: always;
     page-break-inside: avoid;
-    overflow: visible !important;
+    overflow: visible;
     margin: 0;
   }
   .printarea:last-child {
@@ -212,6 +212,6 @@ body,
     display: table-footer-group;
   }
   .removeprintarea {
-    display: none !important;
+    display: none;
   }
 } /*# sourceMappingURL=custom.css.map */

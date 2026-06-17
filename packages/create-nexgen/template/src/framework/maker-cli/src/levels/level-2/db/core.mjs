@@ -1,7 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { glob } from "glob";
-import { databaseNameFromUrl, databaseUrl, detectDialect, parsedDatabaseUrl, sqlitePathFromUrl } from "../../level-1/env-db.mjs";
+import {
+  databaseNameFromUrl,
+  databaseUrl,
+  detectDialect,
+  parsedDatabaseUrl,
+  sqlitePathFromUrl
+} from "../../level-1/env-db.mjs";
 import { packageScript, runCommand, runNodeScript } from "../../level-1/process.mjs";
 
 /** Detect SQL dialect from raw SQL content by matching against known syntax hints. */
@@ -216,7 +222,9 @@ export async function hasExistingAppTables() {
   const client = new pg.Client({ connectionString: databaseUrl() });
   await client.connect();
   try {
-    const result = await client.query("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != '__drizzle_migrations'");
+    const result = await client.query(
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != '__drizzle_migrations'"
+    );
     return result.rows.length > 0;
   } finally {
     await client.end();
@@ -294,6 +302,8 @@ export async function syncMigrationDialect() {
   const target = detectDialect();
   const current = await existingMigrationDialect();
   if (!current || current === "unknown" || current === target) return;
-  console.log(`Migration dialect changed (${current} -> ${target}). Regenerating migration files for current DATABASE_URL.`);
+  console.log(
+    `Migration dialect changed (${current} -> ${target}). Regenerating migration files for current DATABASE_URL.`
+  );
   await resetMigrationFiles();
 }

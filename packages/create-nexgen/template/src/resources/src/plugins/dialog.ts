@@ -9,7 +9,11 @@ type PromptOptions = {
 type DialogClient = {
   alert: (text?: string) => void;
   confirm: (text?: string, callback?: (ok: boolean) => void) => void;
-  prompt: (text?: string, options?: PromptOptions, callback?: (result: { ok: boolean; value: string; }) => void) => void;
+  prompt: (
+    text?: string,
+    options?: PromptOptions,
+    callback?: (result: { ok: boolean; value: string }) => void
+  ) => void;
 };
 
 function hostNode() {
@@ -100,7 +104,11 @@ export const dialog: DialogClient = {
     hostNode().appendChild(shell);
   },
 
-  prompt(text = "", options: PromptOptions = {}, callback?: (result: { ok: boolean; value: string; }) => void) {
+  prompt(
+    text = "",
+    options: PromptOptions = {},
+    callback?: (result: { ok: boolean; value: string }) => void
+  ) {
     const { limit = 0, placeholder = "Remarks...", defaultValue = "" } = options;
 
     const shell = buildShell(`

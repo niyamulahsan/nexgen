@@ -79,11 +79,10 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, watchEffect } from "vue";
-import { useGum } from "@/plugins/gum";
+import { computed, reactive, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { formatCompactNumber } from "@/helpers/nformatter";
-import Input from "../Input.vue";
+import { useGum } from "@/plugins/gum";
 
 interface PaginationData {
   current_page: number;
@@ -107,14 +106,14 @@ const route = useRoute();
 
 const page = reactive({ page: 1, from: 0, to: 0, total: 0 });
 
-const noPreviousPage = computed(() => props.data.current_page - 1 <= 0);
-const noNextPage = computed(() => props.data.current_page + 1 > props.data.last_page);
+const _noPreviousPage = computed(() => props.data.current_page - 1 <= 0);
+const _noNextPage = computed(() => props.data.current_page + 1 > props.data.last_page);
 
-const loadPage = (pageNo: string | number) => {
+const _loadPage = (pageNo: string | number) => {
   let p = parseInt(String(pageNo), 10);
 
   // fallback if NaN
-  if (isNaN(p)) p = props.data.current_page;
+  if (Number.isNaN(p)) p = props.data.current_page;
 
   const last = Number(props.data.last_page) || 1;
 
@@ -126,11 +125,12 @@ const loadPage = (pageNo: string | number) => {
     query: { page: p, size: props.selectedoption, search: props.search },
     routePath: route.path,
     preserveState: true,
-    preserveScroll: true
+    preserveScroll: true,
+    skipFetch: true
   });
 };
 
-const nFormatter = formatCompactNumber;
+const _nFormatter = formatCompactNumber;
 
 watchEffect(() => {
   // "Showing {$from} to {$to} of {$total} entries"

@@ -1,6 +1,12 @@
-import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
-import { detectDialect, closeDatabase, initDatabase, database, databasePool } from "@/framework/database/connection.js";
 import { sql } from "drizzle-orm";
+import {
+  closeDatabase,
+  database,
+  databasePool,
+  detectDialect,
+  initDatabase
+} from "@/framework/database/connection.js";
+import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 
 type HookMap = {
   __migrationSql: true;
@@ -14,7 +20,10 @@ function isHookMap(value: unknown): value is HookMap {
   return (value as HookMap).__migrationSql === true;
 }
 
-function collectStatements(exportsObj: Record<string, unknown>, dialect: "postgresql" | "mysql" | "sqlite") {
+function collectStatements(
+  exportsObj: Record<string, unknown>,
+  dialect: "postgresql" | "mysql" | "sqlite"
+) {
   const statements: string[] = [];
   for (const value of Object.values(exportsObj)) {
     if (!isHookMap(value)) continue;
@@ -26,7 +35,10 @@ function collectStatements(exportsObj: Record<string, unknown>, dialect: "postgr
   return statements;
 }
 
-async function executeWithPoolFallback(statement: string, dialect: "postgresql" | "mysql" | "sqlite") {
+async function executeWithPoolFallback(
+  statement: string,
+  dialect: "postgresql" | "mysql" | "sqlite"
+) {
   const pool = databasePool();
   if (dialect === "sqlite") {
     pool.exec(statement);
@@ -73,7 +85,10 @@ export async function runModelMigrationHooks() {
 
 if (process.argv[1]?.endsWith("migrate-hooks.ts")) {
   runModelMigrationHooks().catch((error) => {
-    console.error("Failed to run model migration hooks:", error instanceof Error ? error.message : error);
+    console.error(
+      "Failed to run model migration hooks:",
+      error instanceof Error ? error.message : error
+    );
     process.exit(1);
   });
 }

@@ -1,6 +1,22 @@
 import { assertName } from "../../level-1/naming.mjs";
 import { runSeed } from "../db/core.mjs";
-import { assertModuleHasSeeders, cleanModuleTrash, deleteModule, deleteNotificationModule, listModules, makeController, makeExampleModule, makeJob, makeModel, makeModule, makeNotificationModule, makeRoute, makeSchedule, makeSeeder, runModuleMigrate } from "./core.mjs";
+import {
+  assertModuleHasSeeders,
+  cleanModuleTrash,
+  deleteModule,
+  deleteNotificationModule,
+  listModules,
+  makeController,
+  makeExampleModule,
+  makeJob,
+  makeModel,
+  makeModule,
+  makeNotificationModule,
+  makeRoute,
+  makeSchedule,
+  makeSeeder,
+  runModuleMigrate
+} from "./core.mjs";
 
 /** Register module:* subcommands on the CLI program. */
 export function registerModuleCommands(program, rawArgs) {

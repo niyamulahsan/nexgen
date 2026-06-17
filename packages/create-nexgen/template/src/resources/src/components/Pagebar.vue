@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, useSlots } from "vue";
+import { computed, onMounted, ref, useSlots } from "vue";
 
 defineOptions({ name: "PageBar", inheritAttrs: false });
 
@@ -14,11 +14,11 @@ interface PageBarProps {
   title?: string;
 }
 
-const props = defineProps<PageBarProps>();
+const _props = defineProps<PageBarProps>();
 const slots = useSlots();
 
 const target = ref<HTMLElement | null>(null);
-const hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
+const _hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
 
 onMounted(() => {
   target.value = document.getElementById("pagebar");

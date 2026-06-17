@@ -1,10 +1,10 @@
 import "@/plugins/axios";
-import { createApp } from "vue";
-import { createPinia } from "pinia";
 import { createHead } from "@vueuse/head";
+import { createPinia } from "pinia";
+import { createApp } from "vue";
 import { DialogPlugin } from "@/plugins/dialog";
-import { PulsePlugin } from "@/plugins/pulse";
 import { GumPlugin } from "@/plugins/gum";
+import { PulsePlugin } from "@/plugins/pulse";
 
 import App from "./App.vue";
 import router from "./router";

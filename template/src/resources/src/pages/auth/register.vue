@@ -67,13 +67,11 @@
 </template>
 
 <script setup lang="ts">
+import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useHead } from "@vueuse/head";
-import { useAuthStore } from "@/stores/auth";
 import { useGumForm } from "@/plugins/gum";
-import Input from "@/components/Input.vue";
-import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
+import { useAuthStore } from "@/stores/auth";
 
 useHead({ title: "Register" });
 
@@ -87,11 +85,11 @@ const form = useGumForm({
   password_confirmation: ""
 });
 
-const processing = form.processing;
+const _processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
-const onSubmit = async () => {
+const _onSubmit = async () => {
   message.value = "";
   isError.value = false;
 
@@ -101,29 +99,33 @@ const onSubmit = async () => {
     return;
   }
 
-  await form.post("/api/auth/register", {
-    name: String(form.data.name || "").trim(),
-    email: String(form.data.email || "").trim(),
-    password: form.data.password,
-    password_confirmation: form.data.password_confirmation
-  }, {
-    onSuccess: async () => {
-      auth.initialized = false;
-      await auth.bootstrap();
-
-      if (auth.isAuthenticated) {
-        await router.push("/");
-        return;
-      }
-
-      message.value = "Registration successful. Please verify your email.";
-      form.reset();
+  await form.post(
+    "/api/auth/register",
+    {
+      name: String(form.data.name || "").trim(),
+      email: String(form.data.email || "").trim(),
+      password: form.data.password,
+      password_confirmation: form.data.password_confirmation
     },
-    onError: (errors, error) => {
-      isError.value = true;
-      message.value = error instanceof Error ? error.message : "Unable to register right now";
+    {
+      onSuccess: async () => {
+        auth.initialized = false;
+        await auth.bootstrap();
+
+        if (auth.isAuthenticated) {
+          await router.push("/");
+          return;
+        }
+
+        message.value = "Registration successful. Please verify your email.";
+        form.reset();
+      },
+      onError: (_errors, error) => {
+        isError.value = true;
+        message.value = error instanceof Error ? error.message : "Unable to register right now";
+      }
     }
-  });
+  );
 };
 </script>
 

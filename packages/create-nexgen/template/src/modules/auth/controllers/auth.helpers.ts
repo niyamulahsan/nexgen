@@ -68,7 +68,7 @@ export async function revokeCurrentRefreshToken(c: any) {
  * When: Used after successful auth actions (register/login/refresh patterns).
  * Where: Called by auth.controller handlers.
  */
-export async function issueTokens(c: any, user: any, options?: { remember?: boolean; }) {
+export async function issueTokens(c: any, user: any, options?: { remember?: boolean }) {
   const remember = !!options?.remember;
   const refreshExpiry = remember ? env.JWT_REFRESH_REMEMBER_EXPIRY : env.JWT_REFRESH_EXPIRY;
   const role = user.role || null;

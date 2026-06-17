@@ -1,13 +1,17 @@
-import path from "node:path";
 import fs from "node:fs/promises";
-import { env } from "@/env.js";
+import path from "node:path";
 import * as schema from "@/database/schema.js";
+import { env } from "@/env.js";
 
 export type Dialect = "sqlite" | "mysql" | "postgresql";
 
 let databaseInstance: any;
 let pool: any;
 let dialect: Dialect;
+
+async function optionalImport<T = any>(name: string): Promise<T> {
+  return import(name) as Promise<T>;
+}
 
 /**
  * Why: Resolves the active DB driver from DATABASE_URL.
@@ -38,8 +42,8 @@ export async function initDatabase() {
     let Database: any;
     try {
       [{ drizzle: drizzleSqlite }, { default: Database }] = await Promise.all([
-        import("drizzle-orm/better-sqlite3"),
-        import("better-sqlite3")
+        optionalImport("drizzle-orm/better-sqlite3"),
+        optionalImport("better-sqlite3")
       ]);
     } catch {
       throw new Error(
@@ -60,8 +64,8 @@ export async function initDatabase() {
     let mysql: any;
     try {
       [{ drizzle: drizzleMysql }, mysql] = await Promise.all([
-        import("drizzle-orm/mysql2"),
-        import("mysql2/promise")
+        optionalImport("drizzle-orm/mysql2"),
+        optionalImport("mysql2/promise")
       ]);
     } catch {
       throw new Error("Missing mysql dependencies. Install with: bun add drizzle-orm mysql2");
@@ -76,8 +80,8 @@ export async function initDatabase() {
   let PgPool: any;
   try {
     [{ drizzle: drizzlePg }, { Pool: PgPool }] = await Promise.all([
-      import("drizzle-orm/node-postgres"),
-      import("pg")
+      optionalImport("drizzle-orm/node-postgres"),
+      optionalImport("pg")
     ]);
   } catch {
     throw new Error("Missing postgres dependencies. Install with: bun add drizzle-orm pg");

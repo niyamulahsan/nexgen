@@ -1,6 +1,6 @@
 {
   "name": "create-nexgen",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "type": "module",
   "description": "Scaffold a new Nexgen project",
   "bin": {

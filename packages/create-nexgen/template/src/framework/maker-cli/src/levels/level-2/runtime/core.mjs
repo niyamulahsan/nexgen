@@ -19,7 +19,9 @@ function parseWithOptions(flags = []) {
 
       const normalized = key === "queue" ? "bullmq" : key;
       if (!supported.has(normalized)) {
-        console.warn(`[dev] Unknown --with option '${key}' (supported: redis, maildev, studio, bullmq)`);
+        console.warn(
+          `[dev] Unknown --with option '${key}' (supported: redis, maildev, studio, bullmq)`
+        );
         continue;
       }
 
@@ -74,11 +76,20 @@ async function runDevStack(flags = []) {
   ];
 
   if (process.env.FRONTEND !== "false") {
-    commands.push({ label: "frontend", args: ["frontend:dev"], required: true, hint: "http://localhost:5173" });
+    commands.push({
+      label: "frontend",
+      args: ["frontend:dev"],
+      required: true,
+      hint: "http://localhost:5173"
+    });
   }
 
   if (process.env.REDIS !== "false") {
-    commands.push({ label: "queue-worker", args: ["queue:work", "--queue=default,mail", "--quiet", "--src"], required: false });
+    commands.push({
+      label: "queue-worker",
+      args: ["queue:work", "--queue=default,mail", "--quiet", "--src"],
+      required: false
+    });
   }
 
   const withOptions = parseWithOptions(flags);
@@ -90,13 +101,28 @@ async function runDevStack(flags = []) {
   const enableDbStudio = hasFlag(flags, "--with-db-studio") || withOptions.has("studio");
 
   if (enableRedisView) {
-    commands.push({ label: "redis-view", args: ["redis:view", "--quiet"], required: false, hint: "http://localhost:1369" });
+    commands.push({
+      label: "redis-view",
+      args: ["redis:view", "--quiet"],
+      required: false,
+      hint: "http://localhost:1369"
+    });
   }
   if (enableMaildev) {
-    commands.push({ label: "maildev-view", args: ["maildev:view", "--quiet"], required: false, hint: "http://localhost:1080" });
+    commands.push({
+      label: "maildev-view",
+      args: ["maildev:view", "--quiet"],
+      required: false,
+      hint: "http://localhost:1080"
+    });
   }
   if (enableDbStudio) {
-    commands.push({ label: "db-studio", args: ["db:studio", "--quiet"], required: false, hint: "https://local.drizzle.studio" });
+    commands.push({
+      label: "db-studio",
+      args: ["db:studio", "--quiet"],
+      required: false,
+      hint: "https://local.drizzle.studio"
+    });
   }
 
   const children = [];
@@ -127,7 +153,11 @@ async function runDevStack(flags = []) {
   await new Promise(async (resolve, reject) => {
     const apiChild = spawn(process.execPath, [process.argv[1], ...apiCmd.args], {
       stdio: "inherit",
-      env: { ...process.env, NEXGEN_DEV_VIEWS: views.join(","), NEXGEN_FRONTEND_URL: "http://localhost:5173" }
+      env: {
+        ...process.env,
+        NEXGEN_DEV_VIEWS: views.join(","),
+        NEXGEN_FRONTEND_URL: "http://localhost:5173"
+      }
     });
     children.push(apiChild);
 
@@ -172,11 +202,15 @@ async function runDevStack(flags = []) {
             return;
           }
           if (code !== 0 || signal) {
-            console.warn(`[dev] Optional process '${command.label}' exited (${signal || code}); continuing`);
+            console.warn(
+              `[dev] Optional process '${command.label}' exited (${signal || code}); continuing`
+            );
           }
         }
 
-        const allExited = children.every((item) => item.exitCode !== null || item.signalCode !== null);
+        const allExited = children.every(
+          (item) => item.exitCode !== null || item.signalCode !== null
+        );
         if (allExited) {
           settled = true;
           resolve();
@@ -212,8 +246,12 @@ export async function runRuntime(commandName, rawArgs = []) {
   const runtimeArgs = rawArgs.filter(
     (arg, i) => i > 0 && !arg.startsWith("--runtime=") && arg !== "--prod" && arg !== "--src"
   );
-  const hasDistServer = fsSync.existsSync(path.resolve(process.cwd(), "dist/src/framework/server.js"));
-  const hasDistWorker = fsSync.existsSync(path.resolve(process.cwd(), "dist/src/framework/queue/worker.js"));
+  const hasDistServer = fsSync.existsSync(
+    path.resolve(process.cwd(), "dist/src/framework/server.js")
+  );
+  const hasDistWorker = fsSync.existsSync(
+    path.resolve(process.cwd(), "dist/src/framework/queue/worker.js")
+  );
   const hasDistScheduler = fsSync.existsSync(
     path.resolve(process.cwd(), "dist/src/framework/scheduler/run.js")
   );
@@ -277,7 +315,10 @@ export async function runRuntime(commandName, rawArgs = []) {
       return;
     }
 
-    await runNodeScript(packageScript("tsx", "dist/cli.mjs"), ["src/framework/queue/worker.ts", ...rawArgs.slice(1)]);
+    await runNodeScript(packageScript("tsx", "dist/cli.mjs"), [
+      "src/framework/queue/worker.ts",
+      ...rawArgs.slice(1)
+    ]);
     return;
   }
 

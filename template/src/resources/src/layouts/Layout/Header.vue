@@ -11,17 +11,14 @@
           <i class="bi bi-layout-text-sidebar-reverse"></i>
         </button>
         <div id="pagebar" class="card card-body nav-card order-5 order-sm-1"></div>
-        <!-- <button id="refresh" type="button" class="nav-btn order-3 order-sm-2" aria-label="button">
-          <i class="bi bi-arrow-repeat"></i>
-        </button> -->
+        <template v-for="btn in featureButtons" :key="btn.id">
+          <button type="button" class="nav-btn order-3 order-sm-2" :title="btn.title || undefined" :aria-label="btn.label || 'button'" v-bind="btn.attrs" @click="btn.onClick">
+            <i v-if="btn.icon" :class="btn.icon"></i>
+            <span v-if="btn.label" class="ms-1">{{ btn.label }}</span>
+          </button>
+        </template>
         <div class="btn-group order-4 order-sm-3">
-          <button
-            type="button"
-            class="nav-btn w-100"
-            data-bs-toggle="dropdown"
-            data-bs-display="static"
-            aria-expanded="false"
-            aria-label="button">
+          <button type="button" class="nav-btn w-100" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="button">
             <i class="bi bi-person-circle"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
@@ -53,12 +50,7 @@
             </li>
           </ul>
         </div>
-        <button
-          id="theme-switch"
-          type="button"
-          class="nav-btn order-1 order-sm-4"
-          aria-label="button"
-          @click="props.onToggleTheme">
+        <button id="theme-switch" type="button" class="nav-btn order-1 order-sm-4" aria-label="button" @click="props.onToggleTheme">
           <i :class="themeIconClass"></i>
         </button>
       </div>
@@ -67,8 +59,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { authUser } from "@/composables/useAuth";
+import { computed, inject } from "vue";
+
+interface ButtonEntry {
+  id: symbol;
+  icon?: string;
+  label: string;
+  title: string;
+  attrs?: Record<string, string>;
+  onClick: () => void;
+}
+
+const _featureButtons = inject<ButtonEntry[]>("featureButtons")!;
 
 interface HeaderProps {
   isScrolled: boolean;
@@ -80,7 +82,7 @@ interface HeaderProps {
 
 const props = defineProps<HeaderProps>();
 
-const themeIconClass = computed(() => {
+const _themeIconClass = computed(() => {
   if (props.themeMode === "light") return "bi bi-brightness-high-fill";
   if (props.themeMode === "dark") return "bi bi-moon-stars";
   return "bi bi-circle-half";

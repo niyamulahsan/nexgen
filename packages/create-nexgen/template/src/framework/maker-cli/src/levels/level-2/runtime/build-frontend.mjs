@@ -5,7 +5,8 @@ import { resolve } from "node:path";
 const isFalse = (v) => v === "false";
 
 const envFile = resolve(process.cwd(), ".env");
-const fileDisabled = existsSync(envFile) && /^FRONTEND=false\s*$/m.test(readFileSync(envFile, "utf-8"));
+const fileDisabled =
+  existsSync(envFile) && /^FRONTEND=false\s*$/m.test(readFileSync(envFile, "utf-8"));
 
 if (isFalse(process.env.FRONTEND) || fileDisabled) {
   console.log("Frontend build skipped (FRONTEND=false)");

@@ -3,8 +3,8 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { env } from "@/env.js";
-import { redisClientIfReady } from "@/framework/redis/client.js";
 import { ensureQueues, getAllQueues } from "@/framework/queue/queue.js";
+import { redisClientIfReady } from "@/framework/redis/client.js";
 import { parseCsvOrFallback } from "@/framework/support/lifecycle.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 

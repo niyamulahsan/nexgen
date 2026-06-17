@@ -2,10 +2,10 @@
 
 import { Command } from "commander";
 import { config } from "dotenv";
-import { registerModuleCommands } from "./levels/level-2/module/index.mjs";
-import { registerDbCommands } from "./levels/level-2/db/index.mjs";
-import { registerRuntimeCommands } from "./levels/level-2/runtime/index.mjs";
 import { makerCommandPrefix, showHelp } from "./levels/level-1/help.mjs";
+import { registerDbCommands } from "./levels/level-2/db/index.mjs";
+import { registerModuleCommands } from "./levels/level-2/module/index.mjs";
+import { registerRuntimeCommands } from "./levels/level-2/runtime/index.mjs";
 
 const args = process.argv.slice(2);
 const [command] = args;

@@ -1,4 +1,4 @@
-import { mail, shouldQueue, dispatchEvent } from "@/framework/facade.js";
+import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("user:forget-password", "mail", async (job) => {
   const { email, name, resetUrl } = job.data;

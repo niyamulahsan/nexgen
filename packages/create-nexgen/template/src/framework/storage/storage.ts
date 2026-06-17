@@ -1,20 +1,20 @@
-import { promises as fs } from "node:fs";
 import crypto from "node:crypto";
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { env } from "@/env.js";
 import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  HeadObjectCommand,
   CopyObjectCommand,
-  ListObjectsV2Command,
+  DeleteObjectCommand,
   DeleteObjectsCommand,
-  GetObjectAclCommand
+  GetObjectAclCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { env } from "@/env.js";
 
 type Disk = "public" | "private" | "tmp";
 type FileData = string | Buffer | Uint8Array | ArrayBuffer | Blob | File;
@@ -33,17 +33,17 @@ const defaultDisk: Disk = env.STORAGE_DISK;
 const s3 =
   driver === "s3"
     ? new S3Client({
-      region: env.STORAGE_REGION,
-      endpoint: env.STORAGE_ENDPOINT,
-      forcePathStyle: env.STORAGE_FORCE_PATH_STYLE,
-      credentials:
-        env.STORAGE_ACCESS_KEY_ID && env.STORAGE_SECRET_ACCESS_KEY
-          ? {
-            accessKeyId: env.STORAGE_ACCESS_KEY_ID,
-            secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY
-          }
-          : undefined
-    })
+        region: env.STORAGE_REGION,
+        endpoint: env.STORAGE_ENDPOINT,
+        forcePathStyle: env.STORAGE_FORCE_PATH_STYLE,
+        credentials:
+          env.STORAGE_ACCESS_KEY_ID && env.STORAGE_SECRET_ACCESS_KEY
+            ? {
+                accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+                secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY
+              }
+            : undefined
+      })
     : null;
 
 /**
@@ -597,7 +597,8 @@ export const storage = {
   disk(disk: Disk) {
     return {
       put: (file: string, data: FileData) => put(disk, file, data),
-      putFile: (directory: string, file: File, name?: string) => putFile(disk, directory, file, name),
+      putFile: (directory: string, file: File, name?: string) =>
+        putFile(disk, directory, file, name),
       get: (file: string) => read(disk, file),
       delete: (file: string) => remove(disk, file),
       copy: (from: string, to: string) => copyFile(disk, from, to),
@@ -614,7 +615,8 @@ export const storage = {
       readStream: (file: string) => readStream(disk, file),
       writeStream: (file: string, stream: Readable) => writeStream(disk, file, stream),
       temporaryUrl: (file: string, ttl?: number) => temporaryUrl(disk, file, ttl),
-      setVisibility: (file: string, visibility: Visibility) => setVisibility(disk, file, visibility),
+      setVisibility: (file: string, visibility: Visibility) =>
+        setVisibility(disk, file, visibility),
       getVisibility: (file: string) => getVisibility(disk, file),
       path: (file: string) => abs(disk, file),
       url: (file: string) =>
@@ -727,7 +729,7 @@ export const storage = {
    * Where: Example and business export pipelines.
    * How: Writes into tmp storage using a sanitized prefix and extension.
    */
-  async generateForDownload(options: { prefix: string; extension: string; data: FileData; }) {
+  async generateForDownload(options: { prefix: string; extension: string; data: FileData }) {
     return await writeGeneratedTemp(options.prefix, options.extension, options.data);
   },
 

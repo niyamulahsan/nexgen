@@ -11,6 +11,8 @@ export function getOption(flags = [], name, fallback = "") {
 
 export function stripWorkflowFlags(flags = []) {
   return flags.filter(
-    (flag) => !["--server-only", "--app-only", "--refresh", "--dry-run"].includes(flag) && !flag.startsWith("--config=")
+    (flag) =>
+      !["--server-only", "--app-only", "--refresh", "--dry-run"].includes(flag) &&
+      !flag.startsWith("--config=")
   );
 }

@@ -1,17 +1,17 @@
+import axios from "axios";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import axios from "axios";
-import { clearUser, setUser, type AuthUser } from "@/composables/useAuth";
+import { type AuthUser, clearUser, setUser } from "@/composables/useAuth";
 
-type LoginPayload = { email: string; password: string; remember?: boolean; };
+type LoginPayload = { email: string; password: string; remember?: boolean };
 type RegisterPayload = {
   name: string;
   email: string;
   password: string;
   password_confirmation: string;
 };
-type VerifyEmailPayload = { email: string; token: string; };
-type ForgotPayload = { email: string; };
+type VerifyEmailPayload = { email: string; token: string };
+type ForgotPayload = { email: string };
 type ResetPayload = {
   email: string;
   token: string;
@@ -19,10 +19,14 @@ type ResetPayload = {
   password_confirmation: string;
 };
 
-type ApiResponse<T> = { message: string; data?: T; };
-type AuthData = { user: AuthUser; };
+type ApiResponse<T> = { message: string; data?: T };
+type AuthData = { user: AuthUser };
 
-async function request<T>(method: "GET" | "POST", path: string, payload?: unknown): Promise<ApiResponse<T>> {
+async function request<T>(
+  method: "GET" | "POST",
+  path: string,
+  payload?: unknown
+): Promise<ApiResponse<T>> {
   try {
     const response = await axios.request<ApiResponse<T>>({
       method,

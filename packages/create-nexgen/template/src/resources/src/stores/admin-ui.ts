@@ -1,5 +1,5 @@
-import { computed, ref } from "vue";
 import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
 const THEME_KEY = "app-theme";
 const SIDEBAR_COLLAPSE_KEY = "sidebar-open-collapses";
@@ -50,7 +50,7 @@ export const useAdminUiStore = defineStore("admin-ui", () => {
     applyTheme("light");
   };
 
-  const cleanupTheme = () => { };
+  const cleanupTheme = () => {};
 
   const loadSidebarCollapseIds = () => {
     try {

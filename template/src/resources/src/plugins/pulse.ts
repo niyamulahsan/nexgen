@@ -1,5 +1,5 @@
-import type { App } from "vue";
 import { io, type Socket } from "socket.io-client";
+import type { App } from "vue";
 
 declare const __SOCKET_ENABLED__: boolean;
 
@@ -27,7 +27,13 @@ export type PulseClient = {
 function createPulse(): PulseClient {
   if (!__SOCKET_ENABLED__) {
     const n = (): PulseChannel => ({ listen: () => n(), stopListening: () => n() });
-    const c: PulseClient = { connect: () => c, disconnect: () => c, channel: n, private: n, leave: () => c };
+    const c: PulseClient = {
+      connect: () => c,
+      disconnect: () => c,
+      channel: n,
+      private: n,
+      leave: () => c
+    };
     return c;
   }
   let socket: Socket | null = null;

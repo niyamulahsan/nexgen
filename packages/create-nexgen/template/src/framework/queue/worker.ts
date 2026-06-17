@@ -1,6 +1,10 @@
-import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
 import { startQueueWorker, stopQueueRuntime } from "@/framework/queue/queue.js";
-import { parseCsvOrFallback, registerShutdownSignals, type ShutdownSignal } from "@/framework/support/lifecycle.js";
+import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
+import {
+  parseCsvOrFallback,
+  registerShutdownSignals,
+  type ShutdownSignal
+} from "@/framework/support/lifecycle.js";
 import { logger } from "@/framework/support/logger.js";
 
 const queuesArg = process.argv.find((arg) => arg.startsWith("--queue="));

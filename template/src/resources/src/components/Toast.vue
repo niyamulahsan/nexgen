@@ -25,8 +25,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import Toast from "bootstrap/js/dist/toast.js";
+import { ref } from "vue";
 
 defineOptions({ name: "Toast", inheritAttrs: false });
 

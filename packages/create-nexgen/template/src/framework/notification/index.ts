@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/framework/database/connection.js";
 import { dispatchEvent } from "@/framework/events/dispatcher.js";
-import { mail } from "@/framework/support/mail.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+import { mail } from "@/framework/support/mail.js";
 import { notifications } from "@/modules/auth/database/models/notifications.js";
 import { users } from "@/modules/auth/database/models/user.js";
 
@@ -35,7 +35,7 @@ export async function notify(userId: number, options: NotificationOptions) {
     title: options.title,
     body: options.body || null,
     link: options.link || null,
-    data: options.data ? JSON.stringify(options.data) : null,
+    data: options.data ? JSON.stringify(options.data) : null
   });
 
   const insertedId = Number((insertResult as any)[0]?.insertId ?? (insertResult as any).insertId);
@@ -60,11 +60,13 @@ export async function notify(userId: number, options: NotificationOptions) {
 /** Deliver an email notification, either queued (if Redis is available) or direct. */
 async function sendMailChannel(
   userId: number,
-  notification: { id: number; title: string; body: string | null; },
+  notification: { id: number; title: string; body: string | null },
   options: NotificationOptions
 ) {
-  const [user] = await db.select({ email: users.email, name: users.name })
-    .from(users).where(eq(users.id, userId));
+  const [user] = await db
+    .select({ email: users.email, name: users.name })
+    .from(users)
+    .where(eq(users.id, userId));
 
   if (!user?.email) return;
 
@@ -72,9 +74,15 @@ async function sendMailChannel(
   const html = options.mail?.html || defaultMailHtml(notification.title, notification.body);
 
   if (redisClientIfReady()) {
-    await dispatchEvent("notification:mail", {
-      to: user.email, subject, html,
-    }, { queue: "mail" });
+    await dispatchEvent(
+      "notification:mail",
+      {
+        to: user.email,
+        subject,
+        html
+      },
+      { queue: "mail" }
+    );
   } else {
     await mail.sendMail({ to: user.email, subject, html });
   }
@@ -93,7 +101,9 @@ function escapeHtml(str: string) {
 function normalize(row: typeof notifications.$inferSelect) {
   let parsed: unknown = null;
   if (row.data) {
-    try { parsed = JSON.parse(row.data); } catch { }
+    try {
+      parsed = JSON.parse(row.data);
+    } catch {}
   }
   return {
     id: row.id,
@@ -104,6 +114,6 @@ function normalize(row: typeof notifications.$inferSelect) {
     data: parsed,
     link: row.link,
     readAt: row.readAt?.toISOString() || null,
-    createdAt: row.createdAt.toISOString(),
+    createdAt: row.createdAt.toISOString()
   };
 }

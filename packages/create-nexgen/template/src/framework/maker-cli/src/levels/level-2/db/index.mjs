@@ -1,15 +1,29 @@
-import { syncMigrationDialect, ensureMigrationMeta, drizzleGenerateArgs, migrationFiles, ensureDatabaseDirectory, ensureDatabaseExists, hasExistingAppTables, runSeed, resetDatabase } from "./core.mjs";
-import { generateSchema } from "../module/core.mjs";
-import { assertName as assertNameLeaf } from "../../level-1/naming.mjs";
 import { showHelp } from "../../level-1/help.mjs";
+import { assertName as assertNameLeaf } from "../../level-1/naming.mjs";
 import { packageScript, runNodeScript } from "../../level-1/process.mjs";
+import { generateSchema } from "../module/core.mjs";
+import {
+  drizzleGenerateArgs,
+  ensureDatabaseDirectory,
+  ensureDatabaseExists,
+  ensureMigrationMeta,
+  hasExistingAppTables,
+  migrationFiles,
+  resetDatabase,
+  runSeed,
+  syncMigrationDialect
+} from "./core.mjs";
 
 async function runMigrationHooks() {
-  await runNodeScript(packageScript("tsx", "dist/cli.mjs"), ["src/framework/database/migrate-hooks.ts"]);
+  await runNodeScript(packageScript("tsx", "dist/cli.mjs"), [
+    "src/framework/database/migrate-hooks.ts"
+  ]);
 }
 
 let args = [];
-let command = "", firstArg = "", secondArg = "";
+let command = "",
+  firstArg = "",
+  secondArg = "";
 let dbProgram = null;
 
 /** Wrapper around assertName that exits with help on failure. */
@@ -78,8 +92,8 @@ const handlers = {
     if (!hadMigrationsBeforeGenerate && hadExistingTablesBeforeGenerate) {
       throw new Error(
         "Initial migration was generated, but the database already contains tables. " +
-        "This usually means migration files were deleted while DB data still exists. " +
-        "Use 'bun maker db:fresh --seed' to rebuild locally, or restore migration files before running db:migrate."
+          "This usually means migration files were deleted while DB data still exists. " +
+          "Use 'bun maker db:fresh --seed' to rebuild locally, or restore migration files before running db:migrate."
       );
     }
     await runNodeScript(packageScript("drizzle-kit", "bin.cjs"), ["migrate"]);
@@ -172,14 +186,22 @@ export function registerDbCommands(program, rawArgs) {
 
   cmd("schema", "Generate src/database/schema.ts from module models");
   cmd("generate", "Generate Drizzle migrations after schema discovery");
-  cmd("migrate", "Generate then run Drizzle migrations", [{ flag: "--seed", description: "Run seeders after migration" }]);
+  cmd("migrate", "Generate then run Drizzle migrations", [
+    { flag: "--seed", description: "Run seeders after migration" }
+  ]);
   cmd("migrate:run", "Run existing Drizzle migrations only");
-  cmd("fresh", "Reset database then generate, migrate, optionally seed", [{ flag: "--seed", description: "Run seeders after fresh" }]);
-  cmd("seed", "Run all seeders or one module seeder set", [{ flag: "--module", description: "Optional module name" }]);
+  cmd("fresh", "Reset database then generate, migrate, optionally seed", [
+    { flag: "--seed", description: "Run seeders after fresh" }
+  ]);
+  cmd("seed", "Run all seeders or one module seeder set", [
+    { flag: "--module", description: "Optional module name" }
+  ]);
   cmd("status", "Show generated migration files");
   cmd("push", "Run drizzle-kit push after schema discovery");
   cmd("check", "Run drizzle-kit check after schema discovery");
-  cmd("studio", "Open Drizzle Studio after schema discovery", [{ flag: "--quiet", description: "Suppress output" }]);
+  cmd("studio", "Open Drizzle Studio after schema discovery", [
+    { flag: "--quiet", description: "Suppress output" }
+  ]);
   cmd("module:seed", "Run seeders for a specific module");
   cmd("reset", "Drop all tables (wipe database)");
   cmd("wipe", "Drop all tables (wipe database)");

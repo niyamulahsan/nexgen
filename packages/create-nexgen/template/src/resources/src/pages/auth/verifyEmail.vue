@@ -23,8 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useHead } from "@vueuse/head";
+import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { useGum } from "@/plugins/gum";
 
@@ -46,16 +46,20 @@ const verify = async () => {
     return;
   }
 
-  await post("/api/auth/verify-email", { email, token }, {
-    onSuccess: () => {
-      isError.value = false;
-      message.value = "Email verified successfully. You can now login.";
-    },
-    onError: (errors, error) => {
-      isError.value = true;
-      message.value = error instanceof Error ? error.message : "Failed to verify email";
+  await post(
+    "/api/auth/verify-email",
+    { email, token },
+    {
+      onSuccess: () => {
+        isError.value = false;
+        message.value = "Email verified successfully. You can now login.";
+      },
+      onError: (_errors, error) => {
+        isError.value = true;
+        message.value = error instanceof Error ? error.message : "Failed to verify email";
+      }
     }
-  });
+  );
 };
 
 void verify();

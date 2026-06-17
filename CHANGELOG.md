@@ -1,5 +1,61 @@
 # Changelog
 
+## [2.2.0] — 2026-06-17
+
+### Overview
+
+Replaced ESLint + Prettier with Biome, unifying linting and formatting under a single tool with consistent code style applied across the entire codebase. Added `paginateModel()` for relational query pagination, `skipFetch` option in Gum for client-side navigation, and `FeatureButton` for extensible nav bar buttons. Fixed paginate count query and removed dead `Refresh.vue` component.
+
+### Features
+
+#### Tooling
+
+- **ESLint + Prettier removed** — replaced with Biome v2.5.0 (`preset: "recommended"`)
+- **Biome config** — 8 rule overrides matching previous ESLint behavior: `noUnusedVariables`, `useExhaustiveDependencies`, `noConsole`, `noSwitchDeclarations`, `useOptionalChain`, `useDefaultSwitchClause`, `noParamAssign`, `useVueMultiWordComponentNames`
+- **package.json scripts** — `lint`, `lint:fix`, `format`, `format:check` now use Biome
+- **Removed 8 devDependencies** — `eslint`, `@eslint/js`, `eslint-plugin-vue`, `typescript-eslint`, `prettier`, `eslint-config-prettier`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`
+- **Deleted config files** — `eslint.config.js`, `.prettierrc`, `.prettierignore`
+- **`.gitignore`** — added `coverage/` and `src/storage/trash/`
+
+#### Database
+
+- **`paginateModel()`** — new paginator for Drizzle relational queries (`db.query.table.findMany`) with support for `where`, `with`, `columns`, `extras`, `orderBy`, and custom `total`/`data` callbacks
+- **`resolvePath()`** — extracted URL resolution helper used by `paginate()` and `paginateModel()`
+- **Fixed paginate count query** — replaced broken `.as("paginate_rows")` with proper inner select for accurate total row counting
+
+#### Frontend
+
+- **`FeatureButton.vue`** — new component for registering extensible nav bar buttons via `inject("featureButtons")`
+- **Header.vue** — replaced commented-out refresh button with `featureButtons` slot; removed dead `Refresh.vue`
+- **`skipFetch` option** — `gum.visit()` / `useGum()` now supports `skipFetch: true` for client-side route transitions without a server roundtrip
+
+#### Documentation
+
+- **Rate Limiter** — new guide page covering per-IP and per-session rate limiter configuration
+- **Database** — updated migration and seeding docs
+- **Environment** — documented new `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX`, `RATE_LIMIT_LOGIN_MAX` variables
+- **Events & Queue** — minor corrections
+- **Components** — expanded API reference
+- **Gum** — documented `skipFetch` option
+
+### Fixes
+
+- **Paginate count query** — count subquery now uses `db.select({ val: sql\`1\` }).from(query.as("_inner"))` instead of broken `.as("paginate_rows")` pattern
+- **Subcriteria dropdown** — `subcriteriaDD` returns `null` when no criteria is selected, preventing unnecessary API requests
+- **FloatButton** — simplified template; renamed unused `floatStyle` to `_floatStyle` for Biome compliance
+- **env.d.ts** — added blank line separators between `declare module` blocks for Biome formatting
+
+### Dependencies
+
+- **Runtime**: Node.js >= 24 or Bun >= 1.3 (unchanged)
+- **Database**: SQLite (default), MySQL, or PostgreSQL (unchanged)
+- **Optional**: Redis (unchanged)
+- **Dev**: ESLint + Prettier removed, Biome v2.5.0 added
+
+### Upgrade Notes
+
+Run `npm install` to pick up new devDependencies. Run `npx biome check --write .` to reformat any open feature branches. The `paginate()` function's internal count query changed — if you were relying on the old `.as("paginate_rows")` pattern, no migration needed as it was internal.
+
 ## [2.1.1] — 2026-06-05
 
 ### Overview

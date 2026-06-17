@@ -1,4 +1,5 @@
 import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+import { loginLimiter } from "@/framework/http/ratelimiter.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import {
   forgotPassword,
@@ -19,8 +20,8 @@ import {
   RefreshTokenSchema,
   RegisterSchema,
   ResetPasswordSchema,
-  VerifyEmailSchema,
-  UserSchema
+  UserSchema,
+  VerifyEmailSchema
 } from "@/modules/auth/controllers/auth.schema.js";
 
 const registerRoute = createRoute({
@@ -135,6 +136,7 @@ const verifyEmailRoute = createRoute({
 });
 
 const publicRoute = createRouter()
+  .group(loginLimiter)
   .api(registerRoute, register)
   .api(loginRoute, login)
   .api(forgotPasswordRoute, forgotPassword)

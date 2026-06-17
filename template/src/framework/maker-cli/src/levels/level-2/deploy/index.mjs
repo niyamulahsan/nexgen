@@ -1,4 +1,17 @@
-import { createDeploy, importMysqlDumpLocal, importMysqlDumpRemote, runDeploy, runRemoteServer, runRemoteApp, runDeployWorkflow, initDeployWorkflow, runLocalWorkflow, runRemoteWorkflow, initRemoteDeployWorkflow, runPromoteWorkflow } from "./core.mjs";
+import {
+  createDeploy,
+  importMysqlDumpLocal,
+  importMysqlDumpRemote,
+  initDeployWorkflow,
+  initRemoteDeployWorkflow,
+  runDeploy,
+  runDeployWorkflow,
+  runLocalWorkflow,
+  runPromoteWorkflow,
+  runRemoteApp,
+  runRemoteServer,
+  runRemoteWorkflow
+} from "./core.mjs";
 
 export const deployCommands = new Set([
   "deploy:create",
@@ -57,7 +70,10 @@ export function registerDeployCommands(program, rawArgs) {
     .option("--database <name>", "Target database name", "nexgen")
     .option("--container <name>", "MySQL container name", "mysql-global")
     .option("--user <name>", "MySQL user", "root")
-    .option("--password <password>", "MySQL root password (falls back to deploy/server/.env, then deploy/.env)")
+    .option(
+      "--password <password>",
+      "MySQL root password (falls back to deploy/server/.env, then deploy/.env)"
+    )
     .allowUnknownOption(true)
     .action(async () => importMysqlDumpLocal(flags));
   program
@@ -68,7 +84,10 @@ export function registerDeployCommands(program, rawArgs) {
     .option("--database <name>", "Target database name", "nexgen")
     .option("--container <name>", "MySQL container name", "mysql-global")
     .option("--user <name>", "MySQL user", "root")
-    .option("--password <password>", "MySQL root password (falls back to remote deploy/server/.env)")
+    .option(
+      "--password <password>",
+      "MySQL root password (falls back to remote deploy/server/.env)"
+    )
     .option("--dry-run", "Print commands without executing")
     .allowUnknownOption(true)
     .action(async () => importMysqlDumpRemote(flags));

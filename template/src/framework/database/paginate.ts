@@ -1,4 +1,4 @@
-import { count, getTableColumns, type SQL } from "drizzle-orm";
+import { count, getTableColumns, type SQL, sql } from "drizzle-orm";
 import { db } from "@/framework/database/connection.js";
 
 type PaginateOptions = {
@@ -27,6 +27,22 @@ type PaginateQueryOptions<T> = {
   data: (limit: number, offset: number) => Promise<T[]>;
 };
 
+type PaginateModelOptions<T = any> = {
+  table?: any;
+  query?: { findMany: (args: Record<string, any>) => Promise<T[]> };
+  where?: SQL<unknown>;
+  with?: Record<string, any>;
+  columns?: Record<string, any>;
+  extras?: Record<string, any>;
+  orderBy?: unknown;
+  page?: number;
+  perPage?: number;
+  maxPerPage?: number;
+  path?: string;
+  total?: () => Promise<number>;
+  data?: (params: { limit: number; offset: number }) => Promise<T[]>;
+};
+
 export type PaginatedResult<T> = {
   current_page: number;
   data: T[];
@@ -34,7 +50,7 @@ export type PaginatedResult<T> = {
   from: number | null;
   last_page: number;
   last_page_url: string | null;
-  links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }>;
+  links: Array<{ url: string | null; label: string; page: number | null; active: boolean }>;
   next_page_url: string | null;
   path: string;
   per_page: number;
@@ -53,6 +69,18 @@ function pageUrl(path: string, page: number, perPage: number) {
   if (!path) return null;
   const delimiter = path.includes("?") ? "&" : "?";
   return `${path}${delimiter}page=${page}&per_page=${perPage}`;
+}
+
+function resolvePath(c: RequestLike, path?: string) {
+  if (path) return path;
+  const fallbackPath = c.req.path;
+  if (!c.req.url) return fallbackPath;
+  try {
+    const parsed = new URL(c.req.url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return fallbackPath;
+  }
 }
 
 /**
@@ -82,7 +110,7 @@ export async function paginateQuery<T = any>(
   const prevPageUrl = currentPage > 1 ? pageUrl(path, currentPage - 1, perPage) : null;
   const nextPageUrl = currentPage < lastPage ? pageUrl(path, currentPage + 1, perPage) : null;
 
-  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }> =
+  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean }> =
     [
       {
         url: prevPageUrl,
@@ -135,25 +163,13 @@ export async function paginate<T = any>(
   c: RequestLike,
   query: any,
   perPage = 15,
-  options: { maxPerPage?: number; path?: string; } = {}
+  options: { maxPerPage?: number; path?: string } = {}
 ): Promise<PaginatedResult<T>> {
   const page = Number(c.req.query("page") || 1);
   const size = c.req.query("size");
   const perPageQuery = c.req.query("per_page");
   const perPageValue = Number(size || perPageQuery || perPage);
-  const fallbackPath = c.req.path;
-  const resolvedPath = (() => {
-    if (options.path) return options.path;
-    if (!c.req.url) return fallbackPath;
-    try {
-      const parsed = new URL(c.req.url);
-      return `${parsed.origin}${parsed.pathname}`;
-    } catch {
-      return fallbackPath;
-    }
-  })();
-
-  const queryForCount = query.as("paginate_rows");
+  const resolvedPath = resolvePath(c, options.path);
 
   return paginateQuery<T>({
     page,
@@ -161,17 +177,64 @@ export async function paginate<T = any>(
     maxPerPage: options.maxPerPage,
     path: resolvedPath,
     total: async () => {
-      const totalRow = await db.select({ total: count() }).from(queryForCount);
-      return Number(totalRow[0]?.total ?? 0);
+      const inner = db.select({ val: sql`1` }).from(query.as("_inner"));
+      const [row] = await db.select({ total: count() }).from(inner);
+      return Number(row?.total ?? 0);
     },
     data: (limit, offset) => query.limit(limit).offset(offset)
   });
 }
 
 /**
+ * Why: Laravel-style pagination for Drizzle relational queries.
+ * When: Controllers need eager loading via `db.query.table.findMany({ with })`.
+ * Where: Use beside `paginate`; this targets model/relational API, not select builders.
+ * How: Counts the base table separately, then runs `findMany` with limit/offset.
+ */
+export async function paginateModel<T = any>(
+  c: RequestLike,
+  options: PaginateModelOptions<T>
+): Promise<PaginatedResult<T>> {
+  const page = Number(c.req.query("page") || options.page || 1);
+  const size = c.req.query("size");
+  const perPageQuery = c.req.query("per_page");
+  const perPageValue = Number(size || perPageQuery || options.perPage || 15);
+  const resolvedPath = resolvePath(c, options.path);
+
+  return paginateQuery<T>({
+    page,
+    perPage: perPageValue,
+    maxPerPage: options.maxPerPage,
+    path: resolvedPath,
+    total: async () => {
+      if (options.total) return Number(await options.total());
+      if (!options.table) throw new Error("paginateModel requires either table or total callback");
+
+      let totalQuery = db.select({ total: count() }).from(options.table);
+      if (options.where) totalQuery = totalQuery.where(options.where);
+      const [row] = await totalQuery;
+      return Number(row?.total ?? 0);
+    },
+    data: async (limit, offset) => {
+      if (options.data) return options.data({ limit, offset });
+      if (!options.query) throw new Error("paginateModel requires either query or data callback");
+
+      const args: Record<string, any> = { limit, offset };
+      if (options.where) args.where = options.where;
+      if (options.with) args.with = options.with;
+      if (options.columns) args.columns = options.columns;
+      if (options.extras) args.extras = options.extras;
+      if (options.orderBy) args.orderBy = options.orderBy;
+
+      return options.query.findMany(args);
+    }
+  });
+}
+
+/**
  * Why: Paginates a full table with optional filters/sorting.
  * When: CRUD list endpoints need simple table pagination.
- * Where: Service/controller code for table resources.
+ * Where: Service/controller code using table helpers.
  * How: Runs total + paged select with where/order options.
  */
 export async function paginateTable<T = any>(

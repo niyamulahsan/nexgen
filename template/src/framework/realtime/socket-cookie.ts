@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
 import { env } from "@/env.js";
-import { jwt } from "@/framework/support/jwt.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
+import { jwt } from "@/framework/support/jwt.js";
 
 export function unauthenticatedRealtimeAuth(): RealtimeAuthContext {
   return { isAuthenticated: false, userId: null, roles: [], payload: null };
@@ -50,7 +50,8 @@ export async function authFromSocketHandshake(socket: Socket): Promise<RealtimeA
   }
 
   // Strip Hono's signed-cookie HMAC signature (last .<base64> part appended by setSignedCookie)
-  const token = rawToken.lastIndexOf(".") > 0 ? rawToken.substring(0, rawToken.lastIndexOf(".")) : rawToken;
+  const token =
+    rawToken.lastIndexOf(".") > 0 ? rawToken.substring(0, rawToken.lastIndexOf(".")) : rawToken;
 
   const payload = await jwt.verifyToken(token, "access");
   if (!payload) {
