@@ -43,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+import Input from "@/components/Input.vue";
+import Button from "@/components/Button.vue";
 import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useGumForm } from "@/plugins/gum";
@@ -50,11 +52,11 @@ import { useGumForm } from "@/plugins/gum";
 useHead({ title: "Forget Password" });
 
 const form = useGumForm({ email: "" });
-const _processing = form.processing;
+const processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
-const _onSubmit = async () => {
+const onSubmit = async () => {
   message.value = "";
   isError.value = false;
   await form.post(

@@ -60,6 +60,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
+import { authUser } from "@/composables/useAuth";
 
 interface ButtonEntry {
   id: symbol;
@@ -70,7 +71,7 @@ interface ButtonEntry {
   onClick: () => void;
 }
 
-const _featureButtons = inject<ButtonEntry[]>("featureButtons")!;
+const featureButtons = inject<ButtonEntry[]>("featureButtons")!;
 
 interface HeaderProps {
   isScrolled: boolean;
@@ -82,7 +83,7 @@ interface HeaderProps {
 
 const props = defineProps<HeaderProps>();
 
-const _themeIconClass = computed(() => {
+const themeIconClass = computed(() => {
   if (props.themeMode === "light") return "bi bi-brightness-high-fill";
   if (props.themeMode === "dark") return "bi bi-moon-stars";
   return "bi bi-circle-half";

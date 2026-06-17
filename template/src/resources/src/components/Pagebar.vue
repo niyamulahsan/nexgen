@@ -14,11 +14,11 @@ interface PageBarProps {
   title?: string;
 }
 
-const _props = defineProps<PageBarProps>();
+const props = defineProps<PageBarProps>();
 const slots = useSlots();
 
 const target = ref<HTMLElement | null>(null);
-const _hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
+const hasDefaultSlot = computed(() => Boolean(slots.default?.().length));
 
 onMounted(() => {
   target.value = document.getElementById("pagebar");

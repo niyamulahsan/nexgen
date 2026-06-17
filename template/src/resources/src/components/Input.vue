@@ -74,9 +74,9 @@ const props = withDefaults(defineProps<InputProps>(), {
   modelValue: ""
 });
 
-const _topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-2");
-const _inputId = computed(() => ($attrs.id as string | undefined) || "");
-const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-2");
+const inputId = computed(() => ($attrs.id as string | undefined) || "");
+const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
 const inputType = computed(() => ($attrs.type as string | undefined) || "text");
 
 const max = computed<number | null>(() => {
@@ -84,7 +84,7 @@ const max = computed<number | null>(() => {
   return raw != null ? Number(raw) : null;
 });
 
-const _inputAutocomplete = computed(() => {
+const inputAutocomplete = computed(() => {
   const attrAutocomplete = $attrs.autocomplete as string | undefined;
   if (attrAutocomplete) {
     return attrAutocomplete;
@@ -92,13 +92,13 @@ const _inputAutocomplete = computed(() => {
   return ["number", "decimal"].includes(props.category ?? "") ? "off" : "on";
 });
 
-const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 
-const _hoodHtml = computed(() =>
+const hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
 
-const _maxCounter = computed(() => {
+const maxCounter = computed(() => {
   if (max.value == null) {
     return "";
   }
@@ -111,7 +111,7 @@ const _maxCounter = computed(() => {
 });
 
 const emit = defineEmits<(event: "update:modelValue", value: string | number) => void>();
-const _updateModel = (e: Event) => {
+const updateModel = (e: Event) => {
   const target = e.target as HTMLInputElement;
 
   if (props.category === "number") {

@@ -48,7 +48,7 @@ interface ModalProps {
 
 defineOptions({ name: "Modal", inheritAttrs: false });
 
-const _props = withDefaults(defineProps<ModalProps>(), {
+const props = withDefaults(defineProps<ModalProps>(), {
   title: "",
   size: "md"
 });

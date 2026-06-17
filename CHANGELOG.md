@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.1] — 2026-06-17
+
+### Fixed
+
+- **Biome import fixup** — `organizeImports` stripped component imports used only in Vue `<template>` blocks. Restored 150+ missing imports across stats project, nexgen template, and create-nexgen template. Also reverted unsafe `noUnusedVariables` renames (`_logout`, `_themeIconClass`, `_startYear`/`_currentYear`) that broke template bindings. Added missing `vSelect` import (vue-select) and fixed `Object.hasOwn` → `in` operator for ES2020 compat.
+
 ## [2.2.0] — 2026-06-17
 
 ### Overview

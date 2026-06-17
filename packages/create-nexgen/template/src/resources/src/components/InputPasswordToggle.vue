@@ -84,22 +84,22 @@ const props = withDefaults(defineProps<InputPasswordProps>(), {
   modelValue: ""
 });
 
-const _topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
-const _inputId = computed(() => ($attrs.id as string | undefined) || "");
-const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
+const inputId = computed(() => ($attrs.id as string | undefined) || "");
+const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
 const inputType = computed(() => ($attrs.type as string | undefined) || "text");
 
 const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
-const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 
-const _hoodHtml = computed(() =>
+const hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
 
-const _maxCounter = computed(() => {
+const maxCounter = computed(() => {
   if (max.value == null) {
     return "";
   }
@@ -112,7 +112,7 @@ const _maxCounter = computed(() => {
 });
 
 const emit = defineEmits<(event: "update:modelValue", value: string | number) => void>();
-const _updateModel = (e: Event) => {
+const updateModel = (e: Event) => {
   const target = e.target as HTMLInputElement;
 
   if (props.category === "number") {
@@ -177,7 +177,7 @@ const _updateModel = (e: Event) => {
 };
 
 const showPassword = ref(false);
-const _togglePassword = () => (showPassword.value = !showPassword.value);
+const togglePassword = () => (showPassword.value = !showPassword.value);
 
 onMounted(() => {
   const shouldFocus = props.focus !== false && props.focus !== undefined;

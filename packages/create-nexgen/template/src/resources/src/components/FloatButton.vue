@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<FloatButtonProps>(), {
   zIndex: 100
 });
 
-const _floatStyle = computed(() => ({
+const floatStyle = computed(() => ({
   top: props.top,
   right: props.right,
   zIndex: props.zIndex

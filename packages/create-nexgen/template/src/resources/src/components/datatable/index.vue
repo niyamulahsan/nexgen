@@ -99,6 +99,11 @@
 </template>
 
 <script setup lang="ts">
+import SelectOption from "./SelectOpption.vue";
+import Button from "@/components/Button.vue";
+import Input from "@/components/Input.vue";
+import Checkbox from "@/components/Checkbox.vue";
+import Pagination from "./Pagination.vue";
 import { debounce } from "lodash-es";
 import { computed, reactive, ref, useSlots, watchEffect } from "vue";
 import { useRoute } from "vue-router";
@@ -138,7 +143,7 @@ const props = withDefaults(defineProps<DataTableProps>(), {
 const gum = useGum();
 const route = useRoute();
 
-const _slots = useSlots();
+const slots = useSlots();
 
 const emit = defineEmits<(event: "remove", value: Array<string | number>) => void>();
 
@@ -147,7 +152,7 @@ let checked = reactive<{ check: boolean; checkcolumn: Array<string | number> }>(
   check: false,
   checkcolumn: []
 });
-const _checkAll = () => {
+const checkAll = () => {
   if (!checked.check) {
     props.data.data.forEach((dt: DataRow) => {
       if (!checked.checkcolumn.includes(dt.id)) {
@@ -158,28 +163,28 @@ const _checkAll = () => {
     checked.checkcolumn = [];
   }
 };
-const _updateChecked = () =>
+const updateChecked = () =>
   checked.checkcolumn.length === props.data.data.length
     ? (checked.check = true)
     : (checked.check = false);
 
 // remove from parent
-const _remove = () => {
+const remove = () => {
   emit("remove", checked.checkcolumn);
   checked.check = false;
 };
 
 // for change data size show
 const selectedoption = ref<string | number | undefined>(undefined);
-const _dataForOption = computed<DataPage>(() => ({
+const dataForOption = computed<DataPage>(() => ({
   path: props.data.path,
   current_page: props.data.current_page
 }));
-const _tableRows = computed<DataRow[]>(() => (props.loop ? props.loop : props.data.data));
+const tableRows = computed<DataRow[]>(() => (props.loop ? props.loop : props.data.data));
 
 // search data
 const searchdata = ref(props.search || "");
-const _searchMe = debounce(() => {
+const searchMe = debounce(() => {
   const isSearching = !!searchdata.value && searchdata.value.trim() !== "";
   gum.get(props.data.path, {
     query: {

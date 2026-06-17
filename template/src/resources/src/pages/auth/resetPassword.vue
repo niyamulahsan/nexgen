@@ -56,6 +56,8 @@
 </template>
 
 <script setup lang="ts">
+import Input from "@/components/Input.vue";
+import Button from "@/components/Button.vue";
 import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -76,14 +78,14 @@ const form = useGumForm({
   password_confirmation: ""
 });
 
-const _processing = form.processing;
+const processing = form.processing;
 const isLinkValid = !!(token && email);
 const message = ref(
   isLinkValid ? "Set your new password" : "Invalid reset link. Please request a new one."
 );
 const isError = ref(!isLinkValid);
 
-const _onSubmit = async () => {
+const onSubmit = async () => {
   if (!isLinkValid) return;
 
   message.value = "";

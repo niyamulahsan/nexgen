@@ -49,7 +49,7 @@ watch(
   }
 );
 
-const _selectOption = (e: Event) => {
+const selectOption = (e: Event) => {
   const target = e.target as HTMLSelectElement;
   selectedoption.value = target.value;
 

@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import Input from "@/components/Input.vue";
 import { computed, reactive, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { formatCompactNumber } from "@/helpers/nformatter";
@@ -106,10 +107,10 @@ const route = useRoute();
 
 const page = reactive({ page: 1, from: 0, to: 0, total: 0 });
 
-const _noPreviousPage = computed(() => props.data.current_page - 1 <= 0);
-const _noNextPage = computed(() => props.data.current_page + 1 > props.data.last_page);
+const noPreviousPage = computed(() => props.data.current_page - 1 <= 0);
+const noNextPage = computed(() => props.data.current_page + 1 > props.data.last_page);
 
-const _loadPage = (pageNo: string | number) => {
+const loadPage = (pageNo: string | number) => {
   let p = parseInt(String(pageNo), 10);
 
   // fallback if NaN
@@ -130,7 +131,7 @@ const _loadPage = (pageNo: string | number) => {
   });
 };
 
-const _nFormatter = formatCompactNumber;
+const nFormatter = formatCompactNumber;
 
 watchEffect(() => {
   // "Showing {$from} to {$to} of {$total} entries"

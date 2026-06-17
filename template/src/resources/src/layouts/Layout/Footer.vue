@@ -16,8 +16,8 @@
 </template>
 
 <script setup lang="ts">
-const _startYear: number = 2026;
-const _currentYear: number = new Date().getFullYear();
+const startYear: number = 2026;
+const currentYear: number = new Date().getFullYear();
 </script>
 
 <style scoped></style>

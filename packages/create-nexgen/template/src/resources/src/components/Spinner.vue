@@ -31,12 +31,12 @@ const props = withDefaults(defineProps<SpinnerProps>(), {
   textsize: ""
 });
 
-const _spinnerStyle = computed(() => ({
+const spinnerStyle = computed(() => ({
   width: props.size,
   height: props.size
 }));
 
-const _textStyle = computed(() => ({
+const textStyle = computed(() => ({
   fontSize: props.textsize || undefined
 }));
 </script>

@@ -19,11 +19,11 @@ interface CheckboxProps {
   topclass?: string;
 }
 
-const _props = defineProps<CheckboxProps>();
+const props = defineProps<CheckboxProps>();
 
 type CheckboxModel = boolean | Array<string | number>;
 
-const _model = defineModel<CheckboxModel>({ default: false });
+const model = defineModel<CheckboxModel>({ default: false });
 </script>
 
 <style lang="scss" scoped></style>

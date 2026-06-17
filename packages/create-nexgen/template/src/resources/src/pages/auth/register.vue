@@ -67,6 +67,8 @@
 </template>
 
 <script setup lang="ts">
+import Input from "@/components/Input.vue";
+import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
 import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -85,11 +87,11 @@ const form = useGumForm({
   password_confirmation: ""
 });
 
-const _processing = form.processing;
+const processing = form.processing;
 const message = ref("");
 const isError = ref(false);
 
-const _onSubmit = async () => {
+const onSubmit = async () => {
   message.value = "";
   isError.value = false;
 

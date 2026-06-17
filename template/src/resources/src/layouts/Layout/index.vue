@@ -22,6 +22,9 @@
 </template>
 
 <script setup lang="ts">
+import Sidebar from "@/layouts/Layout/Sidebar.vue";
+import Header from "@/layouts/Layout/Header.vue";
+import Footer from "@/layouts/Layout/Footer.vue";
 import { storeToRefs } from "pinia";
 import { onBeforeUnmount, onMounted, provide, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -46,7 +49,7 @@ const featureButtons = reactive<
 >([]);
 provide("featureButtons", featureButtons);
 
-async function _logout() {
+async function logout() {
   await auth.logout();
   await router.push("/login");
 }

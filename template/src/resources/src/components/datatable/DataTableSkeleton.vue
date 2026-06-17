@@ -57,8 +57,8 @@ import { computed, useAttrs } from "vue";
 defineOptions({ inheritAttrs: false });
 
 const $attrs = useAttrs();
-const _colCount = computed(() => Number($attrs.col ?? 1));
-const _rowCount = computed(() => Number($attrs.row ?? 1));
+const colCount = computed(() => Number($attrs.col ?? 1));
+const rowCount = computed(() => Number($attrs.row ?? 1));
 </script>
 
 <style lang="scss" scoped>

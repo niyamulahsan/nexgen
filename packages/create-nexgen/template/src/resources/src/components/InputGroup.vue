@@ -74,25 +74,25 @@ const props = withDefaults(defineProps<InputGroupProps>(), {
   calcdata: ""
 });
 
-const _topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
-const _inputId = computed(() => ($attrs.id as string | undefined) || "");
-const _inputLabel = computed(() => ($attrs.label as string | undefined) || "");
-const _placeholder1 = computed(() => ($attrs.placeholder1 as string | undefined) || "");
+const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
+const inputId = computed(() => ($attrs.id as string | undefined) || "");
+const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
+const placeholder1 = computed(() => ($attrs.placeholder1 as string | undefined) || "");
 
 const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
 
-const _maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
-const _maxCounter = computed(() =>
+const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
+const maxCounter = computed(() =>
   max.value == null ? "" : max.value - String(props.modelValue).length
 );
 
-const _hoodHtml = computed(() =>
+const hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
-const _hoodClass = computed(() => [
+const hoodClass = computed(() => [
   "text-uppercase w-50 text-end text-primary fw-semibold",
   props.half ? "w-50" : "w-100",
   !props.hood && "d-none"
@@ -100,7 +100,7 @@ const _hoodClass = computed(() => [
 
 const emit = defineEmits<(event: "update:modelValue", value: string | number) => void>();
 
-const _updateModel = (e: Event) => {
+const updateModel = (e: Event) => {
   const target = e.target as HTMLInputElement;
 
   if (props.category === "number") {

@@ -48,6 +48,9 @@
 </template>
 
 <script setup lang="ts">
+import Input from "@/components/Input.vue";
+import Checkbox from "@/components/Checkbox.vue";
+import InputPasswordToggle from "@/components/InputPasswordToggle.vue";
 import { useHead } from "@vueuse/head";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -66,9 +69,9 @@ const form = useGumForm({
   remember: false
 });
 
-const _processing = form.processing;
+const processing = form.processing;
 
-const _onSubmit = async () => {
+const onSubmit = async () => {
   errorMessage.value = "";
   await form.post(
     "/api/auth/login",

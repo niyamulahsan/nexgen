@@ -12,6 +12,7 @@ import {
   watch
 } from "vue";
 import "vue-select/dist/vue-select.css";
+import vSelect from "vue-select";
 import { empty } from "../helpers/utils";
 
 defineOptions({ name: "Select", inheritAttrs: false });
@@ -79,13 +80,13 @@ const callParentFetched = async (search: string, opts: Partial<FetchPack> = {}) 
   }
 };
 
-const _onClear = () => {
+const onClear = () => {
   resetMe(); // clear options + selected value
   skipNextSearch.value = true; // suppress the immediate empty search
   emit("clear"); // notify parent that clear button was clicked
 };
 
-const _onOpen = async () => {
+const onOpen = async () => {
   // if empty, load page 1 via parent fetcher (no boolean flags)
   if (!field.all.length) {
     if (lastPack.value) {
@@ -102,11 +103,11 @@ const _onOpen = async () => {
   }
 };
 
-const _onClose = async () => {
+const onClose = async () => {
   observer.value?.disconnect();
 };
 
-const _onModelUpdate = async (val: unknown) => {
+const onModelUpdate = async (val: unknown) => {
   const optHooks = Array.isArray(hooks.value.option)
     ? hooks.value.option
     : hooks.value.option
@@ -133,7 +134,7 @@ const _onModelUpdate = async (val: unknown) => {
   }
 };
 
-const _inputSearch = debounce(async (search: string, loading: (value: boolean) => void) => {
+const inputSearch = debounce(async (search: string, loading: (value: boolean) => void) => {
   if (skipNextSearch.value && !search?.trim().length) {
     skipNextSearch.value = false; // consume the flag
     return;
@@ -226,7 +227,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   const reload = !!pack?.reload;
 
   // make option sticky: only overwrite if caller provided it
-  if (Object.hasOwn(pack ?? {}, "option")) {
+  if ("option" in (pack ?? {})) {
     const pOpt = pack?.option;
     hooks.value.option = Array.isArray(pOpt)
       ? pOpt.filter((fn) => typeof fn === "function")
@@ -334,10 +335,10 @@ watch(
 
 defineExpose({ field, fieldData, fetchedDropdown, reload });
 
-const _parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
+const parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
 
-const _inputTitle = computed(() => ($attrs.title as string | undefined) || "");
-const _hoodHtml = computed(() =>
+const inputTitle = computed(() => ($attrs.title as string | undefined) || "");
+const hoodHtml = computed(() =>
   props.hood === false || props.hood == null ? "" : String(props.hood)
 );
 </script>
