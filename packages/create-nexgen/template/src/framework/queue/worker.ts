@@ -1,4 +1,5 @@
 import { startQueueWorker, stopQueueRuntime } from "@/framework/queue/queue.js";
+import { closeDatabase, initDatabase } from "@/framework/database/connection.js";
 import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
 import {
   parseCsvOrFallback,
@@ -11,6 +12,7 @@ const queuesArg = process.argv.find((arg) => arg.startsWith("--queue="));
 const queueNames = queuesArg?.split("=")[1];
 const queues = parseCsvOrFallback(queueNames, ["default"]);
 
+await initDatabase();
 await initRedis();
 if (!redisReady()) {
   logger.error("Queue worker cannot start because Redis is unavailable", {
@@ -29,7 +31,7 @@ async function shutdown(signal: ShutdownSignal) {
   shuttingDown = true;
 
   logger.info("Queue worker shutdown signal received", { signal });
-  await Promise.allSettled([stopQueueRuntime(), closeRedis()]);
+  await Promise.allSettled([stopQueueRuntime(), closeDatabase(), closeRedis()]);
 
   process.exit(0);
 }

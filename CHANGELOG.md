@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.2] — 2026-06-19
+
+### Fixed
+
+- **Queue worker database initialization** — `worker.ts` now calls `initDatabase()` before starting the queue worker and `closeDatabase()` on shutdown. Previously, job handlers that used the database threw "Database is not initialized" when running in a separate worker process.
+
+### Changed
+
+- **BullBoard dynamic queue discovery** — `ui.ts` now scans Redis for all queue `:meta` keys at boot and registers them automatically, eliminating the need to hardcode queue names in `ensureQueues()`. In development mode, a 15s poll timer rescans Redis and dynamically adds newly discovered queues to BullBoard via `addQueue()`. Polling is skipped in production where all queues are known upfront.
+- **`setupBullBoard()` is now async** — `kernel.ts` uses `await setupBullBoard()` to support the Redis scan on boot.
+- **Graceful shutdown** — `server.ts` imports and calls `stopBullBoardPoll()` to clear the dev poll timer on shutdown.
+
 ## [2.2.1] — 2026-06-17
 
 ### Fixed

@@ -29,7 +29,7 @@ export async function createKernel() {
   await bootQueueJobs();
   await registerModuleRoutes(app);
 
-  const bullBoard = setupBullBoard();
+  const bullBoard = await setupBullBoard();
   if (typeof bullBoard.route === "function") {
     bullBoard.route(app);
   } else {

@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { env } from "@/env.js";
 import { createKernel } from "@/framework/kernel.js";
 import { stopQueueRuntime } from "@/framework/queue/queue.js";
+import { stopBullBoardPoll } from "@/framework/queue/ui.js";
 import { broadcast, closeRealtime, initRealtime } from "@/framework/realtime/index.js";
 import { setupSocketAdminUI } from "@/framework/realtime/ui.js";
 import {
@@ -100,6 +101,7 @@ async function shutdown(signal: ShutdownSignal) {
     broadcastSubClient = null;
   }
   await Promise.allSettled([closeRealtime(), stopQueueRuntime(), closeRedis(), closeHttpServer()]);
+  stopBullBoardPoll();
 
   process.exit(0);
 }

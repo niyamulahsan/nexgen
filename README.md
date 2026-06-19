@@ -21,6 +21,8 @@
 
 - [Install](#install)
 - [Quick start](#quick-start)
+  - [Basic route](#basic-route)
+  - [Basic form on the frontend](#basic-form-on-the-frontend)
 - [Core concepts](#core-concepts)
   - [Modules](#modules)
   - [Framework](#framework)
@@ -28,7 +30,6 @@
 - [CLI](#cli)
 - [Deployment](#deployment)
 - [Ecosystem](#ecosystem)
-- [Comparison](#comparison)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -61,17 +62,23 @@ That's it. Your API is live at `http://localhost:3000`, the Scalar docs at `http
 
 ```ts
 // src/modules/posts/routes/api.ts
-import { createRoute, group, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
 
 const listRoute = createRoute({
   path: "/",
   method: "get",
   tags: ["Posts"],
-  responses: { [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list") }
+  responses: { [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list") },
 });
 
-export default group()
-  .api(listRoute, (c) => c.json([{ id: 1, title: "Hello" }]));
+export default group().api(listRoute, (c) =>
+  c.json([{ id: 1, title: "Hello" }]),
+);
 ```
 
 ### Basic form on the frontend
@@ -85,7 +92,7 @@ const form = useGumForm({ email: "", password: "" });
 function login() {
   form.post("/api/auth/login", undefined, {
     onSuccess: () => router.push("/"),
-    onError: () => {} // errors populate form.errors automatically
+    onError: () => {}, // errors populate form.errors automatically
   });
 }
 </script>
@@ -93,7 +100,10 @@ function login() {
 <template>
   <form @submit.prevent="login">
     <Input v-model="form.data.email" label="Email" :err="form.errors?.email" />
-    <InputPasswordToggle v-model="form.data.password" label="Password" :err="form.errors?.password" />
+    <InputPasswordToggle
+      v-model="form.data.password"
+      label="Password"
+      :err="form.errors?.password" />
     <Button type="submit" label="Sign In" :loading="form.processing" />
   </form>
 </template>
@@ -130,50 +140,63 @@ npm run maker module:make-model blog post
 
 The framework at `src/framework/` provides all reusable infrastructure:
 
-| Subsystem | Description |
-|-----------|-------------|
-| **HTTP** | Hono router, CORS, rate limiter, OpenAPI / Scalar docs |
-| **Database** | Drizzle ORM with SQLite, MySQL, PostgreSQL |
-| **Auth** | JWT access + refresh token rotation, role middleware |
-| **Cache** | Redis-backed TTL cache with `get/put/forget/remember` |
-| **Session** | Server-side session store with httpOnly cookies |
-| **Queue** | BullMQ job processing with `shouldQueue` decorator |
-| **Events** | String-based event dispatcher with broadcast + queue |
-| **Realtime** | Socket.IO with auto room joining (user, role, auth) |
-| **Scheduler** | Cron-based scheduling with distributed Redis lock |
-| **Storage** | Local disk or S3-compatible file storage |
-| **Notifications** | Database-persisted notifications with broadcast + mail |
-| **Support** | JWT, mail (nodemailer), password (bcrypt), signed cookies, URL builder |
+| Subsystem         | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| **HTTP**          | Hono router, CORS, rate limiter, OpenAPI / Scalar docs                 |
+| **Database**      | Drizzle ORM with SQLite, MySQL, PostgreSQL                             |
+| **Auth**          | JWT access + refresh token rotation, role middleware                   |
+| **Cache**         | Redis-backed TTL cache with `get/put/forget/remember`                  |
+| **Session**       | Server-side session store with httpOnly cookies                        |
+| **Queue**         | BullMQ job processing with `shouldQueue` decorator                     |
+| **Events**        | String-based event dispatcher with broadcast + queue                   |
+| **Realtime**      | Socket.IO with auto room joining (user, role, auth)                    |
+| **Scheduler**     | Cron-based scheduling with distributed Redis lock                      |
+| **Storage**       | Local disk or S3-compatible file storage                               |
+| **Notifications** | Database-persisted notifications with broadcast + mail                 |
+| **Support**       | JWT, mail (nodemailer), password (bcrypt), signed cookies, URL builder |
 
 Access everything through the facade:
 
 ```ts
-import { db, cache, session, queue, dispatchEvent, notify, storage, jwt, mail, password, urls, logger } from "@/framework/facade.js";
+import {
+  db,
+  cache,
+  session,
+  queue,
+  dispatchEvent,
+  notify,
+  storage,
+  jwt,
+  mail,
+  password,
+  urls,
+  logger,
+} from "@/framework/facade.js";
 ```
 
 ### Frontend
 
 A Vue 3 SPA lives at `src/resources/` with three built-in plugins:
 
-| Plugin | Import | Purpose |
-|--------|--------|---------|
-| **Gum** | `import { useGum, useGumForm } from "@/plugins/gum"` | Inertia-style page visits & form handling |
-| **Pulse** | `import { pulse } from "@/plugins/pulse"` | Socket.IO realtime channels |
-| **Dialog** | `import { dialog } from "@/plugins/dialog"` | Programmatic alert/confirm/prompt |
+| Plugin     | Import                                               | Purpose                                   |
+| ---------- | ---------------------------------------------------- | ----------------------------------------- |
+| **Gum**    | `import { useGum, useGumForm } from "@/plugins/gum"` | Inertia-style page visits & form handling |
+| **Pulse**  | `import { pulse } from "@/plugins/pulse"`            | Socket.IO realtime channels               |
+| **Dialog** | `import { dialog } from "@/plugins/dialog"`          | Programmatic alert/confirm/prompt         |
 
 ## CLI
 
-| Command | Description |
-|---------|-------------|
-| `maker dev` | Start API server + frontend HMR + queue worker |
-| `maker serve` | API server only (dev or prod) |
-| `maker queue:work` | BullMQ worker process |
-| `maker schedule:work` | Cron scheduler worker |
-| `maker db:migrate --seed` | Run migrations + seeders |
-| `maker module:make` | Scaffold a new module |
-| `maker module:make-*` | Scaffold controllers, routes, models, jobs |
-| `maker deploy:local` | Docker Compose local deploy |
-| `maker deploy:remote` | SSH + Docker remote deploy |
+| Command                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| `maker dev`               | Start API server + frontend HMR + queue worker |
+| `maker serve`             | API server only (dev or prod)                  |
+| `maker queue:work`        | BullMQ worker process                          |
+| `maker schedule:work`     | Cron scheduler worker                          |
+| `maker db:migrate --seed` | Run migrations + seeders                       |
+| `maker module:make`       | Scaffold a new module                          |
+| `maker module:make-*`     | Scaffold controllers, routes, models, jobs     |
+| `maker deploy:local`      | Docker Compose local deploy                    |
+| `maker deploy:remote`     | SSH + Docker remote deploy                     |
 
 ## Deployment
 
@@ -189,6 +212,7 @@ npm run maker deploy:local
 ```
 
 The framework includes Docker Compose files with:
+
 - Multi-stage Node.js app image
 - nginx-proxy with auto-SSL (Let's Encrypt)
 - Optional MySQL + Redis containers
@@ -196,10 +220,10 @@ The framework includes Docker Compose files with:
 
 ## Ecosystem
 
-| Package | Version | Description |
-|---------|---------|-------------|
-| [create-nexgen](https://www.npmjs.com/package/create-nexgen) | 2.1.1 | Project scaffolding CLI |
-| [docs](https://niyamulahsan.github.io/nexgen) | — | Full documentation site |
+| Package                                                      | Version | Description             |
+| ------------------------------------------------------------ | ------- | ----------------------- |
+| [create-nexgen](https://www.npmjs.com/package/create-nexgen) | 2.2.2   | Project scaffolding CLI |
+| [docs](https://niyamulahsan.github.io/nexgen)                | —       | Full documentation site |
 
 ## Contributing
 
