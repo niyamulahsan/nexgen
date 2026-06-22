@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.3] — 2026-06-19
+
+### Changed
+
+- **Consolidated type declarations** — moved all `declare module` blocks from scattered `.d.ts` files (`src/resources/src/env.d.ts`, `src/resources/src/types/luxon.d.ts`, `src/framework/database/optional-db-drivers.d.ts`) into a single `src/types/global.d.ts`. Updated both root and resources `tsconfig.json` to include the central file. This gives both the backend and frontend projects access to module declarations (luxon, nodemailer, pg, vue-select, bootstrap JS, `*.vue`, better-sqlite3) without duplication.
+
 ## [2.2.2] — 2026-06-19
 
 ### Fixed

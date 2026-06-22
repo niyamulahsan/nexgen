@@ -7,7 +7,7 @@ declare module "*.vue" {
 
 declare module "bootstrap/js/dist/modal.js" {
   export default class Modal {
-    constructor(element: Element, options?: { backdrop?: boolean | "static"; keyboard?: boolean });
+    constructor(element: Element, options?: { backdrop?: boolean | "static"; keyboard?: boolean; });
     show(): void;
     hide(): void;
     dispose(): void;
@@ -21,9 +21,12 @@ declare module "bootstrap/js/dist/toast.js" {
   }
 }
 
-declare module "vue-select" {
-  import type { DefineComponent } from "vue";
-
-  const VueSelect: DefineComponent<Record<string, unknown>, Record<string, unknown>, unknown>;
-  export default VueSelect;
+declare module "better-sqlite3" {
+  const Database: any;
+  export default Database;
 }
+
+declare module "luxon";
+declare module "nodemailer";
+declare module "pg";
+declare module "vue-select";

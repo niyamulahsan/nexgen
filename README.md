@@ -222,7 +222,7 @@ The framework includes Docker Compose files with:
 
 | Package                                                      | Version | Description             |
 | ------------------------------------------------------------ | ------- | ----------------------- |
-| [create-nexgen](https://www.npmjs.com/package/create-nexgen) | 2.2.2   | Project scaffolding CLI |
+| [create-nexgen](https://www.npmjs.com/package/create-nexgen) | 2.2.3   | Project scaffolding CLI |
 | [docs](https://niyamulahsan.github.io/nexgen)                | —       | Full documentation site |
 
 ## Contributing
