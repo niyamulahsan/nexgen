@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.2.4] — 2026-06-22
+
+### Changed
+
+- **Auto-create `public/` at boot** — `createKernel()` now calls `ensurePublicDir()` during startup (when `FRONTEND=true`), creating the `public/` directory if missing. The frontend static middlewares (`frontendStaticMiddleware`, `frontendIndexMiddleware`) are also lazily initialized via wrapper functions.
+
+### Removed
+
+- **`create-nexgen` template directory** — deleted all files under `packages/create-nexgen/template/` (`.dockerignore`, `.env`, `.env.example`, `README.md`, `biome.json`, `drizzle.config.ts`, `gitignore-stub`, `package.json`, database migrations, `src/env.ts`, framework internals, frontend resources, router, stores, plugins, types, and config files). These files are no longer bundled with the `create-nexgen` package.
+- **Bumped `create-nexgen` version** — `packages/create-nexgen/package.json` updated from `2.2.3` to `2.2.4`.
+
 ## [2.2.3] — 2026-06-19
 
 ### Changed

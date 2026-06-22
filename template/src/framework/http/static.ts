@@ -16,18 +16,29 @@ export const storageStaticMiddleware = serveStatic({
   rewriteRequestPath: (path) => path.replace(/^\/storage/, "")
 });
 
-/**
- * Why: Serves built frontend static assets.
- * When: SPA build exists in `public` directory.
- * Where: Kernel frontend integration.
- * How: Uses node static middleware rooted at `./public`.
- */
-export const frontendStaticMiddleware = serveStatic({ root: "./public" });
+let _frontendStaticMiddleware: ReturnType<typeof serveStatic> | null = null;
+let _frontendIndexMiddleware: ReturnType<typeof serveStatic> | null = null;
 
-/**
- * Why: Serves SPA entry file for client-side routed paths.
- * When: Non-API frontend route fallback is needed.
- * Where: Kernel catch-all frontend route.
- * How: Always returns `public/index.html`.
- */
-export const frontendIndexMiddleware = serveStatic({ path: "./public/index.html" });
+function ensurePublicDir() {
+  if (!fsSync.existsSync("public")) {
+    fsSync.mkdirSync("public", { recursive: true });
+  }
+}
+
+function frontendStaticMiddleware(c: any, next: any) {
+  ensurePublicDir();
+  if (!_frontendStaticMiddleware) {
+    _frontendStaticMiddleware = serveStatic({ root: "./public" });
+  }
+  return _frontendStaticMiddleware(c, next);
+}
+
+function frontendIndexMiddleware(c: any, next: any) {
+  ensurePublicDir();
+  if (!_frontendIndexMiddleware) {
+    _frontendIndexMiddleware = serveStatic({ path: "./public/index.html" });
+  }
+  return _frontendIndexMiddleware(c, next);
+}
+
+export { frontendStaticMiddleware, frontendIndexMiddleware, ensurePublicDir };

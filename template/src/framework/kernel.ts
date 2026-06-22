@@ -2,6 +2,7 @@ import { env } from "@/env.js";
 import { initDatabase } from "@/framework/database/connection.js";
 import { createHttpApp } from "@/framework/http/app.js";
 import {
+  ensurePublicDir,
   frontendIndexMiddleware,
   frontendStaticMiddleware,
   hasFrontendBuild
@@ -34,6 +35,10 @@ export async function createKernel() {
     bullBoard.route(app);
   } else {
     app.route(bullBoard.basePath, bullBoard.route);
+  }
+
+  if (env.FRONTEND) {
+    ensurePublicDir();
   }
 
   if (env.FRONTEND && hasFrontendBuild()) {
