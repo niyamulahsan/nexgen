@@ -1,24 +1,13 @@
 <template>
   <Teleport to="#modal-show">
-    <div
-      :id="props.id"
-      ref="modal"
-      class="modal fade"
-      data-bs-backdrop="static"
-      data-bs-keyboard="false"
-      tabindex="-1"
+    <div :id="props.id" ref="modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
       :aria-labelledby="`${props.id}Label`">
-      <div
-        :class="`modal-dialog modal-dialog-centered modal-dialog-scrollable modal-${props.size}`">
+      <div :class="`modal-dialog modal-dialog-centered modal-dialog-scrollable modal-${props.size}`">
         <div class="modal-content border">
           <div class="modal-header">
             <div class="d-flex w-100 justify-content-between align-items-center">
               <h5 id="modalScrollableTitle" class="modal-title me-3">{{ props.title }}</h5>
-              <button
-                type="button"
-                class="btn-close shadow-none"
-                data-bs-dismiss="modal"
-                aria-label="Close"></button>
+              <button ref="closeButton" type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
               <slot name="modal-header-extra"></slot>
             </div>
           </div>
@@ -35,8 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import Modal from "bootstrap/js/dist/modal.js";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { ref } from "vue";
 
 type ModalSize = "sm" | "md" | "lg" | "xl" | string;
 
@@ -54,56 +42,13 @@ const props = withDefaults(defineProps<ModalProps>(), {
 });
 
 const modal = ref<HTMLElement | null>(null);
-let modalInstance: Modal | null = null;
-
-const getOrCreateModal = () => {
-  if (!modal.value) {
-    return null;
-  }
-
-  if (!modalInstance) {
-    modalInstance = new Modal(modal.value, {
-      backdrop: "static",
-      keyboard: false
-    });
-  }
-
-  return modalInstance;
-};
-
-onMounted(() => {
-  getOrCreateModal();
-});
-
-const open = () => {
-  getOrCreateModal()?.show();
-};
+const closeButton = ref<HTMLButtonElement | null>(null);
 
 const close = () => {
-  const instance = getOrCreateModal();
-  if (!instance) {
-    return;
-  }
-
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur(); // to avoid aria-hidden warning
-  }
-  instance.hide();
-
-  // Bootstrap can leave the backdrop when DOM updates race with hide animation
-  setTimeout(() => {
-    document.querySelectorAll(".modal-backdrop").forEach((b) => b.remove());
-    document.body.classList.remove("modal-open");
-    document.body.style.removeProperty("padding-right");
-  }, 350);
+  closeButton.value?.click();
 };
 
-onBeforeUnmount(() => {
-  modalInstance?.dispose();
-  modalInstance = null;
-});
-
-defineExpose({ close, open });
+defineExpose({ close });
 </script>
 
 <style lang="scss" scoped></style>

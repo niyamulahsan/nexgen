@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.2.5] — 2026-06-27
+
+### Changed
+
+- **Modal.vue refactored** — removed Bootstrap `Modal` JS dependency. The component now uses a native `data-bs-dismiss` button reference (`closeButton`) for closing, eliminating the need for `import Modal from "bootstrap/js/dist/modal.js"`, manual instance management, and backdrop cleanup logic. The `open()` method was removed as the parent caller manages visibility via the Bootstrap data API. Template attributes were also collapsed to single lines.
+
+### Removed
+
+- **Bootstrap Modal JS import** — removed `modal.js` import and `Modal` instance lifecycle (`getOrCreateModal`, `onMounted`, `onBeforeUnmount`, `dispose`). The modal is now fully Bootstrap data-API-driven.
+
 ## [2.2.4] — 2026-06-22
 
 ### Changed
