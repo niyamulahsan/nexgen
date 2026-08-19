@@ -66,7 +66,7 @@ bun install
 
 Edit `.env` and set your `DATABASE_URL`:
 
-```env
+```bash
 # MySQL
 DATABASE_URL=mysql://root:password@localhost:3306/nexgen
 

@@ -281,7 +281,7 @@ When Redis is enabled, BullBoard is auto-mounted at `/queues` in development.
 
 In production, access is gated by `allowedEmails (config/queue.ts)` — set a comma-separated list of emails whose JWT-authenticated users can view the dashboard:
 
-```env
+```bash
 allowedEmails="admin@example.com,dev@example.com"
 ```
 

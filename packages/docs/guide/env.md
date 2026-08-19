@@ -13,7 +13,7 @@ cp .env.example .env
 | `APP_NAME`     | `nexgen`              | Application name used in logging and email headers                                                   |
 | `APP_ENV`      | `development`         | Runtime environment: `development`, `production`, or `test`                                          |
 | `APP_PORT`     | `3000`                | HTTP server port                                                                                     |
-| `APP_URL`      | http://localhost:3000 | Public-facing URL of the application (required)                                                      |
+| `APP_URL`      | `http://localhost:3000` | Public-facing URL of the application (required)                                                      |
 | `FRONTEND`     | `true`                | Set `false` for API-only mode (no frontend build/serve)                                              |
 | `FRONTEND_URL` | —                     | Separate frontend URL when frontend is on a different domain. Leave empty when served from `APP_URL` |
 | `SOCKET`       | `true`                | Enable/disable Socket.IO on both backend and frontend                                                |

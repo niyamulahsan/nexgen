@@ -156,7 +156,7 @@ bun maker deploy:workflow --server-only
 
 Point your local `.env` to `localhost` so your dev server connects to Docker containers:
 
-```env
+```bash
 DATABASE_URL=mysql://root:password@localhost:3306/nexgen
 REDIS=true
 REDIS_URL=redis://localhost:6379
@@ -164,7 +164,7 @@ REDIS_URL=redis://localhost:6379
 
 Or for PostgreSQL:
 
-```env
+```bash
 DATABASE_URL=postgres://postgres:password@localhost:5432/nexgen
 ```
 
