@@ -133,6 +133,8 @@ bun maker db:migrate:run
 
 Drop all tables, regenerate schema, generate migrations, and run them. Useful during early development when the schema changes frequently.
 
+**Aliases:** `db:migrate:fresh`
+
 **Dialect behavior:**
 
 | Dialect | Reset method |
@@ -168,6 +170,8 @@ bun maker db:fresh --seed
 ### `db:reset`
 
 Drop and recreate the database without running any migrations. Use `db:fresh` if you want migrations afterward.
+
+**Aliases:** `db:migrate:reset`, `db:wipe`
 
 ::: code-group
 
@@ -271,22 +275,30 @@ bun maker db:check
 
 Run all registered seeders by executing `src/framework/database/seed.ts`. Seeds are organized per-module under each module's `database/seeders/` directory.
 
+| Flag | Description |
+|---|---|
+| `--module <name>` | Optional module name — run only that module's seeders |
+
 ::: code-group
 
 ```bash [npm]
 npm run maker db:seed
+npm run maker db:seed -- --module=posts
 ```
 
 ```bash [pnpm]
 pnpm maker db:seed
+pnpm maker db:seed --module=posts
 ```
 
 ```bash [yarn]
 yarn maker db:seed
+yarn maker db:seed --module=posts
 ```
 
 ```bash [bun]
 bun maker db:seed
+bun maker db:seed --module=posts
 ```
 
 :::
@@ -345,15 +357,27 @@ bun maker db:studio --quiet
 
 :::
 
+## Shorthand
+
+You can also use `db <subcommand>` instead of `db:<subcommand>`:
+
+```bash
+npm run maker db schema
+npm run maker db migrate --seed
+npm run maker db fresh --seed
+npm run maker db seed
+```
+
 ## Unsupported Commands
 
-Drizzle Kit does not support rollback or refresh operations natively:
+Drizzle Kit does not support Laravel-style rollback or refresh operations:
 
-| Command | Reason |
-|---|---|
-| `db:rollback` | Drizzle Kit does not support down migrations |
-| `db:refresh` | Use `db:reset` + `db:migrate` instead |
-| `db:migrate:rollback` | Use `db:fresh` instead |
+| Attempted | Why it fails | Use instead |
+|---|---|---|
+| `db:rollback` | No down-migration concept | `db:fresh --seed` (local dev) or manual SQL |
+| `db:refresh` | No drop-and-re-run | `db:fresh --seed` |
+| `db:migrate:rollback` | Same as `db:rollback` | `db:fresh --seed` |
+| `db:migrate:refresh` | Same as `db:refresh` | `db:fresh --seed` |
 
 ## Lifecycle
 

@@ -1,8 +1,28 @@
 # Resources (Frontend)
 
-The frontend is a **Vue 3** single-page application built with **Vite**, **Pinia**, and **Vue Router**. It lives under `src/resources/` and is served by the framework's Vite dev server with automatic API, WebSocket, and storage proxy.
+The frontend lives under `src/resources/` and is served by the framework's Vite dev server with automatic API, WebSocket, and storage proxy.
 
-This section documents **everything the backend provides to the frontend** — entry point, configuration, routing, pages, layouts, plugins, stores, composables, components, helpers, assets, HTTP client, and validation.
+## Framework agnostic
+
+The nexgen backend is **frontend-agnostic**. The default template ships with **Vue 3** + **Pinia** + **Vue Router**, but you can swap it for any Vite-compatible framework:
+
+| Framework | Plugin | Notes |
+|-----------|--------|-------|
+| **Vue 3** (default) | `@vitejs/plugin-vue` | Ships with the template |
+| **React** | `@vitejs/plugin-react` | Replace plugin, rewrite `main.tsx` + `App.tsx` |
+| **Preact** | `@vitejs/plugin-react` (with `React.createElement`) | Lightweight React alternative |
+| **Solid** | `vite-plugin-solid` | JSX with fine-grained reactivity |
+| **Svelte** | `@sveltejs/vite-plugin-svelte` | `.svelte` components |
+| **Astro** | `@astrojs/vite-plugin-astro` | Static-first, islands architecture |
+
+### What to change
+
+Only two files are framework-specific:
+
+1. **`vite.config.ts`** — swap `@vitejs/plugin-vue` for your framework's plugin
+2. **`src/main.ts`** — rewrite the entry point for your framework
+
+Everything else (proxy, build output, aliases, `__SOCKET_ENABLED__` define) stays the same. The API layer, auth, storage, and all backend services are consumed via HTTP — they don't care what frontend framework you use.
 
 ## Project structure
 
@@ -19,7 +39,7 @@ src/resources/
 │   ├── composables/        # Shared composable functions (useAuth)
 │   ├── layouts/            # Page layouts (dashboard, auth)
 │   ├── pages/              # Route-level page components
-│   ├── components/         # 19 reusable UI components
+│   ├── components/         # Reusable UI components
 │   ├── helpers/            # Utility functions (nformatter, utils)
 │   └── assets/             # SCSS theme, CSS, images
 ```
@@ -36,8 +56,5 @@ src/resources/
 | [Plugins](/guide/resources/gum) | Gum, Pulse, Dialog — dedicated guides with full API reference |
 | [Stores](/guide/resources/stores) | Auth store and admin-ui Pinia store |
 | [Composables](/guide/resources/composables) | `useAuth` composable |
-| [Components](/guide/resources/components) | DataTable, Select, Button, Input, Modal, Toast, and 13 more |
+| [Components](/guide/resources/components) | DataTable, Select, Datepicker, Button, Input, Modal, Toast, and more |
 | [Helpers](/guide/resources/helpers) | Number formatting and utility functions |
-| [Assets & Theme](/guide/resources/assets) | SCSS theme engine, dark/light/auto modes |
-| [Axios](/guide/resources/axios) | Global axios config, defaults, 401 interceptor |
-| [Validation](/guide/resources/validation) | Zod error handling, field error display |

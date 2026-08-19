@@ -1,109 +1,75 @@
 import {
   createDeploy,
-  importMysqlDumpLocal,
-  importMysqlDumpRemote,
+  importDumpLocal,
+  importDumpRemote,
   initDeployWorkflow,
   initRemoteDeployWorkflow,
-  runDeploy,
   runDeployWorkflow,
-  runLocalWorkflow,
   runPromoteWorkflow,
-  runRemoteApp,
-  runRemoteServer,
   runRemoteWorkflow
 } from "./core.mjs";
 
 export const deployCommands = new Set([
-  "deploy:create",
-  "deploy:create:app",
-  "deploy:create:server",
-  "deploy:create:server:dev",
-  "deploy:server",
-  "deploy:app",
-  "deploy:db:import",
-  "deploy:db:import:remote",
+  "deploy:init",
   "deploy:workflow",
-  "deploy:workflow:init",
-  "deploy:workflow:local",
-  "deploy:remote:server",
-  "deploy:remote:app",
   "deploy:workflow:remote",
-  "deploy:workflow:remote:init",
-  "deploy:workflow:promote"
+  "deploy:workflow:promote",
+  "deploy:db:import",
+  "deploy:db:import:remote"
 ]);
 
 /** Register deploy:* subcommands on the CLI program. */
 export function registerDeployCommands(program, rawArgs) {
   const flags = rawArgs.slice(1);
   program
-    .command("deploy:create")
-    .description("Generate deploy scaffolding files (app + server)")
+    .command("deploy:init")
+    .description("Generate deploy scaffolding (app + server) and workflow configs")
+    .option("--app-only", "Generate app deploy files only")
+    .option("--server-only", "Generate server infra files only")
+    .option("--dev", "Server infra in dev mode (exposed Redis port)")
     .option("--force", "Overwrite existing deploy folder")
     .option("--runtime <name>", "Runtime: node or bun", "node")
     .option("--pm <name>", "Package manager for node runtime: npm, pnpm, yarn", "npm")
     .allowUnknownOption(true)
-    .action(async () => createDeploy(flags));
-  program
-    .command("deploy:create:app")
-    .description("Generate app deploy files only")
-    .option("--force", "Overwrite existing deploy folder")
-    .option("--runtime <name>", "Runtime: node or bun", "node")
-    .option("--pm <name>", "Package manager for node runtime: npm, pnpm, yarn", "npm")
-    .allowUnknownOption(true)
-    .action(async () => createDeploy([...flags, "--app-only"]));
-  program
-    .command("deploy:create:server")
-    .description("Generate server infra files only")
-    .option("--force", "Overwrite existing deploy folder")
-    .allowUnknownOption(true)
-    .action(async () => createDeploy([...flags, "--server-only"]));
-  program
-    .command("deploy:create:server:dev")
-    .description("Generate server infra files only (dev mode with exposed Redis port)")
-    .option("--force", "Overwrite existing deploy folder")
-    .allowUnknownOption(true)
-    .action(async () => createDeploy([...flags, "--server-only", "--dev"]));
+    .action(async () => {
+      await createDeploy(flags);
+      await initDeployWorkflow();
+      await initRemoteDeployWorkflow();
+    });
   program
     .command("deploy:db:import")
-    .description("Import SQL dump into local MySQL container")
+    .description("Import SQL dump into local Docker container (auto-detects MySQL or PostgreSQL)")
     .option("--file <path>", "SQL dump file path", "deploy/nexgen.sql")
     .option("--database <name>", "Target database name", "nexgen")
-    .option("--container <name>", "MySQL container name", "mysql-global")
-    .option("--user <name>", "MySQL user", "root")
+    .option("--container <name>", "DB container name (mysql-global or postgres-global)")
+    .option("--user <name>", "DB user (defaults to server .env or DATABASE_URL)")
     .option(
       "--password <password>",
-      "MySQL root password (falls back to deploy/server/.env, then deploy/.env)"
+      "DB password (falls back to deploy/server/.env, then deploy/.env)"
+    )
+    .option(
+      "--no-drop",
+      "PostgreSQL: keep existing database instead of dropping it for a clean restore"
     )
     .allowUnknownOption(true)
-    .action(async () => importMysqlDumpLocal(flags));
+    .action(async () => importDumpLocal(flags));
   program
     .command("deploy:db:import:remote")
-    .description("Import SQL dump into remote MySQL container via SSH")
+    .description(
+      "Import SQL dump into remote Docker container via SSH (auto-detects MySQL or PostgreSQL)"
+    )
     .option("--config <path>", "Remote workflow config path", "deploy/workflow.remote.json")
     .option("--file <path>", "SQL dump file path", "deploy/nexgen.sql")
     .option("--database <name>", "Target database name", "nexgen")
-    .option("--container <name>", "MySQL container name", "mysql-global")
-    .option("--user <name>", "MySQL user", "root")
-    .option(
-      "--password <password>",
-      "MySQL root password (falls back to remote deploy/server/.env)"
-    )
+    .option("--container <name>", "DB container name (mysql-global or postgres-global)")
+    .option("--user <name>", "DB user (defaults to server .env or config)")
+    .option("--password <password>", "DB password (falls back to remote deploy/server/.env)")
     .option("--dry-run", "Print commands without executing")
     .allowUnknownOption(true)
-    .action(async () => importMysqlDumpRemote(flags));
-  program
-    .command("deploy:server")
-    .description("Start shared server infra (auto-generates files if missing)")
-    .allowUnknownOption(true)
-    .action(async () => runDeploy("deploy:server"));
-  program
-    .command("deploy:app")
-    .description("Start app stack locally (build + Docker compose up)")
-    .allowUnknownOption(true)
-    .action(async () => runDeploy("deploy:app"));
+    .action(async () => importDumpRemote(flags));
   program
     .command("deploy:workflow")
-    .description("Run local CI/CD workflow from config file or flags")
+    .description("Run local CI/CD workflow (Docker Desktop) from config file or flags")
     .option("--config <path>", "Workflow config path")
     .option("--server-only", "Run server infra step only")
     .option("--app-only", "Run app deploy step only")
@@ -112,45 +78,14 @@ export function registerDeployCommands(program, rawArgs) {
     .allowUnknownOption(true)
     .action(async () => runDeployWorkflow(flags));
   program
-    .command("deploy:workflow:init")
-    .description("Create editable local workflow config file")
-    .allowUnknownOption(true)
-    .action(async () => initDeployWorkflow());
-  program
-    .command("deploy:workflow:local")
-    .description("Run local Docker Desktop test pipeline")
-    .option("--server-only", "Run server infra step only")
-    .option("--app-only", "Run app deploy step only")
-    .option("--refresh", "Regenerate deploy files before running")
-    .option("--dry-run", "Print steps without executing")
-    .allowUnknownOption(true)
-    .action(async () => runLocalWorkflow(flags));
-  program
-    .command("deploy:remote:server")
-    .description("Start shared server infra on remote host (via SSH)")
-    .option("--config <path>", "Remote workflow config path")
-    .allowUnknownOption(true)
-    .action(async () => runRemoteServer(flags));
-  program
-    .command("deploy:remote:app")
-    .description("Build and start app stack on remote host (via SSH)")
-    .option("--config <path>", "Remote workflow config path")
-    .allowUnknownOption(true)
-    .action(async () => runRemoteApp(flags));
-  program
     .command("deploy:workflow:remote")
     .description("Upload full repo and deploy on remote Docker host")
-    .option("--config <path>", "Remote workflow config path")
+    .option("--config <path>", "Remote workflow config path", "deploy/workflow.remote.json")
     .option("--server-only", "Run server infra step only")
     .option("--app-only", "Run app deploy step only")
     .option("--dry-run", "Print commands without executing")
     .allowUnknownOption(true)
     .action(async () => runRemoteWorkflow(flags));
-  program
-    .command("deploy:workflow:remote:init")
-    .description("Create editable remote workflow config file")
-    .allowUnknownOption(true)
-    .action(async () => initRemoteDeployWorkflow());
   program
     .command("deploy:workflow:promote")
     .description("Run local workflow then remote workflow")
@@ -158,7 +93,7 @@ export function registerDeployCommands(program, rawArgs) {
     .option("--server-only", "Run server infra step only")
     .option("--app-only", "Run app deploy step only")
     .option("--refresh", "Regenerate deploy files before running")
-    .option("--dry-run", "Print commands without executing")
+    .option("--dry-run", "Print steps without executing")
     .allowUnknownOption(true)
     .action(async () => runPromoteWorkflow(flags));
 }

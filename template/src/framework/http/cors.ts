@@ -1,8 +1,8 @@
 import { cors } from "hono/cors";
-import { env } from "@/env.js";
+import { corsConfig } from "@/config/index.js";
 import { parseCsvOrFallback } from "@/framework/support/lifecycle.js";
 
-const corsOrigins = parseCsvOrFallback(env.CORS_ORIGIN, []);
+const corsOrigins = parseCsvOrFallback(corsConfig.origin, []);
 
 /**
  * Why: Applies credential-aware CORS policy.
@@ -12,7 +12,7 @@ const corsOrigins = parseCsvOrFallback(env.CORS_ORIGIN, []);
  */
 export const corsMiddleware = cors({
   origin: (origin) => {
-    if (env.CORS_ORIGIN === "*") return origin;
+    if (corsConfig.origin === "*") return origin;
     return corsOrigins.includes(origin) ? origin : undefined;
   },
   credentials: true

@@ -373,6 +373,14 @@ bun maker db:studio           # Launch Drizzle Studio
 ```bash
 bun maker dev                               # Full dev stack
 bun maker dev --view=redis,maildev,studio   # Dev stack with tools
+```
+
+> Note: npm rewrites `--view` into `--viewer` (its own config expansion) and
+> exposes it to scripts as the `npm_config_viewer` env var. The maker reads both
+> forms, so `npm run dev --view=redis,maildev,studio` works as-is; the `--`
+> separator form also works: `npm run dev -- --view=redis,maildev,studio`.
+
+```bash
 bun maker serve [--prod]                    # Start API server
 bun maker queue:work [--queue=default]      # Start queue worker
 bun maker queue:clear                       # Clear queue keys
@@ -383,16 +391,30 @@ bun maker redis:view                        # Redis Commander UI
 bun maker vite:cache:clear                  # Clear Vite cache
 ```
 
+`bun maker dev` (and `npm run dev`) now also starts the scheduler process
+(`schedule:work`) alongside the API, frontend, and queue worker when Redis is
+enabled. Set `LOG_HTTP=false` in `.env` to skip per-request HTTP logs from the
+dev console.
+
 ### Deploy Commands
 
 ```bash
-bun maker deploy:create --server            # Generate deploy scaffolding
-bun maker deploy:server                     # Start shared infra
-bun maker deploy:app                        # Build and start app
-bun maker deploy:workflow:local             # Full local deploy
-bun maker deploy:workflow:remote            # Full remote deploy
-bun maker deploy:workflow:promote           # Local then remote deploy
-bun maker deploy:db:import                  # Import SQL dump
+bun maker deploy:init                    # Generate deploy scaffolding (app + server) + workflow configs
+bun maker deploy:workflow                # Full local deploy (Docker Desktop)
+bun maker deploy:workflow --server-only  # Start shared infra only
+bun maker deploy:workflow --app-only     # Build and start app only
+bun maker deploy:workflow:remote         # Full remote deploy
+bun maker deploy:workflow:promote        # Local then remote deploy
+bun maker deploy:db:import               # Import SQL dump
+```
+
+### Deploy Init Options
+
+```bash
+bun maker deploy:init                    # App + server scaffolding
+bun maker deploy:init --app-only         # App files only
+bun maker deploy:init --server-only      # Server infra files only
+bun maker deploy:init --server-only --dev  # Server infra in dev mode (exposed Redis port)
 ```
 
 ## Deploy
@@ -402,9 +424,9 @@ nexgen uses a two-layer Docker architecture: shared infrastructure (nginx-proxy,
 ### Local Deploy
 
 ```bash
-bun maker deploy:create --server    # Generate files (one-time)
-bun maker deploy:server             # Start database, Redis, proxy
-bun maker deploy:app                # Build and start app
+bun maker deploy:init                  # Generate files (one-time)
+bun maker deploy:workflow --server-only  # Start database, Redis, proxy
+bun maker deploy:workflow --app-only   # Build and start app
 ```
 
 ### Remote Deploy

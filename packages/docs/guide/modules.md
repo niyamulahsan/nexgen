@@ -10,8 +10,7 @@ src/modules/<module>/
 │   ├── models/
 │   └── seeders/
 ├── jobs/
-├── console/
-└── schedules/
+└── console/
 ```
 
 ## Creating a Module
@@ -82,66 +81,92 @@ bun maker module:make-console blog cleanup
 
 The generated controller, route, and schema files adapt to your `OPEN_API` environment variable. The CLI reads `process.env.OPEN_API` at scaffold time (`env-db.mjs:openApiEnabled()`) and selects the appropriate stub templates.
 
-| Aspect | `OPEN_API=true` (default) | `OPEN_API=false` |
-|---|---|---|
-| **Controller validation** | `c.req.valid("param")` / `c.req.valid("json")` — Hono's built-in validation driven by route schema | `await validate(Schema, data)` — manual validation call via `@/framework/facade.js` |
-| **Schema file** | Full set: `ItemSchema`, `CreateSchema`, `UpdateSchema`, `IdParamsSchema`, response schemas (`ListResponse`, `Response`, `Message`) | Minimal: only `CreateSchema`, `UpdateSchema`, `IdParamsSchema` (input-only) |
-| **Route file** | Uses `createRoute()` with `.api()` — each route has metadata (path, method, tags, request params/body, response codes) | Uses direct verb methods `.get("/:id", handler)` — no metadata, no response schemas |
-| **Controller imports** | No validation import needed | `import { validate } from "@/framework/facade.js"` |
-| **Generated API docs** | Routes appear in Scalar UI at `/api-docs` with full request/response schemas | No auto-generated documentation |
+| Aspect                    | `OPEN_API=true`                                                                                                                    | `OPEN_API=false` (default)                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Controller validation** | `c.req.valid("param")` / `c.req.valid("json")` — Hono's built-in validation driven by route schema                                 | `await validate(Schema, data)` — manual validation call via `@/framework/facade.js` |
+| **Schema file**           | Full set: `ItemSchema`, `CreateSchema`, `UpdateSchema`, `IdParamsSchema`, response schemas (`ListResponse`, `Response`, `Message`) | Minimal: only `CreateSchema`, `UpdateSchema`, `IdParamsSchema` (input-only)         |
+| **Route file**            | Uses `createRoute()` with `.api()` — each route has metadata (path, method, tags, request params/body, response codes)             | Uses direct verb methods `.get("/:id", handler)` — no metadata, no response schemas |
+| **Controller imports**    | No validation import needed                                                                                                        | `import { validate } from "@/framework/facade.js"`                                  |
+| **Generated API docs**    | Routes appear in Scalar UI at `/api-docs` with full request/response schemas                                                       | No auto-generated documentation                                                     |
 
 ### OPEN_API=true — OpenAPI Stubs
 
 **Controller** (`controller/openapi.ts.stub`):
+
 ```ts
 import type { Handler } from "hono";
 
 export const show: Handler = async (c: any) => {
   const params = c.req.valid("param");
-  return c.json({ message: "Post fetched successfully", data: { id: params.id, name: "" } });
+  return c.json({
+    message: "Post fetched successfully",
+    data: { id: params.id, name: "" },
+  });
 };
 ```
+
 Validation comes from the route definition — the controller simply accesses validated data via `c.req.valid()`.
 
 **Route** (`route/api.ts.stub`):
+
 ```ts
-import { createRoute, group, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
 
 const showRoute = createRoute({
   path: "/{id}",
   method: "get",
   tags: ["Blog"],
   request: { params: PostIdParamsSchema },
-  responses: { [HttpStatusCodes.OK]: jsonContent(PostResponseSchema, "post details") }
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(PostResponseSchema, "post details"),
+  },
 });
 
-export default group()
-  .api(showRoute, show);
+export default group().api(showRoute, show);
 ```
 
 **Schema** (`controller/schema.ts.stub`):
+
 ```ts
 export const PostItemSchema = z.object({ id: z.number(), name: z.string() });
-export const PostResponseSchema = z.object({ message: z.string(), data: PostItemSchema });
+export const PostResponseSchema = z.object({
+  message: z.string(),
+  data: PostItemSchema,
+});
 // + CreateSchema, UpdateSchema, IdParamsSchema, ListResponseSchema, MessageSchema
 ```
 
 ### OPEN_API=false — Plain Stubs
 
 **Controller** (`controller/plain.ts.stub`):
+
 ```ts
 import type { Handler } from "hono";
 import { validate } from "@/framework/facade.js";
-import { CreatePostSchema, UpdatePostSchema, PostIdParamsSchema } from "./post.schema.js";
+import {
+  CreatePostSchema,
+  UpdatePostSchema,
+  PostIdParamsSchema,
+} from "./post.schema.js";
 
 export const show: Handler = async (c: any) => {
   const params = await validate(PostIdParamsSchema, c.req.param());
-  return c.json({ message: "Post fetched successfully", data: { id: params.id, name: "" } });
+  return c.json({
+    message: "Post fetched successfully",
+    data: { id: params.id, name: "" },
+  });
 };
 ```
+
 Validation is explicit — the controller calls `validate()` directly on the raw input.
 
 **Route** (`route/plain.ts.stub`):
+
 ```ts
 import { group } from "@/framework/facade.js";
 
@@ -154,10 +179,13 @@ export default group()
 ```
 
 **Schema** (`controller/schema.plain.ts.stub`):
+
 ```ts
 export const CreatePostSchema = z.object({ name: z.string().min(1) });
 export const UpdatePostSchema = z.object({ name: z.string().min(1) });
-export const PostIdParamsSchema = z.object({ id: z.coerce.number().int().positive() });
+export const PostIdParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 // No response schemas — only input validation schemas
 ```
 
@@ -165,9 +193,25 @@ export const PostIdParamsSchema = z.object({ id: z.coerce.number().int().positiv
 
 When you add a new route with `module:make-route`, the CLI automatically links it to the most recently modified controller in the module:
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker module:make-route blog
+```
+
+```bash [pnpm]
+pnpm maker module:make-route blog
+```
+
+```bash [yarn]
+yarn maker module:make-route blog
+```
+
+```bash [npm]
 bun maker module:make-route blog
 ```
+
+:::
 
 The linker (`resolveRouteControllerName` in `core.mjs`) works like this:
 
@@ -178,18 +222,27 @@ The linker (`resolveRouteControllerName` in `core.mjs`) works like this:
 The generated route file imports the controller's handlers and schemas:
 
 ```ts
-import { index, show, store, update, destroy } from "@/modules/blog/controllers/post.controller.js";
+import {
+  index,
+  show,
+  store,
+  update,
+  destroy,
+} from "@/modules/blog/controllers/post.controller.js";
 // In OPEN_API mode, also imports schemas
-import { PostIdParamsSchema, PostListResponseSchema } from "@/modules/blog/controllers/post.schema.js";
+import {
+  PostIdParamsSchema,
+  PostListResponseSchema,
+} from "@/modules/blog/controllers/post.schema.js";
 ```
 
 The route uses the `OPEN_API` setting active at **scaffold time** to decide the route style:
 
-| | `OPEN_API=true` | `OPEN_API=false` |
-|---|---|---|
-| Route registration | `.api(createRoute({...}), handler)` — each route carries full request/response schema metadata | `.get("/", handler)` — plain verb method, no metadata |
-| Schema import | Full set: params, body, response schemas | None — controller handles validation |
-| Controller handlers wired | All 5 CRUD: `index, show, store, update, destroy` | All 5 CRUD: `index, show, store, update, destroy` |
+|                           | `OPEN_API=true`                                                                                | `OPEN_API=false`                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Route registration        | `.api(createRoute({...}), handler)` — each route carries full request/response schema metadata | `.get("/", handler)` — plain verb method, no metadata |
+| Schema import             | Full set: params, body, response schemas                                                       | None — controller handles validation                  |
+| Controller handlers wired | All 5 CRUD: `index, show, store, update, destroy`                                              | All 5 CRUD: `index, show, store, update, destroy`     |
 
 **Important:** The route file is a **wrapper** — it does not contain business logic. It defines the HTTP metadata (path, method, params, response codes) and delegates execution to the controller. This keeps your controllers framework-agnostic and your route definitions declarative.
 
@@ -197,14 +250,62 @@ The route uses the `OPEN_API` setting active at **scaffold time** to decide the 
 
 To scaffold in plain mode, set `OPEN_API=false` before running the generator:
 
-```bash
+::: code-group
+
+```bash [npm]
+OPEN_API=false npm run maker module:make-controller blog post
+OPEN_API=false npm run maker module:make-route blog post
+```
+
+```bash [pnpm]
+OPEN_API=false pnpm maker module:make-controller blog post
+OPEN_API=false pnpm maker module:make-route blog post
+```
+
+```bash [yarn]
+OPEN_API=false yarn maker module:make-controller blog post
+OPEN_API=false yarn maker module:make-route blog post
+```
+
+```bash [bun]
 OPEN_API=false bun maker module:make-controller blog post
 OPEN_API=false bun maker module:make-route blog post
 ```
 
+:::
+
 To create a route that links to a specific controller:
 
-```bash
+::: code-group
+
+```bash [npm]
+# Links to controllers/post.controller.ts + controllers/post.schema.ts
+npm run maker module:make-route blog post
+# Saves as routes/post.ts (instead of api.ts)
+
+npm run maker module:make-route blog --force
+# Overwrites routes/api.ts if it already exists
+```
+
+```bash [pnpm]
+# Links to controllers/post.controller.ts + controllers/post.schema.ts
+pnpm maker module:make-route blog post
+# Saves as routes/post.ts (instead of api.ts)
+
+pnpm maker module:make-route blog --force
+# Overwrites routes/api.ts if it already exists
+```
+
+```bash [yarn]
+# Links to controllers/post.controller.ts + controllers/post.schema.ts
+yarn maker module:make-route blog post
+# Saves as routes/post.ts (instead of api.ts)
+
+yarn maker module:make-route blog --force
+# Overwrites routes/api.ts if it already exists
+```
+
+```bash [bun]
 # Links to controllers/post.controller.ts + controllers/post.schema.ts
 bun maker module:make-route blog post
 # Saves as routes/post.ts (instead of api.ts)
@@ -213,9 +314,11 @@ bun maker module:make-route blog --force
 # Overwrites routes/api.ts if it already exists
 ```
 
+:::
+
 Or set it in your `.env` to persist the choice. The CLI will print which mode it used at scaffold time.
 
-> Example stubs (`example/controller.ts`, `example/route.api.ts`) and notification stubs always generate in OpenAPI style regardless of the `OPEN_API` flag — they serve as reference implementations.
+> Example and notification stubs also respect the `OPEN_API` flag — they generate OpenAPI or plain routes/schemas just like regular module stubs.
 
 ## Auto-Discovery
 

@@ -13,10 +13,29 @@ The schema file at `src/database/schema.ts` is **auto-generated** — it scans a
 
 Create a module with model and seeder:
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker module:make blog
+npm run maker db:migrate --seed
+```
+
+```bash [pnpm]
+pnpm maker module:make blog
+pnpm maker db:migrate --seed
+```
+
+```bash [npm]
+yarn maker module:make blog
+yarn maker db:migrate --seed
+```
+
+```bash [bun]
 bun maker module:make blog
 bun maker db:migrate --seed
 ```
+
+:::
 
 The first migration uses `--name init`. Subsequent migrations are named incrementally by Drizzle Kit. The schema is regenerated automatically before every migration — no manual `db:schema` needed.
 
@@ -24,11 +43,27 @@ The first migration uses `--name init`. Subsequent migrations are named incremen
 
 ### `db:migrate` — Full Pipeline (recommended)
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:migrate --seed
+```
+
+```bash [pnpm]
+pnpm maker db:migrate --seed
+```
+
+```bash [yarn]
+yarn maker db:migrate --seed
+```
+
+```bash [bun]
 bun maker db:migrate --seed
 ```
 
+:::
 Runs in order:
+
 1. Syncs migration dialect to `DATABASE_URL`
 2. Generates `src/database/schema.ts` from module models
 3. Generates migration `.sql` files via Drizzle Kit
@@ -40,22 +75,54 @@ If you delete migration files while the database still has tables, the command d
 
 ```
 Initial migration was generated, but the database already contains tables.
-Use 'bun maker db:fresh --seed' to rebuild locally.
+Use 'npm run|pnpm|yarn|bun maker db:fresh --seed' to rebuild locally.
 ```
 
 ### `db:generate` — Migration Files Only
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:generate
+```
+
+```bash [pnpm]
+pnpm maker db:generate
+```
+
+```bash [yarn]
+yarn maker db:generate
+```
+
+```bash [bun]
 bun maker db:generate
 ```
+
+:::
 
 Generates schema and migration SQL without applying them. Useful for code review before running.
 
 ### `db:migrate:run` — Apply Only
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:migrate:run
+```
+
+```bash [pnpm]
+pnpm maker db:migrate:run
+```
+
+```bash [yarn]
+yarn maker db:migrate:run
+```
+
+```bash [bun]
 bun maker db:migrate:run
 ```
+
+:::
 
 Applies existing migration files without regenerating schema or migrations. Used when you pulled migration files from a teammate.
 
@@ -63,9 +130,25 @@ After migrations are applied, this command also executes model migration hooks.
 
 ### `db:fresh` — Full Rebuild
 
-```bash
-bun maker db:fresh --seed
+::: code-group
+
+```bash [npm]
+npm run maker db:fresh
 ```
+
+```bash [pnpm]
+pnpm maker db:fresh
+```
+
+```bash [yarn]
+yarn maker db:fresh
+```
+
+```bash [bun]
+bun maker db:fresh
+```
+
+:::
 
 Drops and recreates the database, then regenerates everything:
 
@@ -78,49 +161,136 @@ Drops and recreates the database, then regenerates everything:
 7. Runs seeders (if `--seed`)
 
 Use this when:
+
 - Migration files were deleted or corrupted
 - The migration journal is out of sync with table state
 - You want to reset the database to a clean state during development
 
 ### `db:reset` / `db:wipe` — Wipe Only
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:reset
+npm run maker db:wipe
+```
+
+```bash [pnpm]
+pnpm maker db:reset
+pnpm maker db:wipe
+```
+
+```bash [yarn]
+yarn maker db:reset
+yarn maker db:wipe
+```
+
+```bash [bun]
 bun maker db:reset
 bun maker db:wipe
 ```
+
+:::
 
 Drops and recreates the database. No migrations, no seeds. Use this to quickly clear all data without rebuilding schema (e.g., before importing a production dump into a clean database).
 
 ### `db:schema` — Regenerate Schema Only
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:schema
+```
+
+```bash [pnpm]
+pnpm maker db:schema
+```
+
+```bash [yarn]
+yarn maker db:schema
+```
+
+```bash [bun]
 bun maker db:schema
 ```
+
+:::
 
 Regenerates `src/database/schema.ts` from model files. Normally unnecessary — `migrate`, `generate`, and `fresh` all call this automatically. Only needed if you want to inspect the barrel file.
 
 ### `db:seed` — Seed Only
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:seed
+npm run maker db:module:seed welcome  # seed a specific module
+```
+
+```bash [pnpm]
+pnpm maker db:seed
+pnpm maker db:module:seed welcome  # seed a specific module
+```
+
+```bash [yarn]
+yarn maker db:seed
+yarn maker db:module:seed welcome  # seed a specific module
+```
+
+```bash [bun]
 bun maker db:seed
 bun maker db:module:seed welcome  # seed a specific module
 ```
+
+:::
 
 Runs the seeder files for all modules (or a specific one). Useful after a `db:reset` to repopulate test data.
 
 ### `db:push` — Direct Schema Push (no migration files)
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:push
+```
+
+```bash [pnpm]
+pnpm maker db:push
+```
+
+```bash [yarn]
+yarn maker db:push
+```
+
+```bash [bun]
 bun maker db:push
 ```
+
+:::
 
 Pushes schema directly to the database via Drizzle Kit push. Generates schema first.
 
 ### `db:studio` — Drizzle Studio
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker db:studio
+```
+
+```bash [pnpm]
+pnpm maker db:studio
+```
+
+```bash [yarn]
+yarn maker db:studio
+```
+
+```bash [bun]
 bun maker db:studio
 ```
+
+:::
 
 Opens the Drizzle Studio GUI for browsing and editing data.
 
@@ -137,7 +307,7 @@ import { int, mysqlTable, timestamp } from "drizzle-orm/mysql-core";
 export const posts = mysqlTable("posts", {
   id: int("id").autoincrement().primaryKey(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 ```
 
@@ -149,8 +319,12 @@ import { pgTable, serial, timestamp } from "drizzle-orm/pg-core";
 
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 ```
 
@@ -162,8 +336,12 @@ import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
 
 export const posts = sqliteTable("posts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull()
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 ```
 
@@ -171,7 +349,14 @@ Add columns, foreign keys, and relations as needed. For a real-world example, se
 
 ```ts
 import { relations } from "drizzle-orm";
-import { mysqlTable, int, varchar, text, timestamp, boolean } from "drizzle-orm/mysql-core";
+import {
+  mysqlTable,
+  int,
+  varchar,
+  text,
+  timestamp,
+  boolean,
+} from "drizzle-orm/mysql-core";
 import { roles } from "@/modules/auth/database/models/role.js";
 
 export const users = mysqlTable("users", {
@@ -179,14 +364,17 @@ export const users = mysqlTable("users", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   password: text("password").notNull(),
-  roleId: int("role_id").references(() => roles.id, { onUpdate: "cascade", onDelete: "set null" }),
+  roleId: int("role_id").references(() => roles.id, {
+    onUpdate: "cascade",
+    onDelete: "set null",
+  }),
   emailVerifiedAt: timestamp("email_verified_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ one }) => ({
-  role: one(roles, { fields: [users.roleId], references: [roles.id] })
+  role: one(roles, { fields: [users.roleId], references: [roles.id] }),
 }));
 ```
 
@@ -200,9 +388,9 @@ Hook runner location:
 
 Auto-run commands:
 
-- `bun maker db:migrate`
-- `bun maker db:migrate:run`
-- `bun maker db:fresh`
+- `npm run|pnpm|yarn|bun maker db:migrate`
+- `npm run|pnpm|yarn|bun maker db:migrate:run`
+- `npm run|pnpm|yarn|bun maker db:fresh`
 
 Model example:
 
@@ -211,14 +399,10 @@ export const rolesMigrationSql = {
   __migrationSql: true,
   postgresql: [
     "CREATE EXTENSION IF NOT EXISTS pg_trgm",
-    "CREATE INDEX IF NOT EXISTS roles_name_trgm_idx ON roles USING GIN (name gin_trgm_ops)"
+    "CREATE INDEX IF NOT EXISTS roles_name_trgm_idx ON roles USING GIN (name gin_trgm_ops)",
   ],
-  mysql: [
-    "CREATE INDEX roles_name_idx ON roles (name)"
-  ],
-  sqlite: [
-    "CREATE INDEX IF NOT EXISTS roles_name_idx ON roles (name)"
-  ]
+  mysql: ["CREATE INDEX roles_name_idx ON roles (name)"],
+  sqlite: ["CREATE INDEX IF NOT EXISTS roles_name_idx ON roles (name)"],
 };
 ```
 
@@ -270,16 +454,32 @@ import { roles } from "@/modules/auth/database/models/role.js";
 import { users } from "@/modules/auth/database/models/user.js";
 
 export default async function UserSeeder() {
-  const adminRole = await db.query.roles.findFirst({ where: eq(roles.name, "admin") });
-  const userRole = await db.query.roles.findFirst({ where: eq(roles.name, "user") });
+  const adminRole = await db.query.roles.findFirst({
+    where: eq(roles.name, "admin"),
+  });
+  const userRole = await db.query.roles.findFirst({
+    where: eq(roles.name, "user"),
+  });
 
   const rows = [
-    { name: "Admin", email: "admin@example.com", password: await password.hashPassword("Password@123"), roleId: adminRole?.id ?? null },
-    { name: "User One", email: "user1@example.com", password: await password.hashPassword("Password@123"), roleId: userRole?.id ?? null }
+    {
+      name: "Admin",
+      email: "admin@example.com",
+      password: await password.hashPassword("Password@123"),
+      roleId: adminRole?.id ?? null,
+    },
+    {
+      name: "User One",
+      email: "user1@example.com",
+      password: await password.hashPassword("Password@123"),
+      roleId: userRole?.id ?? null,
+    },
   ];
 
   for (const row of rows) {
-    const existing = await db.query.users.findFirst({ where: eq(users.email, row.email) });
+    const existing = await db.query.users.findFirst({
+      where: eq(users.email, row.email),
+    });
     if (!existing) {
       await db.insert(users).values(row);
     }
@@ -309,11 +509,11 @@ Drizzle ORM does not include a built-in pagination helper. **nexgen** provides p
 
 ### Which one to use?
 
-| Function | When to use |
-|----------|-------------|
-| `paginate()` | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query. |
-| `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata. |
-| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed. |
+| Function          | When to use                                                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `paginate()`      | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
+| `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
+| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                        |
 | `paginateQuery()` | **Count and data queries are structurally different** — e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
 
 ### `paginate(c, query, perPage)` — From Request (recommended)
@@ -332,17 +532,20 @@ const result = await paginate(c, query, 15);
 Request example: `GET /posts?page=2&per_page=20`
 
 With joins:
+
 ```ts
 import { desc, eq } from "drizzle-orm";
 import { db, paginate } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
 import { posts } from "@/modules/blog/database/models/post.js";
 
-const query = db.select({
-  id: posts.id,
-  title: posts.title,
-  authorName: users.name
-}).from(posts)
+const query = db
+  .select({
+    id: posts.id,
+    title: posts.title,
+    authorName: users.name,
+  })
+  .from(posts)
   .leftJoin(users, eq(posts.authorId, users.id))
   .where(eq(posts.published, true))
   .orderBy(desc(posts.id));
@@ -365,11 +568,11 @@ const result = await paginateModel(c, {
   where: eq(users.status, "1"),
   with: {
     role: true,
-    profile: true
+    profile: true,
   },
   orderBy: desc(users.id),
   perPage: 10,
-  path: c.req.path
+  path: c.req.path,
 });
 ```
 
@@ -391,13 +594,13 @@ const result = await paginateModel(c, {
             commissionerate: true,
             division: true,
             circle: true,
-            sector: true
-          }
-        }
-      }
-    }
+            sector: true,
+          },
+        },
+      },
+    },
   },
-  orderBy: desc(users.id)
+  orderBy: desc(users.id),
 });
 ```
 
@@ -413,8 +616,8 @@ const where = and(
   eq(users.status, "1"),
   inArray(
     users.roleId,
-    db.select({ id: roles.id }).from(roles).where(eq(roles.name, "admin"))
-  )
+    db.select({ id: roles.id }).from(roles).where(eq(roles.name, "admin")),
+  ),
 );
 
 const result = await paginateModel(c, {
@@ -422,7 +625,7 @@ const result = await paginateModel(c, {
   query: db.query.users,
   where,
   with: { role: true },
-  orderBy: desc(users.id)
+  orderBy: desc(users.id),
 });
 ```
 
@@ -442,9 +645,9 @@ const result = await paginateModel(c, {
       with: { role: true },
       limit,
       offset,
-      orderBy: desc(users.id)
+      orderBy: desc(users.id),
     });
-  }
+  },
 });
 ```
 
@@ -461,7 +664,7 @@ const result = await paginateTable(db, posts, {
   page: 1,
   perPage: 10,
   where: eq(posts.authorId, userId),
-  orderBy: [desc(posts.createdAt)]
+  orderBy: [desc(posts.createdAt)],
 });
 ```
 
@@ -480,21 +683,28 @@ const result = await paginateQuery({
   perPage: 15,
   total: async () => {
     // Count all active users (ignore GROUP BY/HAVING)
-    const [row] = await db.select({ total: count() }).from(users).where(eq(users.active, true));
+    const [row] = await db
+      .select({ total: count() })
+      .from(users)
+      .where(eq(users.active, true));
     return Number(row?.total ?? 0);
   },
   data: async (limit, offset) => {
     // Data: only users with >5 orders
-    return db.select({
-      id: users.id,
-      name: users.name,
-      orderCount: count(orders.id),
-      totalSpent: sum(orders.amount)
-    }).from(users)
+    return db
+      .select({
+        id: users.id,
+        name: users.name,
+        orderCount: count(orders.id),
+        totalSpent: sum(orders.amount),
+      })
+      .from(users)
       .leftJoin(orders, eq(users.id, orders.userId))
-      .groupBy(users.id).having(gt(count(orders.id), 5))
-      .limit(limit).offset(offset);
-  }
+      .groupBy(users.id)
+      .having(gt(count(orders.id), 5))
+      .limit(limit)
+      .offset(offset);
+  },
 });
 ```
 

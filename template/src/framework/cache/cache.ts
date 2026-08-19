@@ -1,8 +1,8 @@
-import { env } from "@/env.js";
+import { cacheConfig, redisConfig } from "@/config/index.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
 
 function cacheKey(key: string) {
-  return `${env.REDIS_PREFIX}:cache:${key}`;
+  return `${cacheConfig.keyPrefix}:${key}`;
 }
 
 /**
@@ -32,7 +32,7 @@ export const cache = {
    * Where: Application code caching expensive results.
    * How: Serializes value and writes with Redis EX seconds.
    */
-  async put(key: string, value: unknown, ttl = env.CACHE_TTL_SECONDS) {
+  async put(key: string, value: unknown, ttl = cacheConfig.ttlSeconds) {
     const client = redisClientIfReady();
     if (!client) return false;
 
@@ -76,6 +76,6 @@ export const cache = {
    * How: Confirms REDIS flag and ready Redis client instance.
    */
   isAvailable() {
-    return env.REDIS && redisClientIfReady() !== null;
+    return redisConfig.enabled && redisClientIfReady() !== null;
   }
 };

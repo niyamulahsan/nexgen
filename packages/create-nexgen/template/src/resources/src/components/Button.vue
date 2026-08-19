@@ -1,13 +1,10 @@
 <template>
-  <button
-    class="d-flex justify-content-center align-items-center custom-btn shadow-none"
-    :type="props.type"
-    v-bind="$attrs">
+  <button class="shadow-none" :type="props.type" v-bind="$attrs">
     <slot v-if="hasDefaultSlot"></slot>
     <template v-else>
-      <span v-if="props.label" class="text-capitalize" :class="{ 'me-1': props.icon }">{{
-        props.label
-      }}</span>
+      <span v-if="props.label" class="text-capitalize" :class="{ 'me-1': props.icon }">
+        {{ props.label }}
+      </span>
       <span v-if="props.icon"><i :class="props.icon"></i></span>
     </template>
   </button>

@@ -26,12 +26,13 @@ The framework **gracefully degrades** — if Redis is unavailable, `queueJob()` 
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `REDIS` | `false` | Master toggle for all Redis-backed features |
-| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection string |
-| `REDIS_PREFIX` | `nexgen` | Key prefix for BullMQ queues in Redis |
-| `BULLMQ_UI_ALLOWED_EMAILS` | `""` | Comma-separated email whitelist for BullBoard access |
+| Variable        | Default                     | Description                                          |
+| --------------- | --------------------------- | ---------------------------------------------------- |
+| `REDIS`         | `false`                     | Master toggle for all Redis-backed features          |
+| `REDIS_URL`     | `redis://127.0.0.1:6379`    | Redis connection string                              |
+| `REDIS_PREFIX`  | `nexgen`                    | Key prefix for BullMQ queues in Redis                |
+| `queueUi`       | `/queues (config/queue.ts)` | Key prefix for BullMQ queues in Redis                |
+| `allowedEmails` | `"" (config/queue.ts)`      | Comma-separated email whitelist for BullBoard access |
 
 Set `REDIS=true` in `.env` to enable queues, caching, sessions, and the Socket.IO Redis adapter.
 
@@ -48,9 +49,13 @@ import { dispatchEvent } from "@/framework/facade.js";
 Emits to connected Socket.IO clients, no background job:
 
 ```ts
-await dispatchEvent("post.published", { postId: 1, title: "Hello" }, {
-  broadcast: { all: true }
-});
+await dispatchEvent(
+  "post.published",
+  { postId: 1, title: "Hello" },
+  {
+    broadcast: { all: true },
+  },
+);
 ```
 
 ### Queue Only
@@ -58,21 +63,25 @@ await dispatchEvent("post.published", { postId: 1, title: "Hello" }, {
 Enqueues a background job without broadcasting:
 
 ```ts
-await dispatchEvent("user:signup", { userId, email, name, password }, {
-  queue: "mail"
-});
+await dispatchEvent(
+  "user:signup",
+  { userId, email, name, password },
+  {
+    queue: "mail",
+  },
+);
 ```
 
 The `queue` option accepts either `true` (uses `"default"` queue) or a queue name string (e.g. `"mail"`).
 
 ### Broadcast + Queue
 
-Does both — emits immediately via Socket.IO *and* enqueues a job:
+Does both — emits immediately via Socket.IO _and_ enqueues a job:
 
 ```ts
 await dispatchEvent("post.publish", body, {
   queue: true,
-  broadcast: { all: true }
+  broadcast: { all: true },
 });
 ```
 
@@ -100,14 +109,14 @@ broadcast: { roles: ["admin"], users: [userId] }
 
 ### `dispatchEvent()` Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `queue` | `boolean \| string` | — | `true` = enqueue to `"default"` queue; string = enqueue to named queue |
-| `broadcast.all` | `boolean` | — | Emit to **all** connected Socket.IO clients |
-| `broadcast.auth` | `boolean` | — | Emit to all **authenticated** clients (room `"auth"`) |
-| `broadcast.roles` | `string[]` | — | Emit to clients in specific **role** rooms (e.g. `["admin"]`) |
-| `broadcast.users` | `(number \| string)[]` | — | Emit to specific **user** rooms (e.g. `[42]` → room `"user:42"`) |
-| `broadcast.rooms` | `string[]` | — | Emit to arbitrary **custom** rooms (e.g. `["room:chat:general"]`) |
+| Option            | Type                   | Default | Description                                                            |
+| ----------------- | ---------------------- | ------- | ---------------------------------------------------------------------- |
+| `queue`           | `boolean \| string`    | —       | `true` = enqueue to `"default"` queue; string = enqueue to named queue |
+| `broadcast.all`   | `boolean`              | —       | Emit to **all** connected Socket.IO clients                            |
+| `broadcast.auth`  | `boolean`              | —       | Emit to all **authenticated** clients (room `"auth"`)                  |
+| `broadcast.roles` | `string[]`             | —       | Emit to clients in specific **role** rooms (e.g. `["admin"]`)          |
+| `broadcast.users` | `(number \| string)[]` | —       | Emit to specific **user** rooms (e.g. `[42]` → room `"user:42"`)       |
+| `broadcast.rooms` | `string[]`             | —       | Emit to arbitrary **custom** rooms (e.g. `["room:chat:general"]`)      |
 
 All broadcast fields can be combined — `{ roles: ["admin"], users: [userId] }` emits to both.
 
@@ -118,28 +127,32 @@ Use `queueJob()` directly when you need fine-grained control over job execution:
 ```ts
 import { queueJob } from "@/framework/facade.js";
 
-await queueJob("process-image", { path: "/tmp/photo.jpg" }, {
-  queue: "images",
-  delay: 30,          // run 30 seconds from now
-  attempts: 5,        // retry up to 5 times
-  priority: 10,       // higher number = processed sooner
-  jobId: "img-123",   // custom unique ID (prevents duplicates)
-  backoff: { type: "fixed", delay: 5000 },         // 5s between retries
-  removeOnComplete: 500,                            // keep last 500 completed
-  removeOnFail: 2000                                // keep last 2000 failed
-});
+await queueJob(
+  "process-image",
+  { path: "/tmp/photo.jpg" },
+  {
+    queue: "images",
+    delay: 30, // run 30 seconds from now
+    attempts: 5, // retry up to 5 times
+    priority: 10, // higher number = processed sooner
+    jobId: "img-123", // custom unique ID (prevents duplicates)
+    backoff: { type: "fixed", delay: 5000 }, // 5s between retries
+    removeOnComplete: 500, // keep last 500 completed
+    removeOnFail: 2000, // keep last 2000 failed
+  },
+);
 ```
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `queue` | `string` | `"default"` | Which queue to enqueue into |
-| `delay` | `number` | `0` | Delay in **seconds** before the job becomes visible to workers |
-| `attempts` | `number` | `3` | Maximum retry attempts if the job fails |
-| `jobId` | `string` | auto-generated | Custom job ID — useful for idempotency (same ID = duplicate prevention) |
-| `priority` | `number` | — | Higher number = processed first (BullMQ priority ordering) |
-| `backoff` | `object` | `{ type: "exponential", delay: 3000 }` | Retry backoff strategy. `type`: `"exponential"` or `"fixed"` |
-| `removeOnComplete` | `number` | `1000` | Keep at most this many completed jobs for this queue |
-| `removeOnFail` | `number` | `5000` | Keep at most this many failed jobs for this queue |
+| Option             | Type     | Default                                | Description                                                             |
+| ------------------ | -------- | -------------------------------------- | ----------------------------------------------------------------------- |
+| `queue`            | `string` | `"default"`                            | Which queue to enqueue into                                             |
+| `delay`            | `number` | `0`                                    | Delay in **seconds** before the job becomes visible to workers          |
+| `attempts`         | `number` | `3`                                    | Maximum retry attempts if the job fails                                 |
+| `jobId`            | `string` | auto-generated                         | Custom job ID — useful for idempotency (same ID = duplicate prevention) |
+| `priority`         | `number` | —                                      | Higher number = processed first (BullMQ priority ordering)              |
+| `backoff`          | `object` | `{ type: "exponential", delay: 3000 }` | Retry backoff strategy. `type`: `"exponential"` or `"fixed"`            |
+| `removeOnComplete` | `number` | `1000`                                 | Keep at most this many completed jobs for this queue                    |
+| `removeOnFail`     | `number` | `5000`                                 | Keep at most this many failed jobs for this queue                       |
 
 ## Commands (Synchronous)
 
@@ -183,18 +196,26 @@ shouldQueue("user:signup", "mail", async (job) => {
   await mail.sendMail({
     to: email,
     subject: "Account Created",
-    html: `<p>Welcome ${name}!</p>`
+    html: `<p>Welcome ${name}!</p>`,
   });
 
   // Notify admins via socket
-  await dispatchEvent("admin.user.registered", { userId, name, email }, {
-    broadcast: { roles: ["admin"] }
-  });
+  await dispatchEvent(
+    "admin.user.registered",
+    { userId, name, email },
+    {
+      broadcast: { roles: ["admin"] },
+    },
+  );
 
   // Notify the user via socket
-  await dispatchEvent("user.registered", { message: "Welcome!" }, {
-    broadcast: { users: [userId] }
-  });
+  await dispatchEvent(
+    "user.registered",
+    { message: "Welcome!" },
+    {
+      broadcast: { users: [userId] },
+    },
+  );
 
   return { ok: true, userId };
 });
@@ -209,12 +230,12 @@ shouldQueue("user:signup", "mail", async (job) => {
 
 ### Default Job Options (from BullMQ)
 
-| Option | Value |
-|---|---|
-| Retry attempts | 3 |
-| Backoff | Exponential, starting at 3s |
-| Remove on complete | Keep last 1000 |
-| Remove on fail | Keep last 5000 |
+| Option             | Value                       |
+| ------------------ | --------------------------- |
+| Retry attempts     | 3                           |
+| Backoff            | Exponential, starting at 3s |
+| Remove on complete | Keep last 1000              |
+| Remove on fail     | Keep last 5000              |
 
 Override per-job when calling `queueJob()` directly.
 
@@ -222,15 +243,32 @@ Override per-job when calling `queueJob()` directly.
 
 Start the worker process to process queued jobs:
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker queue:work --queue=default,mail --prod --runtime=bun
+```
+
+```bash [pnpm]
+pnpm maker queue:work --queue=default,mail --prod --runtime=bun
+```
+
+```bash [yarn]
+yarn maker queue:work --queue=default,mail --prod --runtime=bun
+```
+
+```bash [bun]
 bun maker queue:work --queue=default,mail --prod --runtime=bun
 ```
+
+:::
 
 - `--queue` specifies comma-separated queue names (defaults to `"default"`)
 - `--prod` uses compiled `dist/` code
 - `--runtime` chose between `node` or `bun`
 
 The worker process:
+
 1. Connects to Redis
 2. Auto-discovers and imports all job files
 3. Creates BullMQ `Worker` instances (concurrency: 10)
@@ -239,12 +277,12 @@ The worker process:
 
 ## BullMQ Dashboard
 
-When Redis is enabled, BullBoard is auto-mounted at `/bullmq` in development.
+When Redis is enabled, BullBoard is auto-mounted at `/queues` in development.
 
-In production, access is gated by `BULLMQ_UI_ALLOWED_EMAILS` — set a comma-separated list of emails whose JWT-authenticated users can view the dashboard:
+In production, access is gated by `allowedEmails (config/queue.ts)` — set a comma-separated list of emails whose JWT-authenticated users can view the dashboard:
 
 ```env
-BULLMQ_UI_ALLOWED_EMAILS=admin@example.com,dev@example.com
+allowedEmails="admin@example.com,dev@example.com"
 ```
 
 ## Graceful Degradation
@@ -259,11 +297,11 @@ This lets you develop with SQLite and no Redis, then add Redis later for product
 
 ## Queue Commands
 
-| Command | Description |
-|---|---|
-| `maker queue:work` | Start worker process |
+| Command             | Description                     |
+| ------------------- | ------------------------------- |
+| `maker queue:work`  | Start worker process            |
 | `maker queue:clear` | Clear all queue keys from Redis |
-| `maker queue:list` | List registered queue names |
+| `maker queue:list`  | List registered queue names     |
 
 ## Controller Example
 
@@ -271,13 +309,27 @@ A complete flow: route → controller → queue → handler → broadcast.
 
 ### 1. Schema & Controller
 
+When `OPEN_API=true`, schemas use `@hono/zod-openapi` with `.openapi()` metadata:
+
 ```ts
 import { z } from "@hono/zod-openapi";
 
 export const PublishPostSchema = z.object({
   title: z.string().min(1).openapi({ example: "Hello World" }),
   content: z.string().min(1),
-  authorId: z.number()
+  authorId: z.number(),
+});
+```
+
+When `OPEN_API=false`, use plain Zod from the facade:
+
+```ts
+import { z } from "@/framework/facade.js";
+
+export const PublishPostSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1),
+  authorId: z.number(),
 });
 ```
 
@@ -299,7 +351,7 @@ export const broadcastStatus: Handler = async (c: any) => {
 
   // Broadcast directly to Socket.IO clients
   await dispatchEvent("system.status", body, {
-    broadcast: { roles: ["admin"] }
+    broadcast: { roles: ["admin"] },
   });
 
   return c.json({ message: "Status broadcast to admins" });
@@ -309,9 +361,13 @@ export const notifyUser: Handler = async (c: any) => {
   const { userId, message } = c.req.valid("json");
 
   // Notify a specific user via socket
-  await dispatchEvent("user.notification", { message }, {
-    broadcast: { users: [userId] }
-  });
+  await dispatchEvent(
+    "user.notification",
+    { message },
+    {
+      broadcast: { users: [userId] },
+    },
+  );
 
   return c.json({ message: "Notification sent" });
 };
@@ -320,30 +376,55 @@ export const notifyUser: Handler = async (c: any) => {
 ### 2. Route
 
 ```ts
-import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+import {
+  createRoute,
+  createRouter,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+} from "@/framework/facade.js";
 import { PublishPostSchema } from "../controllers/post.schema.js";
-import { publishPost, broadcastStatus, notifyUser } from "../controllers/post.controller.js";
+import {
+  publishPost,
+  broadcastStatus,
+  notifyUser,
+} from "../controllers/post.controller.js";
 
 const publishRoute = createRoute({
   path: "/posts/publish",
   method: "post",
   tags: ["Posts"],
   request: { body: jsonContent(PublishPostSchema, "Post data") },
-  responses: { [HttpStatusCodes.ACCEPTED]: jsonContent(z.object({ message: z.string() }), "Queued") }
+  responses: {
+    [HttpStatusCodes.ACCEPTED]: jsonContent(
+      z.object({ message: z.string() }),
+      "Queued",
+    ),
+  },
 });
 
 const statusRoute = createRoute({
   path: "/posts/status",
   method: "post",
   tags: ["Posts"],
-  responses: { [HttpStatusCodes.OK]: jsonContent(z.object({ message: z.string() }), "Broadcast") }
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      z.object({ message: z.string() }),
+      "Broadcast",
+    ),
+  },
 });
 
 const notifyRoute = createRoute({
   path: "/posts/notify",
   method: "post",
   tags: ["Posts"],
-  responses: { [HttpStatusCodes.OK]: jsonContent(z.object({ message: z.string() }), "Sent") }
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      z.object({ message: z.string() }),
+      "Sent",
+    ),
+  },
 });
 
 export default createRouter()
@@ -365,16 +446,24 @@ shouldQueue("post.publish", "default", async (job) => {
   // await updateSearchIndex(title, content);
 
   // Broadcast completion after work succeeds
-  await dispatchEvent("post.published", { title, status: "live" }, {
-    broadcast: { auth: true }
-  });
+  await dispatchEvent(
+    "post.published",
+    { title, status: "live" },
+    {
+      broadcast: { auth: true },
+    },
+  );
 
   // Notify the author specifically
-  await dispatchEvent("user.notification", {
-    message: `Your post "${title}" is live!`
-  }, {
-    broadcast: { users: [authorId] }
-  });
+  await dispatchEvent(
+    "user.notification",
+    {
+      message: `Your post "${title}" is live!`,
+    },
+    {
+      broadcast: { users: [authorId] },
+    },
+  );
 
   return { ok: true };
 });
@@ -406,6 +495,7 @@ onUnmounted(() => {
 ## Recommended Pattern
 
 Queue the work first, then broadcast results from the handler (as shown above). This ensures:
+
 - The HTTP response is fast (just queues, no heavy work)
-- Broadcasts happen *after* the work is complete
+- Broadcasts happen _after_ the work is complete
 - If the worker fails, the broadcast never fires — no false positives

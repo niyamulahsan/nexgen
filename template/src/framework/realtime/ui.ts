@@ -1,9 +1,9 @@
 import { instrument } from "@socket.io/admin-ui";
 import type { Server as SocketIOServer } from "socket.io";
-import { env } from "@/env.js";
+import { appConfig, realtimeConfig } from "@/config/index.js";
 
 export function setupSocketAdminUI(io: SocketIOServer | null) {
-  if (!io || !env.SOCKET || env.APP_ENV === "production") {
+  if (!io || !realtimeConfig.enabled || appConfig.environment === "production") {
     return { enabled: false };
   }
 

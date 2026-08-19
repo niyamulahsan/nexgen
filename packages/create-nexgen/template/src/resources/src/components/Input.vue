@@ -187,6 +187,18 @@ const updateModel = (e: Event) => {
       formatted = `${digits.slice(0, 9)}-${digits.slice(9, 14)}`;
     }
     emit("update:modelValue", (target.value = formatted));
+  } else if (props.category === 'echallan-number') {
+    // Format: V + 9 digits (V000517226)
+    let raw = (target.value || '').toUpperCase();
+
+    // keep only digits, but allow V (we’ll force V at start)
+    let digits = raw.replace(/[^\d]/g, '').slice(0, 9);
+
+    // always prefix V
+    let formatted = 'V' + digits;
+
+    emit('update:modelValue', (target.value = formatted));
+
   } else if (props.category === "challan-number") {
     let digits = target.value.replace(/[^\d]/g, "");
     digits = digits.slice(0, 16);

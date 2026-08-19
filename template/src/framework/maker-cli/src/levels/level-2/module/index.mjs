@@ -15,6 +15,7 @@ import {
   makeRoute,
   makeSchedule,
   makeSeeder,
+  makeTest,
   runModuleMigrate
 } from "./core.mjs";
 
@@ -27,7 +28,7 @@ export function registerModuleCommands(program, rawArgs) {
     .action(async (name) => makeModule(name));
   program
     .command("module:make-notification [name]")
-    .description("Generate notification module (controller, routes, job, bell, page)")
+    .description("Generate notification backend module (controller, routes, job)")
     .allowUnknownOption(true)
     .action(async (name) => {
       const maybeModule = name && !name.startsWith("--") ? name : "";
@@ -40,7 +41,7 @@ export function registerModuleCommands(program, rawArgs) {
     .action(async (name) => makeExampleModule(name || "example"));
   program
     .command("module:delete-notification [name]")
-    .description("Remove notification module, bell, and page (moves to trash)")
+    .description("Remove notification module (moves to trash)")
     .option("--yes", "Confirm deletion without prompt")
     .option("--dry-run", "Print what would be deleted without executing")
     .allowUnknownOption(true)
@@ -129,4 +130,11 @@ export function registerModuleCommands(program, rawArgs) {
     .option("--keep-temp", "Keep temporary schema file after migration")
     .allowUnknownOption(true)
     .action(async (moduleName) => runModuleMigrate(moduleName, rawArgs));
+  program
+    .command("module:make-test <module> [name]")
+    .description("Generate a unit test file for a module")
+    .option("--force", "Overwrite existing test file")
+    .option("--dry-run", "Print what would be created without executing")
+    .allowUnknownOption(true)
+    .action(async (moduleName, name) => makeTest(moduleName, name, rawArgs.slice(3)));
 }

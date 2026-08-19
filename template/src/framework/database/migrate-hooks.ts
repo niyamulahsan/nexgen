@@ -1,11 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  closeDatabase,
-  database,
-  databasePool,
-  detectDialect,
-  initDatabase
-} from "@/framework/database/connection.js";
+import { closeDatabase, database, databasePool, detectDialect, initDatabase } from "@/framework/database/connection.js";
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 
 type HookMap = {
@@ -20,10 +14,7 @@ function isHookMap(value: unknown): value is HookMap {
   return (value as HookMap).__migrationSql === true;
 }
 
-function collectStatements(
-  exportsObj: Record<string, unknown>,
-  dialect: "postgresql" | "mysql" | "sqlite"
-) {
+function collectStatements(exportsObj: Record<string, unknown>, dialect: "postgresql" | "mysql" | "sqlite") {
   const statements: string[] = [];
   for (const value of Object.values(exportsObj)) {
     if (!isHookMap(value)) continue;
@@ -35,13 +26,14 @@ function collectStatements(
   return statements;
 }
 
-async function executeWithPoolFallback(
-  statement: string,
-  dialect: "postgresql" | "mysql" | "sqlite"
-) {
+async function executeWithPoolFallback(statement: string, dialect: "postgresql" | "mysql" | "sqlite") {
   const pool = databasePool();
   if (dialect === "sqlite") {
-    pool.exec(statement);
+    await pool.executeMultiple(statement);
+    return;
+  }
+  if (dialect === "postgresql") {
+    await pool.unsafe(statement);
     return;
   }
   await pool.query(statement);
@@ -50,7 +42,11 @@ async function executeWithPoolFallback(
 async function executeStatement(statement: string, dialect: "postgresql" | "mysql" | "sqlite") {
   const drizzle = database();
   try {
-    await drizzle.execute(sql.raw(statement));
+    if (dialect === "sqlite") {
+      await drizzle.run(sql.raw(statement));
+    } else {
+      await drizzle.execute(sql.raw(statement));
+    }
   } catch {
     await executeWithPoolFallback(statement, dialect);
   }

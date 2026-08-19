@@ -1,6 +1,6 @@
 <template>
-  <div class="card h-100 border">
-    <div class="card-header bg-white border-bottom-0 pb-0 px-2 px-sm-3">
+  <div class="skeleton card border">
+    <div class="card-header border-bottom-0 pb-0 px-2 px-sm-3">
       <div class="row align-items-center">
         <div class="col-12 col-sm-6 col-lg-3 col-xl-3 mb-2 mb-lg-0 d-flex">
           <div class="py-2 rounded-1 border bg-custom ps-3 me-2"></div>
@@ -40,7 +40,7 @@
         </table>
       </div>
     </div>
-    <div class="card-footer bg-white border-top-0 pt-0 px-2 px-sm-3">
+    <div class="card-footer border-top-0 pt-0 px-2 px-sm-3">
       <div class="row align-items-center">
         <div class="col-12 col-md-5 mb-2 mb-md-0"></div>
         <div class="col-12 col-md-7 text-center text-md-end">
@@ -71,7 +71,6 @@ td {
 }
 
 .bg-custom {
-  background-color: #efefef;
   animation: anim 3s infinite;
 }
 

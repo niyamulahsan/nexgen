@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
-import { env } from "@/env.js";
+import { appConfig, cookieConfig, jwtConfig } from "@/config/index.js";
 
 function originOf(url?: string) {
   if (!url) return "";
@@ -12,8 +12,8 @@ function originOf(url?: string) {
 }
 
 function needsCrossSiteCookie() {
-  const appOrigin = originOf(env.APP_URL);
-  const frontendOrigin = originOf(env.FRONTEND_URL);
+  const appOrigin = originOf(appConfig.url);
+  const frontendOrigin = originOf(appConfig.frontendUrl);
   return Boolean(appOrigin && frontendOrigin && appOrigin !== frontendOrigin);
 }
 
@@ -36,9 +36,9 @@ export const cookie = {
    * How: Sets httpOnly cookie with configured access expiry.
    */
   async setAuth(c: Context, token: string) {
-    await setSignedCookie(c, `${env.COOKIE_NAME}_access`, token, env.COOKIE_SECRET, {
+    await setSignedCookie(c, `${cookieConfig.name}_access`, token, cookieConfig.secret, {
       ...baseOptions(),
-      maxAge: env.JWT_ACCESS_EXPIRY
+      maxAge: jwtConfig.accessExpirySeconds
     });
   },
 
@@ -49,9 +49,9 @@ export const cookie = {
    * How: Sets httpOnly cookie with explicit or default refresh maxAge.
    */
   async setRefresh(c: Context, token: string, maxAge?: number) {
-    await setSignedCookie(c, `${env.COOKIE_NAME}_refresh`, token, env.COOKIE_SECRET, {
+    await setSignedCookie(c, `${cookieConfig.name}_refresh`, token, cookieConfig.secret, {
       ...baseOptions(),
-      maxAge: typeof maxAge === "number" ? maxAge : env.JWT_REFRESH_EXPIRY
+      maxAge: typeof maxAge === "number" ? maxAge : jwtConfig.refreshExpirySeconds
     });
   },
 
@@ -62,7 +62,7 @@ export const cookie = {
    * How: Resolves cookie by configured access cookie name.
    */
   async getAuth(c: Context) {
-    const token = await getSignedCookie(c, env.COOKIE_SECRET, `${env.COOKIE_NAME}_access`);
+    const token = await getSignedCookie(c, cookieConfig.secret, `${cookieConfig.name}_access`);
     return token || undefined;
   },
 
@@ -73,7 +73,7 @@ export const cookie = {
    * How: Resolves cookie by configured refresh cookie name.
    */
   async getRefresh(c: Context) {
-    const token = await getSignedCookie(c, env.COOKIE_SECRET, `${env.COOKIE_NAME}_refresh`);
+    const token = await getSignedCookie(c, cookieConfig.secret, `${cookieConfig.name}_refresh`);
     return token || undefined;
   },
 
@@ -84,7 +84,7 @@ export const cookie = {
    * How: Deletes cookie path-scoped to root.
    */
   deleteAuth(c: Context) {
-    deleteCookie(c, `${env.COOKIE_NAME}_access`, { path: "/" });
+    deleteCookie(c, `${cookieConfig.name}_access`, { path: "/" });
   },
 
   /**
@@ -94,6 +94,6 @@ export const cookie = {
    * How: Deletes cookie path-scoped to root.
    */
   deleteRefresh(c: Context) {
-    deleteCookie(c, `${env.COOKIE_NAME}_refresh`, { path: "/" });
+    deleteCookie(c, `${cookieConfig.name}_refresh`, { path: "/" });
   }
 };

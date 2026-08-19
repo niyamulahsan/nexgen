@@ -1,22 +1,9 @@
 import { and, eq, gt, lt } from "drizzle-orm";
 import type { Handler } from "hono";
-import { env } from "@/env.js";
-import {
-  cookie,
-  db,
-  dispatchEvent,
-  HttpStatusCodes,
-  jwt,
-  password,
-  urls
-} from "@/framework/facade.js";
+import { authConfig, jwtConfig } from "@/config/index.js";
+import { cookie, db, dispatchEvent, HttpStatusCodes, jwt, password, urls } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
-import {
-  emailVerificationTokens,
-  passwordResetTokens,
-  refreshTokens,
-  users
-} from "@/modules/auth/database/models/user.js";
+import { emailVerificationTokens, passwordResetTokens, refreshTokens, users } from "@/modules/auth/database/models/user.js";
 import {
   hashEmailVerificationToken,
   hashResetToken,
@@ -65,7 +52,7 @@ export const register: Handler = async (c: any) => {
 
     if (!user) throw new Error("Inserted user not found");
 
-    if (env.AUTH_REQUIRE_EMAIL_VERIFICATION) {
+    if (authConfig.requireEmailVerification) {
       const plainToken = makeEmailVerificationToken();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -77,19 +64,10 @@ export const register: Handler = async (c: any) => {
         createdAt: new Date()
       });
 
-      const verifyUrl = urls.url(
-        `/verify-email?token=${plainToken}&email=${encodeURIComponent(user.email)}`
-      );
-      await dispatchEvent(
-        "user:verify-email",
-        { email: user.email, name: user.name, verifyUrl },
-        { queue: "mail" }
-      );
+      const verifyUrl = urls.url(`/verify-email?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
+      await dispatchEvent("user:verify-email", { email: user.email, name: user.name, verifyUrl }, { queue: "mail" });
 
-      return c.json(
-        { message: "User registered successfully. Please verify your email before logging in." },
-        HttpStatusCodes.CREATED
-      );
+      return c.json({ message: "User registered successfully. Please verify your email before logging in." }, HttpStatusCodes.CREATED);
     }
 
     await revokeCurrentRefreshToken(c);
@@ -140,11 +118,8 @@ export const login: Handler = async (c: any) => {
       return c.json({ message: "Invalid credentials" }, HttpStatusCodes.UNAUTHORIZED);
     }
 
-    if (env.AUTH_REQUIRE_EMAIL_VERIFICATION && !user.emailVerifiedAt) {
-      return c.json(
-        { message: "Please verify your email before logging in" },
-        HttpStatusCodes.FORBIDDEN
-      );
+    if (authConfig.requireEmailVerification && !user.emailVerifiedAt) {
+      return c.json({ message: "Please verify your email before logging in" }, HttpStatusCodes.FORBIDDEN);
     }
 
     await revokeCurrentRefreshToken(c);
@@ -225,21 +200,12 @@ export const forgotPassword: Handler = async (c: any) => {
     const body = c.req.valid("json");
     await db
       .delete(passwordResetTokens)
-      .where(
-        and(
-          eq(passwordResetTokens.email, body.email),
-          lt(passwordResetTokens.expiresAt, new Date())
-        )
-      );
+      .where(and(eq(passwordResetTokens.email, body.email), lt(passwordResetTokens.expiresAt, new Date())));
 
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email)
     });
-    if (!user)
-      return c.json(
-        { message: "If this email exists, a reset link has been sent" },
-        HttpStatusCodes.OK
-      );
+    if (!user) return c.json({ message: "If this email exists, a reset link has been sent" }, HttpStatusCodes.OK);
 
     const plainToken = makeResetToken();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -252,25 +218,13 @@ export const forgotPassword: Handler = async (c: any) => {
       createdAt: new Date()
     });
 
-    const resetUrl = urls.url(
-      `/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`
-    );
-    await dispatchEvent(
-      "user:forget-password",
-      { email: user.email, name: user.name, resetUrl },
-      { queue: "mail" }
-    );
+    const resetUrl = urls.url(`/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
+    await dispatchEvent("user:forget-password", { email: user.email, name: user.name, resetUrl }, { queue: "mail" });
 
-    return c.json(
-      { message: "If this email exists, a reset link has been sent" },
-      HttpStatusCodes.OK
-    );
+    return c.json({ message: "If this email exists, a reset link has been sent" }, HttpStatusCodes.OK);
   } catch (error) {
     console.error("Forgot password error:", error);
-    return c.json(
-      { message: "Failed to process forgot password request" },
-      HttpStatusCodes.INTERNAL_SERVER_ERROR
-    );
+    return c.json({ message: "Failed to process forgot password request" }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
 
@@ -291,10 +245,7 @@ export const resetPassword: Handler = async (c: any) => {
     });
 
     if (!record) {
-      return c.json(
-        { message: "Invalid or expired reset token" },
-        HttpStatusCodes.UNPROCESSABLE_ENTITY
-      );
+      return c.json({ message: "Invalid or expired reset token" }, HttpStatusCodes.UNPROCESSABLE_ENTITY);
     }
 
     await db
@@ -310,8 +261,7 @@ export const resetPassword: Handler = async (c: any) => {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email)
     });
-    if (user)
-      await db.update(refreshTokens).set({ revoked: 1 }).where(eq(refreshTokens.userId, user.id));
+    if (user) await db.update(refreshTokens).set({ revoked: 1 }).where(eq(refreshTokens.userId, user.id));
 
     return c.json({ message: "Password reset successfully" }, HttpStatusCodes.OK);
   } catch (error) {
@@ -329,7 +279,7 @@ export const verifyEmail: Handler = async (c: any) => {
   try {
     const body = c.req.valid("json");
 
-    if (!env.AUTH_REQUIRE_EMAIL_VERIFICATION) {
+    if (!authConfig.requireEmailVerification) {
       return c.json({ message: "Email verification is not required" }, HttpStatusCodes.OK);
     }
 
@@ -342,16 +292,10 @@ export const verifyEmail: Handler = async (c: any) => {
     });
 
     if (!record) {
-      return c.json(
-        { message: "Invalid or expired verification token" },
-        HttpStatusCodes.UNPROCESSABLE_ENTITY
-      );
+      return c.json({ message: "Invalid or expired verification token" }, HttpStatusCodes.UNPROCESSABLE_ENTITY);
     }
 
-    await db
-      .update(users)
-      .set({ emailVerifiedAt: new Date(), updatedAt: new Date() })
-      .where(eq(users.email, body.email));
+    await db.update(users).set({ emailVerifiedAt: new Date(), updatedAt: new Date() }).where(eq(users.email, body.email));
     await db.delete(emailVerificationTokens).where(eq(emailVerificationTokens.email, body.email));
 
     return c.json({ message: "Email verified successfully" }, HttpStatusCodes.OK);
@@ -371,8 +315,7 @@ export const refreshToken: Handler = async (c: any) => {
     const body = c.req.valid("json");
     const payload = await jwt.verifyToken(body.refresh_token, "refresh");
 
-    if (!payload?.jti)
-      return c.json({ message: "Invalid refresh token" }, HttpStatusCodes.UNAUTHORIZED);
+    if (!payload?.jti) return c.json({ message: "Invalid refresh token" }, HttpStatusCodes.UNAUTHORIZED);
 
     const storedToken = await db.query.refreshTokens.findFirst({
       where: eq(refreshTokens.jti, payload.jti as string)
@@ -394,7 +337,7 @@ export const refreshToken: Handler = async (c: any) => {
     if (!user) return c.json({ message: "User not found" }, HttpStatusCodes.UNAUTHORIZED);
 
     const remember = !!payload.remember;
-    const refreshExpiry = remember ? env.JWT_REFRESH_REMEMBER_EXPIRY : undefined;
+    const refreshExpiry = remember ? jwtConfig.refreshRememberExpirySeconds : undefined;
     const accessToken = await jwt.generateToken(
       {
         id: user.id,
@@ -465,9 +408,6 @@ export const logoutAllDevices: Handler = async (c: any) => {
     return c.json({ message: "Logged out from all devices successfully" }, HttpStatusCodes.OK);
   } catch (error) {
     console.error("Logout all devices error:", error);
-    return c.json(
-      { message: "Failed to logout from all devices" },
-      HttpStatusCodes.INTERNAL_SERVER_ERROR
-    );
+    return c.json({ message: "Failed to logout from all devices" }, HttpStatusCodes.INTERNAL_SERVER_ERROR);
   }
 };

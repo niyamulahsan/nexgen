@@ -1,16 +1,13 @@
-import { startQueueWorker, stopQueueRuntime } from "@/framework/queue/queue.js";
+import { queueConfig } from "@/config/index.js";
 import { closeDatabase, initDatabase } from "@/framework/database/connection.js";
+import { pruneStaleQueues, startQueueWorker, stopQueueRuntime } from "@/framework/queue/queue.js";
 import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
-import {
-  parseCsvOrFallback,
-  registerShutdownSignals,
-  type ShutdownSignal
-} from "@/framework/support/lifecycle.js";
+import { parseCsvOrFallback, registerShutdownSignals, type ShutdownSignal } from "@/framework/support/lifecycle.js";
 import { logger } from "@/framework/support/logger.js";
 
 const queuesArg = process.argv.find((arg) => arg.startsWith("--queue="));
 const queueNames = queuesArg?.split("=")[1];
-const queues = parseCsvOrFallback(queueNames, ["default"]);
+const queues = parseCsvOrFallback(queueNames, queueConfig.queues);
 
 await initDatabase();
 await initRedis();
@@ -22,6 +19,7 @@ if (!redisReady()) {
 }
 
 await startQueueWorker(queues);
+await pruneStaleQueues(queues);
 console.log(`Queue worker started: ${queues.join(", ")}`);
 
 let shuttingDown = false;
@@ -31,7 +29,8 @@ async function shutdown(signal: ShutdownSignal) {
   shuttingDown = true;
 
   logger.info("Queue worker shutdown signal received", { signal });
-  await Promise.allSettled([stopQueueRuntime(), closeDatabase(), closeRedis()]);
+  await Promise.allSettled([stopQueueRuntime(), closeDatabase()]);
+  await closeRedis();
 
   process.exit(0);
 }

@@ -343,15 +343,15 @@ function save() {
 
 ## Styling
 
-The dialog creates its own absolutely-positioned overlay with a semi-transparent black background (`rgba(0, 0, 0, .5)`). The card itself uses Bootstrap utility classes:
+The dialog creates its own absolutely-positioned overlay. It uses the framework's CSS theme variables (`--app-backdrop`, `--app-text`) so it follows light/dark mode automatically:
 
-| Element | Classes | Description |
+| Element | Classes / Style | Description |
 |---------|---------|-------------|
-| Overlay | `position-fixed w-100 h-100 top-0 start-0` | Full-screen backdrop |
+| Overlay | `position-fixed w-100 h-100 top-0 start-0`, `background: var(--app-backdrop)`, `color: var(--app-text)` | Full-screen backdrop |
 | Card | `card position-absolute top-50 start-50 translate-middle border` | Centered card (300px width) |
-| Header | `card-header d-flex justify-content-between align-items-center px-2 py-1 bg-white border-0` | Title bar with site label and close button |
+| Header | `card-header d-flex justify-content-between align-items-center px-2 py-1 border-0` | Title bar with site label and close button |
 | Body | `card-body overflow-x-hidden overflow-y-scroll p-2 text-center` | Message area (max 200px height with scroll) |
-| Footer | `card-footer d-flex justify-content-end align-items-center px-2 py-1 bg-white border-0` | Button row |
+| Footer | `card-footer d-flex justify-content-end align-items-center px-2 py-1 border-0` | Button row |
 | OK button | `btn btn-primary btn-sm` | Primary action |
 | Cancel button | `btn btn-secondary btn-sm ms-1` | Secondary action |
 
@@ -365,26 +365,25 @@ You can customize the dialog appearance by overriding these classes in your own 
 }
 
 // Style the overlay
-div[style*="background: rgba(0, 0, 0, .5)"][style*="z-index: 100000"] {
+div[style*="z-index: 100000"] {
   backdrop-filter: blur(4px);
 }
 ```
 
 ### Theming
 
-Dialogs automatically inherit your Bootstrap theme variables. In dark mode, the `bg-white` classes on the card header and footer will appear white unless you customize them. You can override globally:
-
-```scss
-// Dark mode support
-[data-bs-theme="dark"] {
-  .card-header.bg-white,
-  .card-footer.bg-white {
-    background-color: var(--bs-dark) !important;
-  }
-}
-```
+Dialogs automatically inherit the framework theme variables. Because the overlay and card use `--app-backdrop`/`--app-text` and no longer hard-code `bg-white`, dialogs follow light and dark mode out of the box.
 
 ## Edge Cases & Graceful Degradation
+
+### Keyboard Shortcuts
+
+Dialogs support keyboard interaction out of the box:
+
+| Key | Action |
+|-----|--------|
+| `Enter` | Triggers OK (when focus is not on a textarea/input) |
+| `Escape` | Triggers Cancel (or closes the dialog) |
 
 ### Missing `#modal-show` Element
 

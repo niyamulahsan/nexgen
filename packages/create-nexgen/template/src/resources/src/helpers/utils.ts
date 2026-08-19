@@ -1,4 +1,5 @@
 import axios from "axios";
+import { DateTime } from "luxon";
 
 declare const route: (name: string, params?: Record<string, unknown>) => string;
 
@@ -65,4 +66,16 @@ export async function downloadFile(url: string, fileName: string): Promise<void>
 
 export async function downloadExcel(url: string, fileName: string): Promise<void> {
   await downloadFile(url, fileName);
+}
+
+export function formatTaxPeriod(value: string): string {
+  if (!value) return "";
+  const date = DateTime.fromFormat(value, "yyyy-MM");
+  return date.isValid ? date.toFormat("MMM yyyy") : value;
+}
+
+export function formatDate(value: string | null): string {
+  if (!value) return "";
+  const date = DateTime.fromISO(value);
+  return date.isValid ? date.toFormat("dd MMM yyyy") : value;
 }

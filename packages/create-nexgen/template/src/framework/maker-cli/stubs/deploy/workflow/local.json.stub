@@ -2,23 +2,23 @@
   "steps": [
     {
       "name": "Generate deploy files",
-      "run": "deploy:create --server --force",
+      "run": "deploy:init --force",
       "enabled": false
     },
     {
       "name": "Start shared infra",
-      "run": "deploy:server",
+      "run": "deploy:workflow --server-only",
       "enabled": true
+    },
+    {
+      "name": "Import database dump (optional)",
+      "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen",
+      "enabled": false
     },
     {
       "name": "Start app stack",
-      "run": "deploy:app",
+      "run": "deploy:workflow --app-only",
       "enabled": true
-    },
-    {
-      "name": "Import MySQL dump (optional)",
-      "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen",
-      "enabled": false
     }
   ]
 }

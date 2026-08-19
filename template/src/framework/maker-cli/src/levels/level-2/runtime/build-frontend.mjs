@@ -2,11 +2,11 @@ import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const isFalse = (v) => v === "false";
+const isFalse = (v) => v === "false" || v === "0";
 
 const envFile = resolve(process.cwd(), ".env");
 const fileDisabled =
-  existsSync(envFile) && /^FRONTEND=false\s*$/m.test(readFileSync(envFile, "utf-8"));
+  existsSync(envFile) && /^FRONTEND=(?:false|0)\s*$/m.test(readFileSync(envFile, "utf-8"));
 
 if (isFalse(process.env.FRONTEND) || fileDisabled) {
   console.log("Frontend build skipped (FRONTEND=false)");

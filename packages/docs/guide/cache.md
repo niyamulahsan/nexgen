@@ -14,13 +14,13 @@ The `cache` object is exported from the facade:
 import { cache } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
-| `cache.get(key, fallback?)` | Fetches a cached JSON value. Returns `fallback` (default `null`) on miss or when Redis is unavailable. |
-| `cache.put(key, value, ttl?)` | Stores a value with optional TTL (defaults to `CACHE_TTL_SECONDS`). Returns `false` if Redis is unavailable. |
-| `cache.forget(key)` | Deletes a cached key. Use when the source data changes and the cache must be invalidated. |
-| `cache.remember(key, ttl, callback)` | Cache-aside pattern — tries `get` first; on miss, executes `callback`, stores via `put`, and returns the fresh value. |
-| `cache.isAvailable()` | Returns `true` if Redis is configured and connected. Use as a runtime guard. |
+| Method                               | Purpose                                                                                                                 |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `cache.get(key, fallback?)`          | Fetches a cached JSON value. Returns `fallback` (default `null`) on miss or when Redis is unavailable.                  |
+| `cache.put(key, value, ttl?)`        | Stores a value with optional TTL (defaults to `ttlSeconds (config/cache.ts)`). Returns `false` if Redis is unavailable. |
+| `cache.forget(key)`                  | Deletes a cached key. Use when the source data changes and the cache must be invalidated.                               |
+| `cache.remember(key, ttl, callback)` | Cache-aside pattern — tries `get` first; on miss, executes `callback`, stores via `put`, and returns the fresh value.   |
+| `cache.isAvailable()`                | Returns `true` if Redis is configured and connected. Use as a runtime guard.                                            |
 
 ## Usage
 
@@ -31,7 +31,9 @@ import { cache } from "@/framework/facade.js";
 await cache.put("weather:london", { temp: 18, condition: "cloudy" }, 300);
 
 // Retrieve
-const weather = await cache.get<{ temp: number; condition: string }>("weather:london");
+const weather = await cache.get<{ temp: number; condition: string }>(
+  "weather:london",
+);
 ```
 
 ### Delete / invalidate
@@ -61,12 +63,12 @@ if (!stats) {
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `CACHE_TTL_SECONDS` | `3600` (1 hour) | Default TTL for cached values |
-| `REDIS` | `false` | Enable Redis (required for cache) |
-| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection string |
-| `REDIS_PREFIX` | `nexgen` | Key prefix for namespacing |
+| Variable       | Default                           | Description                       |
+| -------------- | --------------------------------- | --------------------------------- |
+| `ttlSeconds`   | `3600 (config/cache.ts)` (1 hour) | Default TTL for cached values     |
+| `REDIS`        | `false`                           | Enable Redis (required for cache) |
+| `REDIS_URL`    | `redis://127.0.0.1:6379`          | Redis connection string           |
+| `REDIS_PREFIX` | `nexgen`                          | Key prefix for namespacing        |
 
 ## How It Works
 

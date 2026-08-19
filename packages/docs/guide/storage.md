@@ -2,32 +2,34 @@
 
 ## Overview
 
-The storage facade provides a unified API for **local disk** and **S3-compatible** storage. Swap drivers by changing `STORAGE_DRIVER` — no code changes needed.
+The storage facade provides a unified API for **local disk** and **S3-compatible** storage. Swap drivers by changing `driver (config/storage.ts)` — no code changes needed.
 
 ## Disks
 
 Three isolated disk pools:
 
-| Disk | Purpose | Local path |
-|---|---|---|
-| `public` | Public files (avatars, uploads) | `src/storage/app/public/` |
+| Disk      | Purpose                         | Local path                 |
+| --------- | ------------------------------- | -------------------------- |
+| `public`  | Public files (avatars, uploads) | `src/storage/app/public/`  |
 | `private` | User-specific / sensitive files | `src/storage/app/private/` |
-| `tmp` | Ephemeral generated files | `src/storage/app/tmp/` |
+| `tmp`     | Ephemeral generated files       | `src/storage/app/tmp/`     |
 
 Set the default disk with `STORAGE_DISK=public` in `.env`.
 
 ## Configuration
 
-```env
-STORAGE_DRIVER=local              # local or s3
-STORAGE_DISK=public               # default disk
-STORAGE_BUCKET=your-bucket
-STORAGE_REGION=us-east-1
-STORAGE_ENDPOINT=                 # S3-compatible endpoint URL
-STORAGE_ACCESS_KEY_ID=
-STORAGE_SECRET_ACCESS_KEY=
-STORAGE_FORCE_PATH_STYLE=false    # true for MinIO
-STORAGE_SIGNED_URL_TTL_SECONDS=900
+```bash
+export const storageConfig = {
+  driver: "local",              # local or s3
+  defaultDisk: "public",        # default disk
+  bucket: "",
+  region: "us-east-1",
+  endpoint: "",                 # S3-compatible endpoint URL
+  forcePathStyle: false,
+  signedUrlTtlSeconds: 900,
+  accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+  secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY
+};
 ```
 
 ## Usage
@@ -64,63 +66,63 @@ await disk.exists("invoices/42.pdf");
 
 ### File Operations
 
-| Method | Description |
-|---|---|
-| `put(file, data)` | Write a file. `data` can be string, Buffer, Uint8Array, ArrayBuffer, Blob, or File |
-| `putFile(directory, file, name?)` | Store a browser `File`/`Blob` with unique naming |
-| `get(file)` | Read file content as Buffer |
-| `delete(file)` | Remove a file |
-| `copy(from, to)` | Duplicate a file within the same disk |
-| `move(from, to)` | Rename or relocate a file |
-| `exists(file)` | Check if file exists |
-| `missing(file)` | Inverse of `exists` — `true` when file does not exist |
+| Method                            | Description                                                                        |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `put(file, data)`                 | Write a file. `data` can be string, Buffer, Uint8Array, ArrayBuffer, Blob, or File |
+| `putFile(directory, file, name?)` | Store a browser `File`/`Blob` with unique naming                                   |
+| `get(file)`                       | Read file content as Buffer                                                        |
+| `delete(file)`                    | Remove a file                                                                      |
+| `copy(from, to)`                  | Duplicate a file within the same disk                                              |
+| `move(from, to)`                  | Rename or relocate a file                                                          |
+| `exists(file)`                    | Check if file exists                                                               |
+| `missing(file)`                   | Inverse of `exists` — `true` when file does not exist                              |
 
 ### Metadata
 
-| Method | Returns | Description |
-|---|---|---|
-| `size(file)` | `number` | File size in bytes |
-| `mimeType(file)` | `string` | MIME type (always `"application/octet-stream"` on local) |
-| `lastModified(file)` | `number` | Last modified timestamp (ms) |
+| Method               | Returns  | Description                                              |
+| -------------------- | -------- | -------------------------------------------------------- |
+| `size(file)`         | `number` | File size in bytes                                       |
+| `mimeType(file)`     | `string` | MIME type (always `"application/octet-stream"` on local) |
+| `lastModified(file)` | `number` | Last modified timestamp (ms)                             |
 
 ### Directory Operations
 
-| Method | Description |
-|---|---|
-| `files(directory?)` | List file names in a directory |
-| `directories(directory?)` | List subdirectory names |
-| `makeDirectory(directory)` | Create a directory |
+| Method                       | Description                             |
+| ---------------------------- | --------------------------------------- |
+| `files(directory?)`          | List file names in a directory          |
+| `directories(directory?)`    | List subdirectory names                 |
+| `makeDirectory(directory)`   | Create a directory                      |
 | `deleteDirectory(directory)` | Remove a directory and all its contents |
 
 ### Streaming
 
-| Method | Description |
-|---|---|
-| `readStream(file)` | Get a `Readable` stream of file content |
-| `writeStream(file, stream)` | Write a `Readable` stream to a file |
+| Method                      | Description                             |
+| --------------------------- | --------------------------------------- |
+| `readStream(file)`          | Get a `Readable` stream of file content |
+| `writeStream(file, stream)` | Write a `Readable` stream to a file     |
 
 ### URLs & Visibility
 
-| Method | Returns | Description |
-|---|---|---|
-| `url(file)` | `string` | Public URL for the file |
-| `temporaryUrl(file, ttl?)` | `string` | Signed URL with TTL (S3) or local proxy URL |
-| `path(file)` | `string` | Absolute local filesystem path (local driver only) |
-| `setVisibility(file, visibility)` | `string` | Toggle `"public"` / `"private"` ACL (S3 only) |
-| `getVisibility(file)` | `"public"` \| `"private"` | Read current ACL |
+| Method                            | Returns                   | Description                                        |
+| --------------------------------- | ------------------------- | -------------------------------------------------- |
+| `url(file)`                       | `string`                  | Public URL for the file                            |
+| `temporaryUrl(file, ttl?)`        | `string`                  | Signed URL with TTL (S3) or local proxy URL        |
+| `path(file)`                      | `string`                  | Absolute local filesystem path (local driver only) |
+| `setVisibility(file, visibility)` | `string`                  | Toggle `"public"` / `"private"` ACL (S3 only)      |
+| `getVisibility(file)`             | `"public"` \| `"private"` | Read current ACL                                   |
 
 ### Downloads
 
-| Method | Description |
-|---|---|
-| `download(c, file, filename?)` | Returns a `Response` with attachment headers for controller use |
-| `generateForDownload({ prefix, extension, data })` | Writes a temp file and returns its path for deferred download |
-| `consumeGenerated(file)` | Reads and **deletes** a temp file — one-time download |
+| Method                                             | Description                                                     |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| `download(c, file, filename?)`                     | Returns a `Response` with attachment headers for controller use |
+| `generateForDownload({ prefix, extension, data })` | Writes a temp file and returns its path for deferred download   |
+| `consumeGenerated(file)`                           | Reads and **deletes** a temp file — one-time download           |
 
 ## Examples
 
-> **Excel** examples use [`exceljs`](https://www.npmjs.com/package/exceljs) — install with `bun add exceljs`.  
-> **PDF** examples use [`playwright`](https://www.npmjs.com/package/playwright) — install with `bun add playwright && bunx playwright install chromium`.
+> **Excel** examples use [`exceljs`](https://www.npmjs.com/package/exceljs) — install with `npm run|pnpm|yarn|bun add exceljs`.  
+> **PDF** examples use [`playwright`](https://www.npmjs.com/package/playwright) — install with `npm run|pnpm|yarn|bun add playwright && npm run|pnpm|yarn|bun playwright install chromium`.
 
 ### Multipart File Upload
 
@@ -138,7 +140,7 @@ export const upload: Handler = async (c) => {
   return c.json({
     message: "File uploaded successfully",
     path,
-    url: storage.disk("public").url(path)
+    url: storage.disk("public").url(path),
   });
 };
 ```
@@ -151,24 +153,34 @@ export const importExcel: Handler = async (c) => {
 
   const body = await c.req.parseBody();
   const file = body.file;
-  if (!(file instanceof File)) return c.json({ message: "File is required" }, 422);
+  if (!(file instanceof File))
+    return c.json({ message: "File is required" }, 422);
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
 
   const sheet = workbook.worksheets[0];
-  const headers = sheet.getRow(1).values.slice(1).map((v: unknown) => String(v || "").trim());
+  const headers = sheet
+    .getRow(1)
+    .values.slice(1)
+    .map((v: unknown) => String(v || "").trim());
 
   const rows: Record<string, any>[] = [];
   sheet.eachRow((row: any, rowNumber: number) => {
     if (rowNumber === 1) return;
     const record: Record<string, any> = {};
-    headers.forEach((key, i) => { record[key] = row.values[i + 1]; });
+    headers.forEach((key, i) => {
+      record[key] = row.values[i + 1];
+    });
     rows.push(record);
   });
 
-  return c.json({ message: "Excel imported", totalRows: rows.length, preview: rows.slice(0, 20) });
+  return c.json({
+    message: "Excel imported",
+    totalRows: rows.length,
+    preview: rows.slice(0, 20),
+  });
 };
 ```
 
@@ -181,9 +193,12 @@ export const generateCsv: Handler = async () => {
   const token = await storage.generateForDownload({
     prefix: "report",
     extension: "csv",
-    data: csv
+    data: csv,
   });
-  return c.json({ token, downloadUrl: `/download/${encodeURIComponent(token)}` });
+  return c.json({
+    token,
+    downloadUrl: `/download/${encodeURIComponent(token)}`,
+  });
 };
 
 // GET /download/:token — serve once and delete
@@ -194,8 +209,8 @@ export const downloadCsv: Handler = async (c) => {
     return new Response(file, {
       headers: {
         "content-type": "text/csv; charset=utf-8",
-        "content-disposition": "attachment; filename=report.csv"
-      }
+        "content-disposition": "attachment; filename=report.csv",
+      },
     });
   } catch {
     return c.json({ message: "Download token expired or invalid" }, 404);
@@ -225,15 +240,23 @@ export const generateExcel: Handler = async (c: any) => {
   // Data rows
   const rows = [
     { id: 1, title: "nexgen framework" },
-    { id: 2, title: "file generation" }
+    { id: 2, title: "file generation" },
   ];
   for (const row of rows) {
     sheet.addRow([row.id, row.title, row.title.length]);
   }
 
   // Totals
-  sheet.addRow(["Subtotal", rows.length, { formula: `SUM(C3:C${2 + rows.length})` }]);
-  sheet.addRow(["Grand Total", rows.length, { formula: `SUM(C3:C${2 + rows.length})` }]);
+  sheet.addRow([
+    "Subtotal",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
+  sheet.addRow([
+    "Grand Total",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
 
   sheet.columns = [{ width: 10 }, { width: 38 }, { width: 14 }];
 
@@ -241,10 +264,13 @@ export const generateExcel: Handler = async (c: any) => {
   const token = await storage.generateForDownload({
     prefix: "report",
     extension: "xlsx",
-    data: buffer
+    data: buffer,
   });
 
-  return c.json({ token, downloadUrl: `/download/excel/${encodeURIComponent(token)}` });
+  return c.json({
+    token,
+    downloadUrl: `/download/excel/${encodeURIComponent(token)}`,
+  });
 };
 ```
 
@@ -264,9 +290,12 @@ export const generatePdf: Handler = async (c: any) => {
     const token = await storage.generateForDownload({
       prefix: "report",
       extension: "pdf",
-      data: pdf
+      data: pdf,
     });
-    return c.json({ token, downloadUrl: `/download/pdf/${encodeURIComponent(token)}` });
+    return c.json({
+      token,
+      downloadUrl: `/download/pdf/${encodeURIComponent(token)}`,
+    });
   } finally {
     await browser.close();
   }
@@ -284,15 +313,23 @@ export const generatePdfQueued: Handler = async (c: any) => {
   const requestId = crypto.randomUUID();
 
   await cache.put(`pdf:status:${requestId}`, { state: "pending" }, 1800);
-  await dispatchCommand("report.pdf.generate", { requestId, ...body }, {
-    async: true, queue: "default"
-  });
+  await dispatchCommand(
+    "report.pdf.generate",
+    { requestId, ...body },
+    {
+      async: true,
+      queue: "default",
+    },
+  );
 
-  return c.json({
-    requestId,
-    statusUrl: `/pdf/${requestId}`,
-    downloadUrl: `/pdf/${requestId}`
-  }, 202);
+  return c.json(
+    {
+      requestId,
+      statusUrl: `/pdf/${requestId}`,
+      downloadUrl: `/pdf/${requestId}`,
+    },
+    202,
+  );
 };
 
 // Controller: poll status, then serve
@@ -302,15 +339,16 @@ export const downloadPdf: Handler = async (c) => {
 
   if (!status) return c.json({ message: "Unknown request" }, 404);
   if (status.state === "pending") return c.json({ state: "pending" }, 202);
-  if (status.state === "failed") return c.json({ message: status.message }, 500);
+  if (status.state === "failed")
+    return c.json({ message: status.message }, 500);
 
   const file = await storage.consumeGenerated(status.token);
   await cache.forget(`pdf:status:${requestId}`);
   return new Response(file, {
     headers: {
       "content-type": "application/pdf",
-      "content-disposition": "attachment; filename=report.pdf"
-    }
+      "content-disposition": "attachment; filename=report.pdf",
+    },
   });
 };
 
@@ -321,7 +359,11 @@ shouldQueue("report.pdf.generate", "default", async (job) => {
     const token = await generatePdfToken({ title, rows });
     await cache.put(`pdf:status:${requestId}`, { state: "ready", token }, 1800);
   } catch (error) {
-    await cache.put(`pdf:status:${requestId}`, { state: "failed", message: String(error) }, 1800);
+    await cache.put(
+      `pdf:status:${requestId}`,
+      { state: "failed", message: String(error) },
+      1800,
+    );
   }
 });
 ```
@@ -332,7 +374,7 @@ shouldQueue("report.pdf.generate", "default", async (job) => {
 export const streamVideo: Handler = async (c: any) => {
   const stream = await storage.disk("public").readStream("videos/tutorial.mp4");
   return new Response(stream as any, {
-    headers: { "content-type": "video/mp4" }
+    headers: { "content-type": "video/mp4" },
   });
 };
 ```
@@ -341,7 +383,9 @@ export const streamVideo: Handler = async (c: any) => {
 
 ```ts
 // Rename after processing
-const finalPath = await storage.disk("public").move("uploads/temp.jpg", "images/processed.jpg");
+const finalPath = await storage
+  .disk("public")
+  .move("uploads/temp.jpg", "images/processed.jpg");
 ```
 
 ### Copy Across Disks (Manual)
@@ -355,9 +399,9 @@ await storage.disk("tmp").delete("exports/report.csv");
 
 ## S3 Provider Compatibility
 
-| Provider | `STORAGE_ENDPOINT` | `FORCE_PATH_STYLE` |
-|---|---|---|
-| AWS S3 | (empty) | `false` |
-| DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com` | `false` |
-| Cloudflare R2 | `https://<account>.r2.cloudflarestorage.com` | `false` |
-| MinIO | `http://localhost:9000` | `true` |
+| Provider            | `STORAGE_ENDPOINT`                           | `FORCE_PATH_STYLE` |
+| ------------------- | -------------------------------------------- | ------------------ |
+| AWS S3              | (empty)                                      | `false`            |
+| DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com`    | `false`            |
+| Cloudflare R2       | `https://<account>.r2.cloudflarestorage.com` | `false`            |
+| MinIO               | `http://localhost:9000`                      | `true`             |

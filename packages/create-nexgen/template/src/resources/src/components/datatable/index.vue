@@ -1,43 +1,25 @@
 <template>
-  <div class="card border h-100">
-    <div
-      class="card-header"
-      :class="{ 'd-none': !(props.removable || props.searchable || props.optionable) }">
+  <div class="card border">
+    <div class="card-header" :class="{ 'd-none': !(props.removable || props.searchable || props.optionable) }">
       <div class="row align-items-center gx-1">
         <div class="col-12 col-md-3">
-          <SelectOption
-            :is-options="props.optionable"
-            :option="props.option"
-            :data="dataForOption"
-            :selectedoption="selectedoption"
-            :search="searchdata" />
+          <SelectOption :is-options="props.optionable" :option="props.option" :data="dataForOption"
+            :selectedoption="selectedoption" :search="searchdata" />
         </div>
         <div class="col-12 col-md-9">
           <slot name="extra-tools"></slot>
           <div class="d-flex align-items-center justify-content-center justify-content-md-end">
-            <div
-              v-if="checked.checkcolumn.length > 0"
-              class="me-1"
-              :class="{ 'd-none': !props.removable }">
+            <div v-if="checked.checkcolumn.length > 0" class="me-1" :class="{ 'd-none': !props.removable }">
               <Button type="button" class="btn btn-outline-danger" @click.prevent="remove">
                 <i class="bi bi-trash"></i>
               </Button>
             </div>
             <div class="d-flex align-items-center" :class="{ 'd-none': !props.searchable }">
-              <Button
-                class="btn btn-outline-secondary rounded-0 rounded-start"
-                type="button"
-                @click="searchMe">
+              <Button class="btn btn-outline-secondary rounded-0 rounded-start" type="button" @click="searchMe">
                 <i class="bi bi-search"></i>
               </Button>
-              <Input
-                v-model="searchdata"
-                type="text"
-                class="w-auto rounded-0 rounded-end"
-                topclass="mb-0"
-                placeholder="Search..."
-                @keyup.enter="searchMe"
-                @keyup.delete="searchMe" />
+              <Input v-model="searchdata" type="text" class="w-auto rounded-0 rounded-end" topclass="mb-0"
+                placeholder="Search..." @keyup.enter="searchMe" @keyup.delete="searchMe" />
             </div>
           </div>
         </div>
@@ -51,14 +33,8 @@
           <slot name="customhead"></slot>
           <thead :class="{ 'd-none': slots.customhead }">
             <tr>
-              <th
-                class="align-middle"
-                :class="{ 'd-none': !props.removable || !props.data.current_page }">
-                <Checkbox
-                  v-model="checked.check"
-                  topclass="ms-2"
-                  :value="checked.check"
-                  :disabled="props.disabled"
+              <th class="align-middle" :class="{ 'd-none': !props.removable || !props.data.current_page }">
+                <Checkbox v-model="checked.check" topclass="ms-2" :value="checked.check" :disabled="props.disabled"
                   @click="checkAll" />
               </th>
               <th class="text-center align-middle" :class="{ 'd-none': !props.countable }">#</th>
@@ -69,14 +45,8 @@
           <slot name="custombody"></slot>
           <tbody :class="{ 'd-none': slots.custombody }">
             <tr v-for="(dt, i) in tableRows" :key="`${dt.id}-${i}`">
-              <td
-                class="align-middle"
-                :class="{ 'd-none': !props.removable || !props.data.current_page }">
-                <Checkbox
-                  v-model="checked.checkcolumn"
-                  topclass="ms-2"
-                  :value="dt.id"
-                  :disabled="props.disabled"
+              <td class="align-middle" :class="{ 'd-none': !props.removable || !props.data.current_page }">
+                <Checkbox v-model="checked.checkcolumn" topclass="ms-2" :value="dt.id" :disabled="props.disabled"
                   @change="updateChecked" />
               </td>
               <td class="text-center align-middle" :class="{ 'd-none': !props.countable }">
@@ -148,7 +118,7 @@ const slots = useSlots();
 const emit = defineEmits<(event: "remove", value: Array<string | number>) => void>();
 
 // checkbox select
-let checked = reactive<{ check: boolean; checkcolumn: Array<string | number> }>({
+let checked = reactive<{ check: boolean; checkcolumn: Array<string | number>; }>({
   check: false,
   checkcolumn: []
 });
@@ -163,10 +133,7 @@ const checkAll = () => {
     checked.checkcolumn = [];
   }
 };
-const updateChecked = () =>
-  checked.checkcolumn.length === props.data.data.length
-    ? (checked.check = true)
-    : (checked.check = false);
+const updateChecked = () => checked.checkcolumn.length === props.data.data.length ? (checked.check = true) : (checked.check = false);
 
 // remove from parent
 const remove = () => {

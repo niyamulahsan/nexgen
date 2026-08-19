@@ -38,9 +38,7 @@ const topclass = computed(() => ($attrs.topclass as string | undefined) || "");
 
 const isChecked = computed(() => Boolean(props.checked));
 
-const wrapperClass = computed(() =>
-  props.vertical ? `text-center ${topclass.value}`.trim() : ""
-);
+const wrapperClass = computed(() => props.vertical ? `text-center ${topclass.value}`.trim() : "");
 
 const statusHtml = computed(() => {
   if (isChecked.value) {

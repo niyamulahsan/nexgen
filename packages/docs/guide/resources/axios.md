@@ -10,25 +10,21 @@ import "@/plugins/axios";
 
 | Setting | Value |
 |---------|-------|
-| `baseURL` | `""` (proxied by Vite to `env.APP_URL`) |
-| `withCredentials` | `true` (sends cookies) |
+| `baseURL` | `VITE_API_URL` env var (empty by default — proxied by Vite to `APP_URL`) |
+| `withCredentials` | `true` (sends cookies cross-origin) |
+| `Accept` | `application/json` |
 | `X-Requested-With` | `XMLHttpRequest` |
 
-## Response interceptor
+## 401 interceptor
 
-A 401 response interceptor redirects to `/login` when the session expires:
+When a response returns `401` and the current page is not an auth page, axios redirects to `/login` with a `redirect` query param so the user returns to the original page after login:
 
 ```ts
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
+// Current page: /dashboard
+// 401 response → redirects to /login?redirect=%2Fdashboard
 ```
+
+Auth pages (`/login`, `/register`, `/forget-password`, `/reset-password`, `/verify-email`) are excluded from the redirect.
 
 ## Usage
 
@@ -38,4 +34,11 @@ Import axios directly in any component or store:
 import axios from "axios";
 
 const response = await axios.get("/api/users");
+```
+
+Or use it through Gum for SPA-style visits:
+
+```ts
+const gum = useGum();
+await gum.get("/api/users", { routePath: "/users" });
 ```

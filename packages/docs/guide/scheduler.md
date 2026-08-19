@@ -18,33 +18,73 @@ defineSchedule({
   expression: "0 */6 * * *",
   handler: async () => {
     // cleanup logic
-  }
+  },
 });
 ```
 
 ## Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `name` | `string` | — | **Required.** Unique identifier used as the lock key |
-| `expression` | `string` | — | **Required.** Cron expression (`* * * * *`) |
-| `handler` | `function` | — | **Required.** Async function with the task logic |
-| `timezone` | `string` | server TZ | Timezone for cron evaluation (e.g. `"America/New_York"`) |
-| `runOnInit` | `boolean` | `false` | Run the handler immediately when the scheduler starts |
-| `enabled` | `boolean` | `true` | Set to `false` to disable without deleting |
-| `ttlMs` | `number` | `120000` | Lock TTL in milliseconds — prevents overlap if a run exceeds this |
+| Option       | Type       | Default   | Description                                                       |
+| ------------ | ---------- | --------- | ----------------------------------------------------------------- |
+| `name`       | `string`   | —         | **Required.** Unique identifier used as the lock key              |
+| `expression` | `string`   | —         | **Required.** Cron expression (`* * * * *`)                       |
+| `handler`    | `function` | —         | **Required.** Async function with the task logic                  |
+| `timezone`   | `string`   | server TZ | Timezone for cron evaluation (e.g. `"America/New_York"`)          |
+| `runOnInit`  | `boolean`  | `false`   | Run the handler immediately when the scheduler starts             |
+| `enabled`    | `boolean`  | `true`    | Set to `false` to disable without deleting                        |
+| `ttlMs`      | `number`   | `120000`  | Lock TTL in milliseconds — prevents overlap if a run exceeds this |
 
 ## Start the Scheduler
 
-```bash
+::: code-group
+
+```bash [npm]
+npm run maker schedule:work
+npm run maker schedule:work --prod --runtime=bun
+```
+
+```bash [pnpm]
+pnpm maker schedule:work
+pnpm maker schedule:work --prod --runtime=bun
+```
+
+```bash [yarn]
+yarn maker schedule:work
+yarn maker schedule:work --prod --runtime=bun
+```
+
+```bash [bun]
+bun maker schedule:work
 bun maker schedule:work --prod --runtime=bun
 ```
 
+:::
+
 The scheduler process:
+
 1. Connects to database and Redis
 2. Auto-discovers all `console/` files
-3. Registers cron jobs via `node-cron`
+3. Registers cron jobs via `croner`
 4. Wraps each handler in a distributed lock
+
+### Console output
+
+When the scheduler starts, it prints a header and runs any `runOnInit` schedules immediately (sequentially):
+
+```
+Running Scheduled Commands
+============================================================
+ cleanup-temp-files .......... 0.02s
+```
+
+After every scheduled run, the scheduler logs the task name with its elapsed time, or `FAIL` if the handler threw:
+
+```
+ send-pending-notifications .......... 1.34s
+ health-check .......... FAIL
+```
+
+`startScheduler()` returns the number of registered schedules so callers can log it (e.g. `Scheduler started [3 schedule(s)]`).
 
 ## Locking
 
@@ -74,15 +114,23 @@ defineSchedule({
   expression: "0 2 * * *",
   handler: async () => {
     // 1. Queue the heavy work
-    await dispatchEvent("report.generate", { date: "yesterday" }, {
-      queue: "default"
-    });
+    await dispatchEvent(
+      "report.generate",
+      { date: "yesterday" },
+      {
+        queue: "default",
+      },
+    );
 
     // 2. Notify admins it's running
-    await dispatchEvent("report.started", { date: "yesterday" }, {
-      broadcast: { roles: ["admin"] }
-    });
-  }
+    await dispatchEvent(
+      "report.started",
+      { date: "yesterday" },
+      {
+        broadcast: { roles: ["admin"] },
+      },
+    );
+  },
 });
 
 // Every hour: check and send pending notifications
@@ -95,10 +143,10 @@ defineSchedule({
     for (const notif of pending) {
       await dispatchEvent("notification.send", notif, {
         queue: "mail",
-        broadcast: { users: [notif.userId] }
+        broadcast: { users: [notif.userId] },
       });
     }
-  }
+  },
 });
 
 // Every 5 minutes: health check, broadcast to admins
@@ -110,10 +158,10 @@ defineSchedule({
 
     if (!status.ok) {
       await dispatchEvent("system.alert", status, {
-        broadcast: { roles: ["admin"] }
+        broadcast: { roles: ["admin"] },
       });
     }
-  }
+  },
 });
 ```
 
@@ -138,13 +186,21 @@ defineSchedule({
   name: "daily-report",
   expression: "0 2 * * *",
   handler: async () => {
-    await dispatchEvent("report.generate", { date: "yesterday" }, {
-      queue: "default"
-    });
-    await dispatchEvent("report.started", { date: "yesterday" }, {
-      broadcast: { roles: ["admin"] }
-    });
-  }
+    await dispatchEvent(
+      "report.generate",
+      { date: "yesterday" },
+      {
+        queue: "default",
+      },
+    );
+    await dispatchEvent(
+      "report.started",
+      { date: "yesterday" },
+      {
+        broadcast: { roles: ["admin"] },
+      },
+    );
+  },
 });
 ```
 
@@ -155,9 +211,13 @@ shouldQueue("report.generate", "default", async (job) => {
   const { date } = job.data;
   const pdfUrl = await generatePdfReport(date);
 
-  await dispatchEvent("report.completed", { date, pdfUrl }, {
-    broadcast: { roles: ["admin"] }
-  });
+  await dispatchEvent(
+    "report.completed",
+    { date, pdfUrl },
+    {
+      broadcast: { roles: ["admin"] },
+    },
+  );
 });
 ```
 

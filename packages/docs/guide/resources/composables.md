@@ -1,49 +1,95 @@
 # Composables
 
-Composables live in `src/resources/src/composables/`. The only remaining composable with real logic is `useAuth`.
+Composables live in `src/resources/src/composables/`.
 
 ## `useAuth`
 
-The `useAuth` composable provides HTTP logic for authentication. It is consumed by the auth Pinia store (`stores/auth.ts`) and should not be used directly in components — use `useAuthStore()` instead.
+The `useAuth` composable provides reactive user state. The auth Pinia store (`stores/auth.ts`) calls `setUser()` / `clearUser()` internally — components read from `useAuth()`.
 
 ```ts
 import { useAuth } from "@/composables/useAuth";
 ```
 
+### Return values
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `user` | `Readonly<Ref<AuthUser \| null>>` | Current authenticated user (readonly) |
+| `isAuthenticated` | `ComputedRef<boolean>` | `true` when a user is logged in |
+| `setUser` | `(user: AuthUser \| null) => void` | Set the user (called by auth store) |
+| `clearUser` | `() => void` | Clear the user (called by auth store) |
+
+### Types
+
 ```ts
-export function useAuth() {
-  function login(
-    credentials: { email: string; password: string },
-    callbacks?: { onSuccess?: () => void; onError?: (errors: any) => void }
-  ): Promise<void> { /* ... */ }
+type AuthUser = Record<string, unknown> & {
+  id?: string | number;
+  name?: string;
+  role?: RoleLike | null;
+  roles?: RoleLike[] | null;
+};
 
-  function register(
-    data: { name: string; email: string; password: string; password_confirmation: string },
-    callbacks?: { onSuccess?: () => void; onError?: (errors: any) => void }
-  ): Promise<void> { /* ... */ }
+type RoleLike = {
+  id?: string | number;
+  name?: string;
+  title?: string;
+  slug?: string;
+};
+```
 
-  function logout(): Promise<void> { /* ... */ }
+### Usage
 
-  function forgotPassword(
-    email: string,
-    callbacks?: { onSuccess?: () => void; onError?: (errors: any) => void }
-  ): Promise<void> { /* ... */ }
+```vue
+<script setup lang="ts">
+import { useAuth } from "@/composables/useAuth";
 
-  function resetPassword(
-    data: { token: string; email: string; password: string; password_confirmation: string },
-    callbacks?: { onSuccess?: () => void; onError?: (errors: any) => void }
-  ): Promise<void> { /* ... */ }
+const { user, isAuthenticated } = useAuth();
+</script>
 
-  function verifyEmail(
-    data: { id: string; hash: string },
-    callbacks?: { onSuccess?: () => void; onError?: (errors: any) => void }
-  ): Promise<void> { /* ... */ }
+<template>
+  <div v-if="isAuthenticated">
+    Welcome, {{ user?.name }}
+  </div>
+  <div v-else>
+    Please log in.
+  </div>
+</template>
+```
 
-  return { login, register, logout, forgotPassword, resetPassword, verifyEmail };
+## `hasRole`
+
+Standalone function to check if the current user has a specific role.
+
+```ts
+import { hasRole } from "@/composables/useAuth";
+
+// Check if user has "admin" role
+if (hasRole("admin")) {
+  // show admin panel
+}
+
+// Check if user has any role
+if (hasRole()) {
+  // user has at least one role
+}
+
+// Check if user has any of the listed roles
+if (hasRole("admin", "editor")) {
+  // user is admin OR editor
 }
 ```
 
-Each method calls the corresponding API endpoint and supports `onSuccess`/`onError` callbacks. The auth store wraps these methods with its own state management (user, loading).
+Role matching is case-insensitive and checks `name`, `title`, or `slug` on each role object.
+
+## `authUser`
+
+Standalone computed that returns the current user or an empty object:
+
+```ts
+import { authUser } from "@/composables/useAuth";
+
+// authUser.value is AuthUser (never null — defaults to {})
+```
 
 ### Removed composables
 

@@ -38,9 +38,7 @@ await initDatabase();
 try {
   const moduleArg = process.argv.find((arg) => arg.startsWith("--module="));
   const moduleName = moduleArg?.split("=")[1]?.trim();
-  const pattern = moduleName
-    ? `${moduleName}/database/seeders/*.{ts,js}`
-    : "**/database/seeders/*.{ts,js}";
+  const pattern = moduleName ? `${moduleName}/database/seeders/*.{ts,js}` : "**/database/seeders/*.{ts,js}";
 
   const files = await discoverModuleFiles(pattern);
   const seeders: SeederEntry[] = [];
@@ -51,10 +49,7 @@ try {
       const table: any = mod.table;
       const entry: SeederEntry = {
         file,
-        name: file
-          .split(/[\\/]/)
-          .pop()!
-          .replace(/\.(ts|js)$/, ""),
+        name: file.split(/[\\/]/).pop()!.replace(/\.(ts|js)$/, ""),
         execute: () => mod.default(),
         dependsOn: table ? getTableDeps(table) : []
       };
@@ -127,9 +122,7 @@ try {
     await s.execute();
   }
 
-  console.log(
-    `Executed ${sorted.length} seeder file(s)${moduleName ? ` for module ${moduleName}` : ""}`
-  );
+  console.log(`Executed ${sorted.length} seeder file(s)${moduleName ? ` for module ${moduleName}` : ""}`);
 } finally {
   await closeDatabase();
 }

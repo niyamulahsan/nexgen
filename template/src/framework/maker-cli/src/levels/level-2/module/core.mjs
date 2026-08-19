@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { glob } from "glob";
 import { detectDialect, openApiEnabled } from "../../level-1/env-db.mjs";
-import { writeFileAlways, writeFiles } from "../../level-1/file-ops.mjs";
+import { writeFiles } from "../../level-1/file-ops.mjs";
 import { hasFlag } from "../../level-1/flags.mjs";
 import { assertName, pascal } from "../../level-1/naming.mjs";
 import { packageScript, runNodeScript } from "../../level-1/process.mjs";
@@ -41,9 +41,13 @@ const STUBS = {
     named: "seeder/name.ts.stub"
   },
   example: {
-    schema: "example/schema.ts.stub",
+    schema: {
+      openapi: "example/schema.ts.stub",
+      plain: "example/schema.plain.ts.stub"
+    },
     controller: "example/controller.ts.stub",
     routeApi: "example/route.api.ts.stub",
+    routePlain: "example/route.plain.ts.stub",
     job: "example/job.ts.stub",
     console: "example/console.ts.stub"
   },
@@ -55,11 +59,16 @@ const STUBS = {
   },
   notification: {
     controller: "notification/controller.ts.stub",
-    schema: "notification/schema.ts.stub",
+    schema: {
+      openapi: "notification/schema.ts.stub",
+      plain: "notification/schema.plain.ts.stub"
+    },
     routeApi: "notification/route.api.ts.stub",
-    job: "notification/job.ts.stub",
-    bell: "notification/NotificationBell.vue.stub",
-    page: "notification/index.vue.stub"
+    routePlain: "notification/route.plain.ts.stub",
+    job: "notification/job.ts.stub"
+  },
+  test: {
+    unit: "test/unit.ts.stub"
   }
 };
 
@@ -123,6 +132,7 @@ async function controllerFiles(moduleName, controllerName = moduleName, options 
     [`controllers/${controller}.controller.ts`]: await stub(controllerStub, {
       module: moduleName,
       controller,
+      ClassName: pascal(controller),
       name: moduleName,
       tableVariable: `${controller}s`
     })
@@ -265,20 +275,23 @@ export async function makeModule(rawName) {
 export async function makeExampleModule(rawName = "example") {
   const moduleName = assertName(rawName || "example", "Module name");
   const root = path.resolve(process.cwd(), "src/modules", moduleName);
+  const openApi = openApiEnabled();
   await writeFiles(root, {
-    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.example.schema, {
-      module: moduleName
-    }),
+    [`controllers/${moduleName}.schema.ts`]: await stub(
+      openApi ? STUBS.example.schema.openapi : STUBS.example.schema.plain,
+      { module: moduleName }
+    ),
     [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.example.controller, {
       module: moduleName
     }),
-    "routes/api.ts": await stub(STUBS.example.routeApi, { module: moduleName }),
+    "routes/api.ts": await stub(openApi ? STUBS.example.routeApi : STUBS.example.routePlain, { module: moduleName }),
     [`jobs/${moduleName}.ts`]: await stub(STUBS.example.job, { module: moduleName }),
     [`console/${moduleName}.ts`]: await stub(STUBS.example.console, { module: moduleName })
   });
   await fs.mkdir(path.join(root, "database", "models"), { recursive: true });
   await fs.mkdir(path.join(root, "database", "seeders"), { recursive: true });
   console.log(`Example module ready: ${moduleName}`);
+  console.log(`Route style: ${openApi ? "openapi" : "plain"}`);
 }
 
 /** Generate a route file for an existing module. */
@@ -317,133 +330,27 @@ export async function makeRoute(rawModule, rawControllerOrFlag, extraFlags = [])
   console.log(`Route ready: ${path.relative(process.cwd(), routePath)}`);
 }
 
-/** Add a notification child route under dashlayout in the Vue router. */
-async function addNotificationRoute(moduleName) {
-  const filePath = path.resolve(process.cwd(), "src/resources/src/router/index.ts");
-  let content;
-  try {
-    content = await fs.readFile(filePath, "utf-8");
-  } catch {
-    return;
-  }
-  if (content.includes(`path: "/${moduleName}s"`)) return;
-
-  const block = `\
-      {
-        path: "/${moduleName}s",
-        name: "${moduleName}s",
-        component: () => import("@/pages/${moduleName}s/index.vue"),
-        meta: { requiresAuth: true }
-      },
-    ]`;
-
-  if (!content.includes("    ]")) return;
-  content = content.replace("    ]", block);
-  await fs.writeFile(filePath, content, "utf-8");
-  console.log(`  + Added route  /${moduleName}s  → src/resources/src/router/index.ts`);
-}
-
-/** Remove a notification child route from the Vue router. */
-async function removeNotificationRoute(moduleName) {
-  const filePath = path.resolve(process.cwd(), "src/resources/src/router/index.ts");
-  let content;
-  try {
-    content = await fs.readFile(filePath, "utf-8");
-  } catch {
-    return;
-  }
-
-  const route = `\
-      {
-        path: "/${moduleName}s",
-        name: "${moduleName}s",
-        component: () => import("@/pages/${moduleName}s/index.vue"),
-        meta: { requiresAuth: true }
-      },\n`;
-
-  if (!content.includes(route.trim())) return;
-  content = content.replace(route, "");
-  await fs.writeFile(filePath, content, "utf-8");
-  console.log(`  - Removed route  /${moduleName}s  from src/resources/src/router/index.ts`);
-}
-
-/** Add NotificationBell import and component to Header.vue. */
-async function addNotificationBellToHeader() {
-  const filePath = path.resolve(process.cwd(), "src/resources/src/layouts/Layout/Header.vue");
-  let content;
-  try {
-    content = await fs.readFile(filePath, "utf-8");
-  } catch {
-    return;
-  }
-
-  if (content.includes("NotificationBell")) return;
-
-  content = content.replace(
-    `import { authUser } from "@/composables/useAuth";`,
-    `import { authUser } from "@/composables/useAuth";\nimport NotificationBell from "@/components/NotificationBell.vue";`
-  );
-
-  content = content.replace(
-    `<div class="btn-group order-4 order-sm-3">`,
-    `<NotificationBell class="order-2 order-sm-3" />\n        <div class="btn-group order-4 order-sm-3">`
-  );
-
-  await fs.writeFile(filePath, content, "utf-8");
-  console.log(`  + Added NotificationBell  → src/resources/src/layouts/Layout/Header.vue`);
-}
-
-/** Remove NotificationBell import and component from Header.vue. */
-async function removeNotificationBellFromHeader() {
-  const filePath = path.resolve(process.cwd(), "src/resources/src/layouts/Layout/Header.vue");
-  let content;
-  try {
-    content = await fs.readFile(filePath, "utf-8");
-  } catch {
-    return;
-  }
-
-  const importLine = `import NotificationBell from "@/components/NotificationBell.vue";\n`;
-  const componentLine = `<NotificationBell class="order-2 order-sm-3" />\n        `;
-
-  content = content.replace(importLine, "");
-  content = content.replace(componentLine, "");
-
-  await fs.writeFile(filePath, content, "utf-8");
-  console.log(`  - Removed NotificationBell  from src/resources/src/layouts/Layout/Header.vue`);
-}
-
-/** Generate a notification module with controller, routes, job, and frontend files. */
+/** Generate a notification module with controller, routes, and job. */
 export async function makeNotificationModule(rawName = "notification") {
   const moduleName = assertName(rawName, "Module name");
   const root = path.resolve(process.cwd(), "src/modules", moduleName);
+  const openApi = openApiEnabled();
 
   await writeFiles(root, {
     [`controllers/${moduleName}.controller.ts`]: await stub(STUBS.notification.controller, {
       module: moduleName
     }),
-    [`controllers/${moduleName}.schema.ts`]: await stub(STUBS.notification.schema, {
-      module: moduleName
-    }),
-    "routes/api.ts": await stub(STUBS.notification.routeApi, { module: moduleName }),
+    [`controllers/${moduleName}.schema.ts`]: await stub(
+      openApi ? STUBS.notification.schema.openapi : STUBS.notification.schema.plain,
+      { module: moduleName }
+    ),
+    "routes/api.ts": await stub(openApi ? STUBS.notification.routeApi : STUBS.notification.routePlain, { module: moduleName }),
     [`jobs/${moduleName}.ts`]: await stub(STUBS.notification.job, { module: moduleName })
   });
 
-  await writeFileAlways(
-    path.resolve(process.cwd(), `src/resources/src/components/NotificationBell.vue`),
-    await stub(STUBS.notification.bell, { module: moduleName })
-  );
-
-  const pageDir = path.resolve(process.cwd(), `src/resources/src/pages/${moduleName}s`);
-  await writeFileAlways(
-    path.join(pageDir, "index.vue"),
-    await stub(STUBS.notification.page, { module: moduleName })
-  );
-
-  await addNotificationRoute(moduleName);
-  await addNotificationBellToHeader();
-
   console.log(`Notification module ready: ${moduleName}`);
+  console.log(`Route style: ${openApi ? "openapi" : "plain"}`);
+  console.log("See docs (packages/docs/guide/notification.md) for Vue frontend integration.");
 }
 
 /** Soft-delete a module by moving it to storage trash. */
@@ -491,35 +398,20 @@ export async function deleteModule(rawName, flags = []) {
   console.log(`Moved module to trash: ${path.relative(process.cwd(), trashPath)}`);
 }
 
-/** Remove a notification module and all its frontend files. */
+/** Remove a notification module (backend only — moves to trash). */
 export async function deleteNotificationModule(rawName = "notification", flags = []) {
   const moduleName = assertName(rawName, "Module name");
   const dryRun = hasFlag(flags, "--dry-run");
   const confirmed = hasFlag(flags, "--yes") || hasFlag(flags, "--force");
 
-  const tasks = [
-    { path: path.resolve(process.cwd(), "src/modules", moduleName), label: "Module" },
-    {
-      path: path.resolve(process.cwd(), "src/resources/src/components/NotificationBell.vue"),
-      label: "Bell component"
-    },
-    {
-      path: path.resolve(process.cwd(), `src/resources/src/pages/${moduleName}s`),
-      label: "Notifications page"
-    }
-  ];
-
-  const trashRoot = path.resolve(process.cwd(), "src/storage/trash/modules");
-  const stamp = new Date().toISOString().replace(/[.:]/g, "-");
+  const modulePath = path.resolve(process.cwd(), "src/modules", moduleName);
 
   if (dryRun) {
-    for (const task of tasks) {
-      const exists = await fs
-        .stat(task.path)
-        .then(() => true)
-        .catch(() => false);
-      if (exists) console.log(`Would delete: ${path.relative(process.cwd(), task.path)}`);
-    }
+    const exists = await fs
+      .stat(modulePath)
+      .then(() => true)
+      .catch(() => false);
+    if (exists) console.log(`Would delete: ${path.relative(process.cwd(), modulePath)}`);
     return;
   }
 
@@ -529,35 +421,34 @@ export async function deleteNotificationModule(rawName = "notification", flags =
     );
   }
 
-  await fs.mkdir(trashRoot, { recursive: true });
-
-  for (const task of tasks) {
-    const exists = await fs
-      .stat(task.path)
-      .then(() => true)
-      .catch(() => false);
-    if (!exists) continue;
-
-    const relPath = path.relative(process.cwd(), task.path);
-    const trashPath = path.join(trashRoot, `${relPath.replace(/[/\\]/g, "-")}-${stamp}`);
-
-    try {
-      await fs.rename(task.path, trashPath);
-    } catch (error) {
-      if (error?.code === "EPERM" || error?.code === "EXDEV") {
-        await fs.cp(task.path, trashPath, { recursive: true });
-        await fs.rm(task.path, { recursive: true, force: true });
-      } else {
-        throw error;
-      }
-    }
-    console.log(`Moved to trash: ${relPath}`);
+  const exists = await fs
+    .stat(modulePath)
+    .then(() => true)
+    .catch(() => false);
+  if (!exists) {
+    console.log("Notification module not found — nothing to delete.");
+    return;
   }
 
-  await removeNotificationRoute(moduleName);
-  await removeNotificationBellFromHeader();
+  const trashRoot = path.resolve(process.cwd(), "src/storage/trash/modules");
+  const stamp = new Date().toISOString().replace(/[.:]/g, "-");
+  await fs.mkdir(trashRoot, { recursive: true });
 
-  console.log(`Notification module deleted: ${moduleName}`);
+  const relPath = path.relative(process.cwd(), modulePath);
+  const trashPath = path.join(trashRoot, `${relPath.replace(/[/\\]/g, "-")}-${stamp}`);
+
+  try {
+    await fs.rename(modulePath, trashPath);
+  } catch (error) {
+    if (error?.code === "EPERM" || error?.code === "EXDEV") {
+      await fs.cp(modulePath, trashPath, { recursive: true });
+      await fs.rm(modulePath, { recursive: true, force: true });
+    } else {
+      throw error;
+    }
+  }
+  console.log(`Moved to trash: ${relPath}`);
+  console.log("Notification module deleted.");
 }
 
 /** Permanently remove entries from module trash storage. */
@@ -816,4 +707,27 @@ export async function runModuleMigrate(rawModuleName, rawArgs = []) {
     else process.env.DRIZZLE_SCHEMA = previousSchema;
     if (!keepTemp) await fs.rm(tempSchemaPath, { force: true }).catch(() => {});
   }
+}
+
+/** Generate a unit test file for a module. */
+export async function makeTest(rawModule, rawNameOrFlag, extraFlags = []) {
+  const moduleName = assertName(rawModule, "Module name");
+  const flags = [];
+  let name = moduleName;
+  if (rawNameOrFlag) {
+    if (rawNameOrFlag.startsWith("--")) flags.push(rawNameOrFlag);
+    else name = assertName(rawNameOrFlag, "Test name");
+  }
+  flags.push(...extraFlags);
+  const root = await assertModuleExists(moduleName);
+  const testDir = path.join(root, "__tests__");
+  await fs.mkdir(testDir, { recursive: true });
+  const testPath = path.join(testDir, `${name}.test.ts`);
+  await writeFileSafe(
+    testPath,
+    await stub(STUBS.test.unit, { module: moduleName, name }),
+    flags,
+    "Test file"
+  );
+  console.log(`Test ready: ${path.relative(process.cwd(), testPath)}`);
 }

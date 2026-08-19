@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { env } from "@/env.js";
+
+import { redisConfig } from "@/config/index.js";
 import { databaseDialect, databasePool } from "@/framework/database/connection.js";
 import { redis, redisReady } from "@/framework/redis/client.js";
 
@@ -22,15 +23,13 @@ async function ensureTable(tableName?: string) {
   }
 
   if (dialect === "postgresql") {
-    await pool.query(
+    await pool.unsafe(
       `CREATE TABLE IF NOT EXISTS "${lockTable}" (name VARCHAR(191) PRIMARY KEY, owner VARCHAR(191) NOT NULL, expires_at BIGINT NOT NULL)`
     );
     return;
   }
 
-  pool.exec(
-    `CREATE TABLE IF NOT EXISTS "${lockTable}" (name TEXT PRIMARY KEY, owner TEXT NOT NULL, expires_at INTEGER NOT NULL)`
-  );
+  await pool.execute(`CREATE TABLE IF NOT EXISTS "${lockTable}" (name TEXT PRIMARY KEY, owner TEXT NOT NULL, expires_at INTEGER NOT NULL)`);
 }
 
 async function acquireDbLock(name: string, owner: string, ttlMs: number, tableName?: string) {
@@ -42,11 +41,11 @@ async function acquireDbLock(name: string, owner: string, ttlMs: number, tableNa
   const expiresAt = now + ttlMs;
 
   if (dialect === "postgresql") {
-    const result = await pool.query(
+    const rows = await pool.unsafe(
       `INSERT INTO "${lockTable}" (name, owner, expires_at) VALUES ($1, $2, $3) ON CONFLICT (name) DO UPDATE SET owner = EXCLUDED.owner, expires_at = EXCLUDED.expires_at WHERE "${lockTable}".expires_at < $4 RETURNING owner`,
       [name, owner, expiresAt, now]
     );
-    return result.rows?.[0]?.owner === owner;
+    return rows?.[0]?.owner === owner;
   }
 
   if (dialect === "mysql") {
@@ -58,12 +57,15 @@ async function acquireDbLock(name: string, owner: string, ttlMs: number, tableNa
     return rows?.[0]?.owner === owner;
   }
 
-  pool
-    .prepare(
-      `INSERT INTO "${lockTable}" (name, owner, expires_at) VALUES (?, ?, ?) ON CONFLICT(name) DO UPDATE SET owner = excluded.owner, expires_at = excluded.expires_at WHERE "${lockTable}".expires_at < ?`
-    )
-    .run(name, owner, expiresAt, now);
-  return pool.prepare(`SELECT owner FROM "${lockTable}" WHERE name = ?`).get(name)?.owner === owner;
+  await pool.execute({
+    sql: `INSERT INTO "${lockTable}" (name, owner, expires_at) VALUES (?, ?, ?) ON CONFLICT(name) DO UPDATE SET owner = excluded.owner, expires_at = excluded.expires_at WHERE "${lockTable}".expires_at < ?`,
+    args: [name, owner, expiresAt, now]
+  });
+  const result = await pool.execute({
+    sql: `SELECT owner FROM "${lockTable}" WHERE name = ?`,
+    args: [name]
+  });
+  return result.rows?.[0]?.owner === owner;
 }
 
 async function releaseDbLock(name: string, owner: string, tableName?: string) {
@@ -71,17 +73,12 @@ async function releaseDbLock(name: string, owner: string, tableName?: string) {
   const dialect = databaseDialect();
   const lockTable = table(tableName);
 
-  if (dialect === "postgresql")
-    return await pool.query(`DELETE FROM "${lockTable}" WHERE name = $1 AND owner = $2`, [
-      name,
-      owner
-    ]);
-  if (dialect === "mysql")
-    return await pool.query(`DELETE FROM \`${lockTable}\` WHERE name = ? AND owner = ?`, [
-      name,
-      owner
-    ]);
-  return pool.prepare(`DELETE FROM "${lockTable}" WHERE name = ? AND owner = ?`).run(name, owner);
+  if (dialect === "postgresql") return await pool.unsafe(`DELETE FROM "${lockTable}" WHERE name = $1 AND owner = $2`, [name, owner]);
+  if (dialect === "mysql") return await pool.query(`DELETE FROM \`${lockTable}\` WHERE name = ? AND owner = ?`, [name, owner]);
+  await pool.execute({
+    sql: `DELETE FROM "${lockTable}" WHERE name = ? AND owner = ?`,
+    args: [name, owner]
+  });
 }
 
 /**
@@ -90,17 +87,13 @@ async function releaseDbLock(name: string, owner: string, tableName?: string) {
  * Where: Scheduler runtime around each cron job.
  * How: Uses Redis NX lock when available, otherwise falls back to DB lock table.
  */
-export async function runWithLock<T>(
-  name: string,
-  handler: () => Promise<T>,
-  options: LockOptions = {}
-) {
+export async function runWithLock<T>(name: string, handler: () => Promise<T>, options: LockOptions = {}) {
   const owner = randomUUID();
   const ttlMs = options.ttlMs || 60_000;
   const client = redis();
 
   if (redisReady() && client) {
-    const key = `${env.REDIS_PREFIX}:lock:${name}`;
+    const key = `${redisConfig.prefix}:lock:${name}`;
     const ok = await client.set(key, owner, "PX", ttlMs, "NX");
     if (!ok) return { ran: false, backend: "redis" as const };
 

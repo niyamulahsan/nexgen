@@ -11,8 +11,8 @@
     </a>
 
     <div class="app-brand">
-      <a href="#" class="fw-semibold fs-2" aria-label="logo">
-        <h2 class="m-0 fw-semibold">NEXGEN</h2>
+      <a href="#" aria-label="logo">
+        <img src="@/assets/images/logo.png" alt="nexgen" />
       </a>
     </div>
     <div id="accordion-sidebar" class="accordion accordion-flush">

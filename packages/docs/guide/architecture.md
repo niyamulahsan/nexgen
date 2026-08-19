@@ -5,14 +5,16 @@
 ```
 my-project/
 ├── src/
-│   ├── env.ts              # Environment config (Zod validation)
+│   ├── config/             # All configuration setup
 │   ├── database/           # Schema, migrations, connection
 │   ├── framework/          # Reusable internals (HTTP, DB, Redis, etc.)
 │   │   └── maker-cli/      # CLI source and stubs
-│   ├── modules/            # Application modules
 │   ├── middlewares/        # Auth, role middlewares
+│   ├── modules/            # Application modules
 │   ├── resources/          # Vue 3 frontend app
-│   └── storage/            # Uploaded and generated files
+│   ├── storage/            # Uploaded and generated files
+│   ├── types/              # TS global support
+│   └── env.ts              # env validation with zod
 ├── deploy/                 # Docker deploy files
 ├── .env.example
 └── package.json
@@ -36,6 +38,8 @@ server.ts
   │       │
   │       ├─ storage.init()                    Initialize storage driver (local/S3)
   │       │
+  │       ├─ initRedis()                      Connect Redis (if REDIS=true)
+  │       │
   │       ├─ createHttpApp()                   Build Hono app with middleware stack
   │       │    │
   │       │    ├─ createRouter()               Create Hono router instance
@@ -50,10 +54,9 @@ server.ts
   │       │    └─ app.onError(onError)                 Error handler
   │       │
   │       ├─ initDatabase()                   Connect database (SQLite/MySQL/Postgres)
-  │       ├─ initRedis()                      Connect Redis (if REDIS=true)
   │       ├─ bootQueueJobs()                  Register queue job handlers
   │       ├─ registerModuleRoutes(app)        Auto-discover & register module routes
-  │       ├─ setupBullBoard()                 Setup BullMQ dashboard UI
+  │       ├─ setupQueueDashboard()                 Setup BullMQ dashboard UI
   │       └─ Frontend static (if FRONTEND=true & build exists)
   │
   ├─ 2. serve(app.fetch)                      Start HTTP listener on APP_PORT
@@ -75,16 +78,16 @@ Request → sessionMiddleware → corsMiddleware → loggerMiddleware
 
 Stack details:
 
-| Middleware | File | Purpose |
-|---|---|---|
-| `sessionMiddleware` | `session/session.ts` | Attaches/generates session cookie, refreshes Redis TTL |
-| `corsMiddleware` | `http/cors.ts` | CORS headers from `CORS_ORIGIN` |
-| `loggerMiddleware` | `http/logger.ts` | Structured request logging |
-| `rateLimiterMiddleware` | `http/ratelimiter.ts` | Rate limiting per IP |
-| `storageStaticMiddleware` | `http/static.ts` | Serve uploaded files from `/storage/*` |
-| OpenAPI | `http/openapi.ts` | Scalar API docs UI at `/api-docs` (if `OPEN_API=true`) |
-| `notFound` | `http/logger.ts` | 404 JSON response |
-| `onError` | `http/logger.ts` | Global error handler |
+| Middleware                | File                  | Purpose                                                |
+| ------------------------- | --------------------- | ------------------------------------------------------ |
+| `sessionMiddleware`       | `session/session.ts`  | Attaches/generates session cookie, refreshes Redis TTL |
+| `corsMiddleware`          | `http/cors.ts`        | CORS headers from `CORS_ORIGIN`                        |
+| `loggerMiddleware`        | `http/logger.ts`      | Structured request logging                             |
+| `rateLimiterMiddleware`   | `http/ratelimiter.ts` | Rate limiting per IP                                   |
+| `storageStaticMiddleware` | `http/static.ts`      | Serve uploaded files from `/storage/*`                 |
+| OpenAPI                   | `http/openapi.ts`     | Scalar API docs UI at `/api-docs` (if `OPEN_API=true`) |
+| `notFound`                | `http/logger.ts`      | 404 JSON response                                      |
+| `onError`                 | `http/logger.ts`      | Global error handler                                   |
 
 ### Stage 2 — Kernel (`kernel.ts`)
 
@@ -111,11 +114,11 @@ The server entrypoint:
 
 ## Runtime Entrypoints
 
-| Entrypoint | File | Purpose |
-|---|---|---|
-| API Server | `src/framework/server.ts` | HTTP server (Hono) |
-| Queue Worker | `src/framework/queue/worker.ts` | BullMQ worker process |
-| Scheduler | `src/framework/scheduler/run.ts` | Cron job runner |
+| Entrypoint   | File                             | Purpose               |
+| ------------ | -------------------------------- | --------------------- |
+| API Server   | `src/framework/server.ts`        | HTTP server (Hono)    |
+| Queue Worker | `src/framework/queue/worker.ts`  | BullMQ worker process |
+| Scheduler    | `src/framework/scheduler/run.ts` | Cron job runner       |
 
 ## Framework Structure
 
@@ -152,8 +155,10 @@ src/framework/
 │   ├── socket.ts          # Socket.IO server init, room joining, admin UI
 │   ├── socket-cookie.ts   # Cookie-based Socket.IO auth
 │   ├── broadcast.ts       # dispatchEvent → Socket.IO broadcast
+│   ├── ui.ts              # http://admin.socket.io
 │   └── types.ts           # TypeScript types for realtime events
 ├── redis/                 # Redis client connection
+├── runtime/               # Node and Bun runtime and adapter
 ├── scheduler/             # Cron scheduler
 │   ├── scheduler.ts       # Schedule registration and execution
 │   ├── run.ts             # Scheduler worker entrypoint

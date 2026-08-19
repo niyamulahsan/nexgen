@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
+
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -14,7 +15,7 @@ import {
   S3Client
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { env } from "@/env.js";
+import { storageConfig } from "@/config/index.js";
 
 type Disk = "public" | "private" | "tmp";
 type FileData = string | Buffer | Uint8Array | ArrayBuffer | Blob | File;
@@ -28,19 +29,19 @@ const disks: Record<Disk, string> = {
   tmp: path.join(root, "tmp")
 };
 
-const driver: StorageDriver = env.STORAGE_DRIVER;
-const defaultDisk: Disk = env.STORAGE_DISK;
+const driver: StorageDriver = storageConfig.driver as StorageDriver;
+const defaultDisk: Disk = storageConfig.defaultDisk as Disk;
 const s3 =
   driver === "s3"
     ? new S3Client({
-        region: env.STORAGE_REGION,
-        endpoint: env.STORAGE_ENDPOINT,
-        forcePathStyle: env.STORAGE_FORCE_PATH_STYLE,
+        region: storageConfig.region,
+        endpoint: storageConfig.endpoint,
+        forcePathStyle: storageConfig.forcePathStyle,
         credentials:
-          env.STORAGE_ACCESS_KEY_ID && env.STORAGE_SECRET_ACCESS_KEY
+          storageConfig.accessKeyId && storageConfig.secretAccessKey
             ? {
-                accessKeyId: env.STORAGE_ACCESS_KEY_ID,
-                secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY
+                accessKeyId: storageConfig.accessKeyId,
+                secretAccessKey: storageConfig.secretAccessKey
               }
             : undefined
       })
@@ -126,7 +127,7 @@ async function put(disk: Disk, file: string, data: FileData) {
   if (driver === "s3") {
     await s3?.send(
       new PutObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Key: objectKey(disk, file),
         Body: await toBody(data),
         ACL: disk === "public" ? "public-read" : "private"
@@ -178,16 +179,14 @@ async function consumeGeneratedTemp(file: string) {
   if (driver === "s3") {
     const output = await s3?.send(
       new GetObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Key: objectKey("tmp", target)
       })
     );
-    const body = output?.Body
-      ? Buffer.from(await output.Body.transformToByteArray())
-      : Buffer.from([]);
+    const body = output?.Body ? Buffer.from(await output.Body.transformToByteArray()) : Buffer.from([]);
     await s3?.send(
       new DeleteObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Key: objectKey("tmp", target)
       })
     );
@@ -208,9 +207,7 @@ async function consumeGeneratedTemp(file: string) {
 async function exists(disk: Disk, file: string) {
   if (driver === "s3") {
     try {
-      await s3?.send(
-        new HeadObjectCommand({ Bucket: env.STORAGE_BUCKET, Key: objectKey(disk, file) })
-      );
+      await s3?.send(new HeadObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
       return true;
     } catch {
       return false;
@@ -233,9 +230,7 @@ async function exists(disk: Disk, file: string) {
  */
 async function remove(disk: Disk, file: string) {
   if (driver === "s3") {
-    await s3?.send(
-      new DeleteObjectCommand({ Bucket: env.STORAGE_BUCKET, Key: objectKey(disk, file) })
-    );
+    await s3?.send(new DeleteObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
     return;
   }
 
@@ -250,9 +245,7 @@ async function remove(disk: Disk, file: string) {
  */
 async function read(disk: Disk, file: string) {
   if (driver === "s3") {
-    const output = await s3?.send(
-      new GetObjectCommand({ Bucket: env.STORAGE_BUCKET, Key: objectKey(disk, file) })
-    );
+    const output = await s3?.send(new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
     return output?.Body ? Buffer.from(await output.Body.transformToByteArray()) : Buffer.from([]);
   }
 
@@ -269,8 +262,8 @@ async function copyFile(disk: Disk, from: string, to: string) {
   if (driver === "s3") {
     await s3?.send(
       new CopyObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
-        CopySource: `${env.STORAGE_BUCKET}/${objectKey(disk, from)}`,
+        Bucket: storageConfig.bucket,
+        CopySource: `${storageConfig.bucket}/${objectKey(disk, from)}`,
         Key: objectKey(disk, to)
       })
     );
@@ -308,9 +301,7 @@ async function moveFile(disk: Disk, from: string, to: string) {
  */
 async function metadata(disk: Disk, file: string) {
   if (driver === "s3") {
-    const head = await s3?.send(
-      new HeadObjectCommand({ Bucket: env.STORAGE_BUCKET, Key: objectKey(disk, file) })
-    );
+    const head = await s3?.send(new HeadObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
     return {
       size: Number(head?.ContentLength || 0),
       mimeType: head?.ContentType || "application/octet-stream",
@@ -332,12 +323,12 @@ async function metadata(disk: Disk, file: string) {
  * Where: Storage facade URL utilities.
  * How: Signs S3 URL with TTL or maps local file to `/storage/*` route.
  */
-async function temporaryUrl(disk: Disk, file: string, ttl = env.STORAGE_SIGNED_URL_TTL_SECONDS) {
+async function temporaryUrl(disk: Disk, file: string, ttl = storageConfig.signedUrlTtlSeconds) {
   if (driver === "s3") {
     return getSignedUrl(
       s3 as S3Client,
       new GetObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Key: objectKey(disk, file)
       }),
       { expiresIn: ttl }
@@ -358,7 +349,7 @@ async function listFiles(disk: Disk, directory = "") {
   if (driver === "s3") {
     const out = await s3?.send(
       new ListObjectsV2Command({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Prefix: `${diskPrefix(disk)}/${dir}`.replace(/\/$/, "")
       })
     );
@@ -371,9 +362,7 @@ async function listFiles(disk: Disk, directory = "") {
 
   const base = abs(disk, dir || ".");
   const entries = await fs.readdir(base, { withFileTypes: true }).catch(() => [] as any[]);
-  return entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => (dir ? `${dir}/` : "") + entry.name);
+  return entries.filter((entry) => entry.isFile()).map((entry) => (dir ? `${dir}/` : "") + entry.name);
 }
 
 /**
@@ -384,9 +373,7 @@ async function listFiles(disk: Disk, directory = "") {
  */
 async function readStream(disk: Disk, file: string) {
   if (driver === "s3") {
-    const output = await s3?.send(
-      new GetObjectCommand({ Bucket: env.STORAGE_BUCKET, Key: objectKey(disk, file) })
-    );
+    const output = await s3?.send(new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
 
     const body = output?.Body;
 
@@ -420,8 +407,8 @@ async function setVisibility(disk: Disk, file: string, visibility: Visibility) {
 
   await s3?.send(
     new CopyObjectCommand({
-      Bucket: env.STORAGE_BUCKET,
-      CopySource: `${env.STORAGE_BUCKET}/${objectKey(disk, file)}`,
+      Bucket: storageConfig.bucket,
+      CopySource: `${storageConfig.bucket}/${objectKey(disk, file)}`,
       Key: objectKey(disk, file),
       ACL: visibility === "public" ? "public-read" : "private",
       MetadataDirective: "COPY"
@@ -444,15 +431,13 @@ async function getVisibility(disk: Disk, file: string): Promise<Visibility> {
 
   const acl = await s3?.send(
     new GetObjectAclCommand({
-      Bucket: env.STORAGE_BUCKET,
+      Bucket: storageConfig.bucket,
       Key: objectKey(disk, file)
     })
   );
 
   const isPublic = (acl?.Grants || []).some(
-    (grant) =>
-      grant.Grantee?.URI === "http://acs.amazonaws.com/groups/global/AllUsers" &&
-      grant.Permission === "READ"
+    (grant) => grant.Grantee?.URI === "http://acs.amazonaws.com/groups/global/AllUsers" && grant.Permission === "READ"
   );
 
   return isPublic ? "public" : "private";
@@ -469,7 +454,7 @@ async function makeDirectory(disk: Disk, directory: string) {
   if (driver === "s3") {
     await s3?.send(
       new PutObjectCommand({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Key: `${diskPrefix(disk)}/${dir}/`,
         Body: ""
       })
@@ -493,7 +478,7 @@ async function deleteDirectory(disk: Disk, directory: string) {
     const prefix = `${diskPrefix(disk)}/${dir}/`;
     const listed = await s3?.send(
       new ListObjectsV2Command({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Prefix: prefix
       })
     );
@@ -506,7 +491,7 @@ async function deleteDirectory(disk: Disk, directory: string) {
     if (objects.length > 0) {
       await s3?.send(
         new DeleteObjectsCommand({
-          Bucket: env.STORAGE_BUCKET,
+          Bucket: storageConfig.bucket,
           Delete: { Objects: objects }
         })
       );
@@ -530,7 +515,7 @@ async function listDirectories(disk: Disk, directory = "") {
     const prefix = `${diskPrefix(disk)}/${dir}`.replace(/\/$/, "") + (dir ? "/" : "");
     const out = await s3?.send(
       new ListObjectsV2Command({
-        Bucket: env.STORAGE_BUCKET,
+        Bucket: storageConfig.bucket,
         Prefix: prefix,
         Delimiter: "/"
       })
@@ -544,9 +529,7 @@ async function listDirectories(disk: Disk, directory = "") {
 
   const base = abs(disk, dir || ".");
   const entries = await fs.readdir(base, { withFileTypes: true }).catch(() => [] as any[]);
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => (dir ? `${dir}/` : "") + entry.name);
+  return entries.filter((entry) => entry.isDirectory()).map((entry) => (dir ? `${dir}/` : "") + entry.name);
 }
 
 /**
@@ -597,8 +580,7 @@ export const storage = {
   disk(disk: Disk) {
     return {
       put: (file: string, data: FileData) => put(disk, file, data),
-      putFile: (directory: string, file: File, name?: string) =>
-        putFile(disk, directory, file, name),
+      putFile: (directory: string, file: File, name?: string) => putFile(disk, directory, file, name),
       get: (file: string) => read(disk, file),
       delete: (file: string) => remove(disk, file),
       copy: (from: string, to: string) => copyFile(disk, from, to),
@@ -615,13 +597,12 @@ export const storage = {
       readStream: (file: string) => readStream(disk, file),
       writeStream: (file: string, stream: Readable) => writeStream(disk, file, stream),
       temporaryUrl: (file: string, ttl?: number) => temporaryUrl(disk, file, ttl),
-      setVisibility: (file: string, visibility: Visibility) =>
-        setVisibility(disk, file, visibility),
+      setVisibility: (file: string, visibility: Visibility) => setVisibility(disk, file, visibility),
       getVisibility: (file: string) => getVisibility(disk, file),
       path: (file: string) => abs(disk, file),
       url: (file: string) =>
         driver === "s3"
-          ? `${env.STORAGE_ENDPOINT || "https://s3.amazonaws.com"}/${env.STORAGE_BUCKET}/${objectKey(disk, file)}`
+          ? `${storageConfig.endpoint || "https://s3.amazonaws.com"}/${storageConfig.bucket}/${objectKey(disk, file)}`
           : `/storage/${clean(file)}`
     };
   },

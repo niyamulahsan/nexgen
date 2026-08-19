@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+
+import { databaseConfig } from "@/config/index.js";
 import * as schema from "@/database/schema.js";
-import { env } from "@/env.js";
 
 export type Dialect = "sqlite" | "mysql" | "postgresql";
 
@@ -20,7 +21,7 @@ async function optionalImport<T = any>(name: string): Promise<T> {
  * How: Checks DATABASE_URL prefix and maps to sqlite/mysql/postgresql.
  */
 export function detectDialect(): Dialect {
-  const url = env.DATABASE_URL.toLowerCase();
+  const url = databaseConfig.url.toLowerCase();
   if (url.startsWith("mysql")) return "mysql";
   if (url.startsWith("postgres")) return "postgresql";
   return "sqlite";
@@ -39,22 +40,19 @@ export async function initDatabase() {
 
   if (dialect === "sqlite") {
     let drizzleSqlite: any;
-    let Database: any;
+    let createClient: any;
     try {
-      [{ drizzle: drizzleSqlite }, { default: Database }] = await Promise.all([
-        optionalImport("drizzle-orm/better-sqlite3"),
-        optionalImport("better-sqlite3")
+      [{ drizzle: drizzleSqlite }, { createClient }] = await Promise.all([
+        optionalImport("drizzle-orm/libsql"),
+        optionalImport("@libsql/client")
       ]);
     } catch {
-      throw new Error(
-        "Missing sqlite dependencies. Install with: bun add drizzle-orm better-sqlite3"
-      );
+      throw new Error("Missing sqlite dependencies. Install with: bun add drizzle-orm @libsql/client");
     }
 
-    const file = path.resolve(process.cwd(), env.DATABASE_URL.replace(/^sqlite:/, ""));
+    const file = path.resolve(process.cwd(), databaseConfig.url.replace(/^sqlite:/, ""));
     await fs.mkdir(path.dirname(file), { recursive: true });
-    pool = new Database(file);
-    pool.pragma("foreign_keys = ON");
+    pool = createClient({ url: `file:${file.replace(/\\/g, "/")}` });
     databaseInstance = drizzleSqlite(pool, { schema });
     return databaseInstance;
   }
@@ -63,31 +61,28 @@ export async function initDatabase() {
     let drizzleMysql: any;
     let mysql: any;
     try {
-      [{ drizzle: drizzleMysql }, mysql] = await Promise.all([
-        optionalImport("drizzle-orm/mysql2"),
-        optionalImport("mysql2/promise")
-      ]);
+      [{ drizzle: drizzleMysql }, mysql] = await Promise.all([optionalImport("drizzle-orm/mysql2"), optionalImport("mysql2/promise")]);
     } catch {
       throw new Error("Missing mysql dependencies. Install with: bun add drizzle-orm mysql2");
     }
 
-    pool = mysql.createPool({ uri: env.DATABASE_URL, connectionLimit: 10, enableKeepAlive: true });
+    pool = mysql.createPool({ uri: databaseConfig.url, connectionLimit: 10, enableKeepAlive: true });
     databaseInstance = drizzleMysql(pool, { schema, mode: "default" });
     return databaseInstance;
   }
 
   let drizzlePg: any;
-  let PgPool: any;
+  let postgres: any;
   try {
-    [{ drizzle: drizzlePg }, { Pool: PgPool }] = await Promise.all([
-      optionalImport("drizzle-orm/node-postgres"),
-      optionalImport("pg")
+    [{ drizzle: drizzlePg }, { default: postgres }] = await Promise.all([
+      optionalImport("drizzle-orm/postgres-js"),
+      optionalImport("postgres")
     ]);
   } catch {
-    throw new Error("Missing postgres dependencies. Install with: bun add drizzle-orm pg");
+    throw new Error("Missing postgres dependencies. Install with: bun add drizzle-orm postgres");
   }
 
-  pool = new PgPool({ connectionString: env.DATABASE_URL });
+  pool = postgres(databaseConfig.url);
   databaseInstance = drizzlePg(pool, { schema });
   return databaseInstance;
 }
@@ -155,6 +150,32 @@ export function databaseDialect() {
 }
 
 /**
+ * Why: Normalizes raw query results into a consistent { rows } shape.
+ * When: Drivers differ in what db.execute() returns:
+ *   - postgres-js / libsql return a plain array of rows
+ *   - mysql2 returns a [rows, fields] tuple
+ *   - pg node clients already wrap rows in { rows }
+ * Consumers across modules read `result.rows`.
+ * Where: Applied to every db.execute() call.
+ * How: Wraps arrays of row objects (and the mysql2 tuple) into { rows },
+ * leaves object shapes untouched.
+ */
+function normalizeExecuteResult(result: unknown): unknown {
+  if (Array.isArray(result)) {
+    if (result.length === 2 && Array.isArray(result[1])) {
+      return { rows: result[0], fields: result[1] };
+    }
+    const isRowList =
+      result.length === 0 ||
+      result.every((row) => row != null && typeof row === "object" && !Array.isArray(row));
+    if (isRowList) {
+      return { rows: result };
+    }
+  }
+  return result;
+}
+
+/**
  * Why: Provides ergonomic global query surface without calling database().
  * When: Used by modules, seeders, and facade consumers.
  * Where: Exposed via framework facade as `db`.
@@ -165,6 +186,14 @@ export const db = new Proxy(
   {
     get(_target, property) {
       const instance = database();
+      if (property === "execute") {
+        return async (query: unknown, params?: unknown) => {
+          const raw = instance.execute
+            ? await instance.execute(query, params)
+            : await instance.all(query);
+          return normalizeExecuteResult(raw);
+        };
+      }
       const value = instance[property as keyof typeof instance];
       return typeof value === "function" ? value.bind(instance) : value;
     }

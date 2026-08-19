@@ -56,28 +56,29 @@ Docker Compose normally creates isolated networks per project. By using pre-crea
 
 ```
 1. Generate Scaffolding
-   └─ maker deploy:create
+   └─ maker deploy:init
        ├─ Reads DATABASE_URL from .env (detects sqlite/mysql/postgres)
-       ├─ Reads REDIS from .env (detects Redis on/off)
+       ├─ Reads REDIS, OPEN_API, SOCKET from .env
        ├─ Detects package manager (npm/pnpm/yarn/bun) and runtime (node/bun)
-       └─ Generates all files under deploy/
+       ├─ Generates all files under deploy/
+       └─ Writes workflow.local.json + workflow.remote.json (if missing)
 
 2. Start Server Infrastructure (one-time per host)
-   └─ maker deploy:server
+   └─ maker deploy:workflow --server-only
        ├─ Creates Docker networks (nginx-proxy, infra)
        ├─ Ensures bind-mount files (pgAdmin servers.json, redis.conf)
        ├─ Copies .env.example → .env if missing
        └─ docker compose -f deploy/server/docker-compose.yml up -d
 
 3. Start App Stack (per deploy)
-   └─ maker deploy:app
+   └─ maker deploy:workflow --app-only
        ├─ Syncs DATABASE_URL with server env
        ├─ Ensures target MySQL database exists (if MySQL)
        └─ docker compose -f deploy/docker-compose.yml up -d --build --force-recreate
 
 4. Import Data (optional)
    └─ maker deploy:db:import
-       └─ docker exec mysql-global mysql ... < dump.sql
+       └─ docker exec <mysql-global|postgres-global> ... < dump.sql
 
 5. Supervisor inside App Container
    ├─ auto-migrate.sh → if AUTO_MIGRATE=true, runs db:migrate --seed
@@ -90,47 +91,39 @@ Docker Compose normally creates isolated networks per project. By using pre-crea
 
 | Command | Why | When | What it does |
 |---|---|---|---|
-| `deploy:create` | Generate deploy scaffolding | One-time, before first deploy | Creates `deploy/` with Dockerfile, compose files, env stubs, supervisor config, scripts, workflow configs |
-| `deploy:create:app` | App files only | When regenerating app config | Generates only `deploy/Dockerfile`, `deploy/docker-compose.yml`, `deploy/.env` |
-| `deploy:create:server` | Server infra files only | When regenerating server config | Generates only `deploy/server/docker-compose.yml`, `deploy/server/.env` |
-| `deploy:server` | Start shared services | Once per host | Creates Docker networks, starts MySQL/Postgres/Redis/nginx-proxy/letsencrypt/phpmyadmin/pgadmin |
-| `deploy:app` | Build and run app | Every deploy | Builds Docker image, starts app container with supervisor |
-| `deploy:db:import` | Import SQL into local DB | Occasional | Streams a `.sql` file into the running MySQL container |
-| `deploy:db:import:remote` | Import SQL into remote DB | Occasional | Same as above via SSH tunnel |
-| `deploy:workflow` | Run custom workflow | Automation | Reads a JSON config file and executes a sequence of steps |
-| `deploy:workflow:init` | Create local workflow config | One-time | Writes `deploy/workflow.local.json` |
-| `deploy:workflow:local` | Full local deploy pipeline | Per deploy | Runs `deploy:server` + `deploy:app` (configurable) |
-| `deploy:workflow:remote:init` | Create remote workflow config | One-time | Writes `deploy/workflow.remote.json` |
+| `deploy:init` | Generate deploy scaffolding + workflow configs | One-time, before first deploy | Creates `deploy/` with Dockerfile, compose files, env stubs, supervisor config, scripts, and both workflow configs |
+| `deploy:workflow` | Local deploy pipeline | Per deploy | Starts server infra and/or app stack locally (config file or flags) |
 | `deploy:workflow:remote` | Full remote deploy | Per deploy | rsyncs project to remote host, runs server + app there |
 | `deploy:workflow:promote` | Test local then deploy remote | Pre-production | Runs local workflow first, then remote workflow |
+| `deploy:db:import` | Import SQL into local DB | Occasional | Streams a `.sql` file into the running MySQL/PostgreSQL container |
+| `deploy:db:import:remote` | Import SQL into remote DB | Occasional | Same as above via SSH |
 
-## Flags for `deploy:create`
+## Flags for `deploy:init`
 
 | Flag | Purpose |
 |---|---|
-| `--server` | Include server infra files (`deploy/server/`) |
 | `--force` | Overwrite existing files |
 | `--app-only` | Generate only app files, skip server |
 | `--server-only` | Generate only server files, skip app |
 | `--dev` | Server in dev mode (exposes Redis port for local access) |
-| `--runtime=node` | Node.js Dockerfile (default, detected from package.json) |
-| `--runtime=bun` | Bun Dockerfile |
+| `--runtime=node\|bun` | Dockerfile runtime (default `node`, auto-detected from package.json) |
+| `--pm=npm\|pnpm\|yarn` | Package manager for the node runtime (default `npm`) |
 
-## What `deploy:create` Generates
+## What `deploy:init` Generates
 
 ```
 deploy/
 ├── Dockerfile                     # Multi-stage build (npm, pnpm, yarn, or bun)
-├── docker-compose.yml             # App service (connects to infra network)
-├── .env                           # App environment variables
+├── docker-compose.yml             # App service (connects to infra network, persists storage volume)
+├── .env.example                   # App environment variables template
 ├── README.md
 ├── supervisor/
 │   └── supervisord.conf           # Process manager config (with/without queue worker)
 ├── scripts/
 │   └── auto-migrate.sh            # Entrypoint — runs migrations if AUTO_MIGRATE=true
-├── server/                        # (only with --server flag)
+├── server/                        # (only without --app-only)
 │   ├── docker-compose.yml         # Shared infra: nginx-proxy, MySQL, Postgres, Redis, etc.
-│   ├── .env                       # Server infra environment
+│   ├── .env.example               # Server infra environment template
 │   ├── .env.local.example         # Local Docker Desktop overrides
 │   ├── pgadmin/
 │   │   └── servers.json           # Pre-configured pgAdmin server
@@ -139,37 +132,64 @@ deploy/
 │   └── nginx-vhost/
 │       ├── app.example.com        # Example nginx vhost for your domain
 │       └── README.md
-├── workflow.local.json            # (optional) Local CI/CD workflow definition
-└── workflow.remote.json           # (optional) Remote deploy workflow definition
+├── workflow.local.json            # Local deploy workflow definition
+└── workflow.remote.json           # Remote deploy workflow definition
 ```
 
 ## How the Dockerfile Works
 
-Multi-stage build:
+Multi-stage build (node example — bun varies slightly):
 
 ```dockerfile
 # Stage 1 — Builder
-FROM node:24-bookworm-slim AS builder
+ARG NODE_VERSION=24
+FROM node:${NODE_VERSION}-bookworm-slim AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci                           # or pnpm install / yarn install / bun install
+
+ARG FRONTEND=true
+ENV FRONTEND=${FRONTEND}
+
+# Install native deps (python3, make, g++ for node-gyp)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json* ./
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+
 COPY . .
-RUN npm run db:schema                # Generate Drizzle schema types
-RUN npm run build                    # Build frontend + compile TypeScript
+RUN node src/framework/maker-cli/src/index.mjs db:schema
+RUN npm run build
 
 # Stage 2 — Runner
-FROM node:24-bookworm-slim
+FROM node:${NODE_VERSION}-bookworm-slim AS runner
 WORKDIR /app
-RUN apt update && apt install -y supervisor ca-certificates
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
-COPY deploy/scripts/auto-migrate.sh /auto-migrate.sh
-CMD ["/usr/bin/supervisord", "-c", "deploy/supervisor/supervisord.conf"]
+COPY --from=builder /app/deploy/scripts ./deploy/scripts
+COPY --from=builder /app/deploy/.env ./.env
+
+COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 3000
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 ```
 
-The builder stage installs deps, generates schemas, and builds. The runner stage is minimal — only runtime deps, compiled output, and supervisor.
+The builder stage installs deps, generates schemas, and builds. The runner stage is minimal — only runtime deps, compiled output, and supervisor. The `deploy/.env` is copied into the image at build time so secrets are baked in (not passed at runtime).
+
+::: warning
+For the **bun** runtime, `deploy/.env` is copied directly into the image during the build stage instead of at runtime. The `FRONTEND` build arg controls whether the frontend is built and included.
+:::
 
 ## Container Internals
 
@@ -181,7 +201,7 @@ supervisord
   │   └─ maker db:migrate --seed
   ├─ maker serve --prod --runtime=node
   │   └─ node dist/src/framework/server.js
-  ├─ maker queue:work --queue=default,mail --prod (if Redis)
+  ├─ maker queue:work --queue=default,mail,maintenance --prod (if Redis)
   │   └─ node dist/src/framework/maker-cli/src/index.mjs queue:work
   └─ maker schedule:work --prod
       └─ node dist/src/framework/maker-cli/src/index.mjs schedule:work
@@ -189,9 +209,38 @@ supervisord
 
 Supervisor auto-restarts any process that crashes (except `auto-migrate.sh`, which is a one-shot).
 
+## Storage Persistence
+
+The app compose mounts a named Docker volume for uploads:
+
+```yaml
+volumes:
+  - app-storage:/app/src/storage
+```
+
+`app-storage` persists the local storage driver's disk (`src/storage/app/{public,private,tmp}` in the container). Without it, every image rebuild wipes files written at runtime (uploads, generated artifacts), even though the database rows referencing them survive. The volume is created on first deploy and reused across `--force-recreate` deploys.
+
+## Reverse Proxy (nginx-proxy)
+
+The app compose attaches to the external `nginx-proxy` network. When you set `VIRTUAL_HOST` (and optionally `LETSENCRYPT_HOST`/`LETSENCRYPT_EMAIL`) in `deploy/.env`, nginx-proxy routes traffic from your domain to the app container and auto-issues Let's Encrypt certificates. Leave these empty for local-only deploys.
+
+## How `.env` Files Work
+
+You **never create `.env` files manually**. The system handles this automatically:
+
+1. **`deploy:init`** generates `.env.example` templates (e.g. `deploy/.env.example`, `deploy/server/.env.example`)
+2. **You edit the `.env.example` files** with your secrets and settings
+3. **`deploy:workflow`** copies `.env.example` → `.env` automatically if `.env` doesn't exist yet
+
+This means you only ever touch the `.example` files. The actual `.env` files (which contain your secrets) are created at deploy time and never committed to version control.
+
+::: warning
+If you need to change secrets after the first deploy, edit the `.env` files directly — the workflow only copies from `.example` when `.env` is missing.
+:::
+
 ## Environment Detection
 
-`deploy:create` reads your local `.env` to auto-detect:
+`deploy:init` reads your local `.env` to auto-detect:
 
 - **Database dialect** — `sqlite`, `mysql`, or `postgres` from `DATABASE_URL`
 - **Redis** — enabled/disabled from `REDIS` flag

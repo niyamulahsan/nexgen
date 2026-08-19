@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
+
 import { eq } from "drizzle-orm";
-import { env } from "@/env.js";
+import { jwtConfig } from "@/config/index.js";
 import { cookie, db, jwt } from "@/framework/facade.js";
 import { refreshTokens } from "@/modules/auth/database/models/user.js";
 
@@ -70,7 +71,7 @@ export async function revokeCurrentRefreshToken(c: any) {
  */
 export async function issueTokens(c: any, user: any, options?: { remember?: boolean }) {
   const remember = !!options?.remember;
-  const refreshExpiry = remember ? env.JWT_REFRESH_REMEMBER_EXPIRY : env.JWT_REFRESH_EXPIRY;
+  const refreshExpiry = remember ? jwtConfig.refreshRememberExpirySeconds : jwtConfig.refreshExpirySeconds;
   const role = user.role || null;
   const accessToken = await jwt.generateToken(
     {

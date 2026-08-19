@@ -1,6 +1,6 @@
 import { showHelp } from "../../level-1/help.mjs";
 import { assertName as assertNameLeaf } from "../../level-1/naming.mjs";
-import { packageScript, runNodeScript } from "../../level-1/process.mjs";
+import { packageScript, runCommand, runNodeScript } from "../../level-1/process.mjs";
 import { generateSchema } from "../module/core.mjs";
 import {
   drizzleGenerateArgs,
@@ -15,9 +15,12 @@ import {
 } from "./core.mjs";
 
 async function runMigrationHooks() {
-  await runNodeScript(packageScript("tsx", "dist/cli.mjs"), [
-    "src/framework/database/migrate-hooks.ts"
-  ]);
+  const args = ["src/framework/database/migrate-hooks.ts"];
+  if (process.versions?.bun) {
+    await runCommand("bun", args);
+    return;
+  }
+  await runNodeScript(packageScript("tsx", "dist/cli.mjs"), args);
 }
 
 let args = [];

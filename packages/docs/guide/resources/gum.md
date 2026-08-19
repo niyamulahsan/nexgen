@@ -18,7 +18,7 @@ Use each layer for one job:
 
 | Layer | Purpose |
 |---|---|
-| `route.query` | Reload-safe request state: page, size, search, filters, sort |
+| `route.query` | Reload-safe request state: page, size, search, filters |
 | Pinia store | API data and shared application state |
 | `useGum()` | Visit lifecycle, query navigation, scroll preservation |
 | `useGumForm()` | Form submission, errors, processing, upload progress |
@@ -65,14 +65,14 @@ Options:
 | `skipFetch` | `boolean` | `false` | Skip the API call — only navigate and preserve scroll/state. Used by datatable components (page watcher handles the data fetch) |
 | `onBefore` | `() => boolean \| void \| Promise<boolean \| void>` | — | Return `false` to cancel |
 | `onStart` | `() => void \| Promise<void>` | — | Runs before request |
-| `onProgress` | `(event) => void` | — | Upload progress |
+| `onProgress` | `(event: AxiosProgressEvent) => void` | — | Upload progress callback (only `useGum()`, not `useGumForm()`) |
 | `onSuccess` | `(response) => void \| Promise<void>` | — | Runs on successful response |
 | `onError` | `(errors, error) => void \| Promise<void>` | — | Runs on failed response with normalized validation errors and the raw Axios error. Error is **not** rethrown when `onError` is provided — no try/catch needed. |
 | `onFinish` | `() => void \| Promise<void>` | — | Always runs after request |
 
 ## GET Visits
 
-Use `gum.get()` for pagination, search, filters, and sort.
+Use `gum.get()` for pagination, search, and filters.
 
 ```ts
 await gum.get("/api/posts", {
@@ -210,6 +210,24 @@ gum.get(props.data.path, {
 ```
 
 `skipFetch: true` tells Gum to **skip the API call** and only navigate (update URL, preserve scroll, preserve state). The page's `route.query` watcher handles the single data fetch via the Pinia store — no duplicate requests.
+
+### Props
+
+| Prop | Type | Default | Notes |
+|------|------|---------|-------|
+| `data` | `object` | — | Paginated object with `data`, `current_page`, `last_page`, `per_page`, `total`, `path` |
+| `search` | `string` | `""` | Initial search text synced to internal state |
+| `option` | `Array<string \| number>` | `[]` | Page size options (e.g., `[10, 25, 50]`) |
+| `removable` | `boolean` | `true` | Show checkbox column and delete button |
+| `countable` | `boolean` | `true` | Show row number column |
+| `searchable` | `boolean` | `true` | Show search input |
+| `optionable` | `boolean` | `true` | Show page size selector |
+
+### Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `remove` | `Array<string \| number>` | Array of selected row IDs when delete button is clicked |
 
 ## Search
 
@@ -468,6 +486,8 @@ onError: (errors, error) => {
 
 ## File Uploads
 
+`useGumForm()` tracks upload progress automatically via `form.progress`. Bind it to a progress bar or percentage display.
+
 ```ts
 const form = useGumForm({ file: null as File | null });
 
@@ -476,11 +496,17 @@ async function upload() {
   if (form.data.file) body.append("file", form.data.file);
 
   await form.post("/api/uploads", body, {
-    onProgress: () => {
-      console.log(form.progress);
+    onSuccess: () => {
+      console.log("Upload complete");
     }
   });
 }
+```
+
+In the template, bind `form.progress` (a number 0-100 or `null`) to a progress indicator:
+
+```vue
+<progress v-if="form.progress !== null" :value="form.progress" max="100" />
 ```
 
 ## Remembered State
@@ -509,7 +535,6 @@ Do not remember request state that should be shareable or reload-safe. Put these
 - size
 - search
 - filters
-- sort
 
 ## Preserve Scroll
 
@@ -630,7 +655,7 @@ async function remove(ids: number[]) {
 
 ## Rules Of Thumb
 
-- Use `gum.get()` for list navigation: page, search, filters, sort.
+- Use `gum.get()` for list navigation: page, search, filters.
 - Use `route.query` as the source of truth for reload-safe request state.
 - Use Pinia stores for API data.
 - Use `useGumForm()` for create/update forms.

@@ -41,6 +41,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/deploy/scripts ./deploy/scripts
+COPY --from=builder /app/deploy/.env ./.env
 
 COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 

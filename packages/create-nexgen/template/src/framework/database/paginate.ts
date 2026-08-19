@@ -29,7 +29,7 @@ type PaginateQueryOptions<T> = {
 
 type PaginateModelOptions<T = any> = {
   table?: any;
-  query?: { findMany: (args: Record<string, any>) => Promise<T[]> };
+  query?: { findMany: (args: Record<string, any>) => Promise<T[]>; };
   where?: SQL<unknown>;
   with?: Record<string, any>;
   columns?: Record<string, any>;
@@ -40,7 +40,7 @@ type PaginateModelOptions<T = any> = {
   maxPerPage?: number;
   path?: string;
   total?: () => Promise<number>;
-  data?: (params: { limit: number; offset: number }) => Promise<T[]>;
+  data?: (params: { limit: number; offset: number; }) => Promise<T[]>;
 };
 
 export type PaginatedResult<T> = {
@@ -50,7 +50,7 @@ export type PaginatedResult<T> = {
   from: number | null;
   last_page: number;
   last_page_url: string | null;
-  links: Array<{ url: string | null; label: string; page: number | null; active: boolean }>;
+  links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }>;
   next_page_url: string | null;
   path: string;
   per_page: number;
@@ -110,7 +110,7 @@ export async function paginateQuery<T = any>(
   const prevPageUrl = currentPage > 1 ? pageUrl(path, currentPage - 1, perPage) : null;
   const nextPageUrl = currentPage < lastPage ? pageUrl(path, currentPage + 1, perPage) : null;
 
-  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean }> =
+  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }> =
     [
       {
         url: prevPageUrl,
@@ -163,7 +163,7 @@ export async function paginate<T = any>(
   c: RequestLike,
   query: any,
   perPage = 15,
-  options: { maxPerPage?: number; path?: string } = {}
+  options: { maxPerPage?: number; path?: string; } = {}
 ): Promise<PaginatedResult<T>> {
   const page = Number(c.req.query("page") || 1);
   const size = c.req.query("size");
@@ -191,10 +191,7 @@ export async function paginate<T = any>(
  * Where: Use beside `paginate`; this targets model/relational API, not select builders.
  * How: Counts the base table separately, then runs `findMany` with limit/offset.
  */
-export async function paginateModel<T = any>(
-  c: RequestLike,
-  options: PaginateModelOptions<T>
-): Promise<PaginatedResult<T>> {
+export async function paginateModel<T = any>(c: RequestLike, options: PaginateModelOptions<T>): Promise<PaginatedResult<T>> {
   const page = Number(c.req.query("page") || options.page || 1);
   const size = c.req.query("size");
   const perPageQuery = c.req.query("per_page");
@@ -237,11 +234,7 @@ export async function paginateModel<T = any>(
  * Where: Service/controller code using table helpers.
  * How: Runs total + paged select with where/order options.
  */
-export async function paginateTable<T = any>(
-  db: any,
-  table: any,
-  options: PaginateOptions = {}
-): Promise<PaginatedResult<T>> {
+export async function paginateTable<T = any>(db: any, table: any, options: PaginateOptions = {}): Promise<PaginatedResult<T>> {
   return paginateQuery<T>({
     page: options.page,
     perPage: options.perPage,

@@ -1,5 +1,5 @@
 import { Scalar } from "@scalar/hono-api-reference";
-import { env } from "@/env.js";
+import { appConfig } from "@/config/index.js";
 import type { NexgenRouter } from "@/framework/http/router.js";
 
 /**
@@ -12,7 +12,7 @@ export function configureOpenApi(app: NexgenRouter) {
   app.doc("/doc", {
     openapi: "3.0.0",
     info: {
-      title: `${env.APP_NAME} API`,
+      title: `${appConfig.name} API`,
       version: "0.1.0"
     }
   });
@@ -23,7 +23,7 @@ export function configureOpenApi(app: NexgenRouter) {
       url: "/doc",
       layout: "classic",
       theme: "moon",
-      pageTitle: `${env.APP_NAME} API`,
+      pageTitle: `${appConfig.name} API`,
       defaultHttpClient: {
         targetKey: "js",
         clientKey: "fetch"

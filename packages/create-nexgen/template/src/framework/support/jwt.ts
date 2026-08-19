@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+
 import { sign, verify } from "hono/jwt";
-import { env } from "@/env.js";
+import { jwtConfig } from "@/config/index.js";
 
 export const jwt = {
   /**
@@ -16,13 +17,13 @@ export const jwt = {
       (typeof expirySeconds === "number"
         ? expirySeconds
         : type === "refresh"
-          ? env.JWT_REFRESH_EXPIRY
-          : env.JWT_ACCESS_EXPIRY);
-    const secret = type === "refresh" ? env.JWT_REFRESH_SECRET : env.JWT_ACCESS_SECRET;
+          ? jwtConfig.refreshExpirySeconds
+          : jwtConfig.accessExpirySeconds);
+    const secret = type === "refresh" ? jwtConfig.refreshSecret : jwtConfig.accessSecret;
     const jti = type === "refresh" ? randomUUID() : undefined;
 
     const tokenPayload = { ...payload, type, iat: now, exp, ...(jti ? { jti } : {}) };
-    const token = await sign(tokenPayload, secret, "HS256");
+    const token = await sign(tokenPayload, secret, jwtConfig.algorithm);
 
     return { token, jti, exp };
   },
@@ -35,8 +36,8 @@ export const jwt = {
    */
   async verifyToken(token: string, type: "access" | "refresh") {
     try {
-      const secret = type === "refresh" ? env.JWT_REFRESH_SECRET : env.JWT_ACCESS_SECRET;
-      const payload = await verify(token, secret, "HS256");
+      const secret = type === "refresh" ? jwtConfig.refreshSecret : jwtConfig.accessSecret;
+      const payload = await verify(token, secret, jwtConfig.algorithm);
       return payload.type === type ? payload : null;
     } catch {
       return null;

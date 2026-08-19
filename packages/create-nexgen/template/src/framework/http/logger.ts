@@ -1,17 +1,13 @@
 import type { Context, Next } from "hono";
+import { loggingConfig } from "@/config/index.js";
 import { logger } from "@/framework/support/logger.js";
 
 function ip(c: Context) {
-  return (
-    c.req.header("cf-connecting-ip") ||
-    c.req.header("x-forwarded-for") ||
-    c.req.header("x-real-ip") ||
-    null
-  );
+  return c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || null;
 }
 
 function shouldSkipHttpLog(pathname: string) {
-  return pathname.startsWith("/bullmq");
+  return pathname.startsWith("/queues");
 }
 
 /**
@@ -27,7 +23,7 @@ export async function loggerMiddleware(c: Context, next: Next) {
   c.set("requestId", requestId);
   await next();
 
-  if (shouldSkipHttpLog(c.req.path)) {
+  if (!loggingConfig.httpRequests || shouldSkipHttpLog(c.req.path)) {
     return;
   }
 

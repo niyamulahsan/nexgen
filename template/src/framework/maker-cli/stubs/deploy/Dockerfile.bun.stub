@@ -18,6 +18,7 @@ COPY package.json bun.lockb* bun.lock* package-lock.json* ./
 RUN bun install --frozen-lockfile
 
 COPY . .
+RUN cp deploy/.env .env || true
 RUN bun src/framework/maker-cli/src/index.mjs db:schema
 RUN bun run build
 
@@ -41,6 +42,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/deploy/scripts ./deploy/scripts
+COPY --from=builder /app/deploy/.env ./.env
 
 COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 

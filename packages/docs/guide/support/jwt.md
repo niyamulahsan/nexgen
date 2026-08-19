@@ -24,7 +24,7 @@ const access = await jwt.generateToken({ id: user.id, email: user.email }, "acce
 // { token: "...", jti: undefined, exp: 1700000000 }
 
 const refresh = await jwt.generateToken({ id: user.id }, "refresh");
-// { token: "...", jti: "uuid", exp: 1700300000 }
+// { token: "...", jti: "uuid", exp: 1700036000 }
 ```
 
 ### Verify tokens
@@ -37,11 +37,15 @@ if (payload) {
 }
 ```
 
-## Environment Variables
+## Configuration
 
-| Variable | Default | Description |
+JWT settings are in `src/config/jwt.ts`. Secrets stay in `.env`; expiries are plain literals you can tune.
+
+| Setting | Default | Description |
 |---|---|---|
-| `JWT_ACCESS_SECRET` | — | **Required.** Secret for signing access tokens (HS256) |
-| `JWT_REFRESH_SECRET` | — | **Required.** Secret for signing refresh tokens (HS256) |
-| `JWT_ACCESS_EXPIRY` | `900` (15 min) | Default access token TTL in seconds |
-| `JWT_REFRESH_EXPIRY` | `2592000` (30 days) | Default refresh token TTL in seconds |
+| `accessSecret` | `env.JWT_ACCESS_SECRET` | **Required.** Secret for signing access tokens (HS256) |
+| `refreshSecret` | `env.JWT_REFRESH_SECRET` | **Required.** Secret for signing refresh tokens (HS256) |
+| `accessExpirySeconds` | `900` (15 min) | Default access token TTL in seconds |
+| `refreshExpirySeconds` | `3600` (1 hour) | Default refresh token TTL in seconds |
+| `refreshRememberExpirySeconds` | `2592000` (30 days) | "Remember me" refresh token TTL |
+| `algorithm` | `HS256` | Signing algorithm |

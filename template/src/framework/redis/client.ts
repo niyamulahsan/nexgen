@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { env } from "@/env.js";
+import { redisConfig } from "@/config/index.js";
 import { logger } from "@/framework/support/logger.js";
 
 export type redis = Redis;
@@ -10,11 +10,11 @@ let lastError: string | null = null;
 
 function safeRedisUrl() {
   try {
-    const url = new URL(env.REDIS_URL);
+    const url = new URL(redisConfig.url);
     if (url.password) url.password = "***";
     return url.toString();
   } catch {
-    return env.REDIS_URL;
+    return redisConfig.url;
   }
 }
 
@@ -27,15 +27,15 @@ function safeRedisUrl() {
 export async function initRedis() {
   if (client) return client;
 
-  if (!env.REDIS) {
+  if (!redisConfig.enabled) {
     ready = false;
-    lastError = "REDIS=false";
-    logger.info("Redis disabled; cache, session storage, queue, events, and BullBoard unavailable");
+    lastError = "redis disabled in config";
+    logger.info("Redis disabled; cache, session storage, queue, events, and cockpit unavailable");
     return null;
   }
 
   try {
-    client = new Redis(env.REDIS_URL, {
+    client = new Redis(redisConfig.url, {
       lazyConnect: true,
       enableReadyCheck: true,
       maxRetriesPerRequest: 0,

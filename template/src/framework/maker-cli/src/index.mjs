@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { config } from "dotenv";
-import { makerCommandPrefix, showHelp } from "./levels/level-1/help.mjs";
+import { configureDeployHelp, makerCommandPrefix, showHelp } from "./levels/level-1/help.mjs";
 import { registerDbCommands } from "./levels/level-2/db/index.mjs";
 import { registerModuleCommands } from "./levels/level-2/module/index.mjs";
 import { registerRuntimeCommands } from "./levels/level-2/runtime/index.mjs";
@@ -18,7 +18,7 @@ try {
   deployCommands = deploy.deployCommands;
   registerDeployCommands = deploy.registerDeployCommands;
 } catch {
-  /* deploy module not available until user runs deploy:create */
+  /* deploy module not available until user runs deploy:init */
 }
 
 if (!deployCommands.has(command || "")) {
@@ -34,6 +34,7 @@ try {
     .allowExcessArguments(true)
     .helpOption("-h, --help")
     .addHelpText("beforeAll", "nexgen maker\n");
+  configureDeployHelp(program);
 
   registerModuleCommands(program, args);
   registerDeployCommands(program, args);

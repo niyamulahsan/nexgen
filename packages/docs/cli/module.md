@@ -52,9 +52,8 @@ src/modules/posts/
 
 ### `module:make-notification [name]`
 
-Generate a full notification module with backend controllers, frontend components, and wiring. Default name is `notification`.
+Generate a notification backend module with controller, routes, and job. Default name is `notification`.
 
-**Backend:**
 | File | Purpose |
 |---|---|
 | `controllers/notification.controller.ts` | 5 handlers: list, unreadCount, markRead, markAllRead, remove |
@@ -62,17 +61,9 @@ Generate a full notification module with backend controllers, frontend component
 | `routes/api.ts` | 5 routes under `authMiddleware` |
 | `jobs/notification.ts` | Queue handler for email delivery |
 
-**Frontend:**
-| File | Purpose |
-|---|---|
-| `components/NotificationBell.vue` | Bell icon with unread badge + dropdown |
-| `pages/notifications/index.vue` | Full notifications management page |
-
-**Mutations to existing files:**
-| File | Change |
-|---|---|
-| `src/resources/src/router/index.ts` | Adds `/notifications` route under `dashlayout` |
-| `src/resources/src/layouts/Layout/Header.vue` | Inserts `NotificationBell` before user dropdown |
+::: tip
+Frontend integration is manual — see [Notification Guide](/guide/notification) for Vue copy-paste components and setup instructions.
+:::
 
 ### `module:example [name]`
 
@@ -250,6 +241,34 @@ bun maker module:make-console posts cleanup
 
 :::
 
+### `module:make-test <module> [name]`
+
+Generate a unit test file for a module. If no name given, uses the module name. The test file is created under the module's test directory.
+
+::: code-group
+
+```bash [npm]
+npm run maker module:make-test posts
+npm run maker module:make-test posts user-test
+```
+
+```bash [pnpm]
+pnpm maker module:make-test posts
+pnpm maker module:make-test posts user-test
+```
+
+```bash [yarn]
+yarn maker module:make-test posts
+yarn maker module:make-test posts user-test
+```
+
+```bash [bun]
+bun maker module:make-test posts
+bun maker module:make-test posts user-test
+```
+
+:::
+
 ## Delete Commands
 
 ### `module:delete <name>`
@@ -286,7 +305,7 @@ bun maker module:delete posts --dry-run
 
 ### `module:delete-notification [name]`
 
-Remove the notification module completely — deletes backend module, Bell.vue, notification page, and cleans up router imports and Header.vue references.
+Remove the notification backend module (moves to trash). Frontend files are user-managed.
 
 ::: code-group
 

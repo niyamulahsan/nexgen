@@ -21,11 +21,7 @@ export function command(name: string, handler: CommandHandler) {
  * Where: Controllers, jobs, and service layers.
  * How: Runs local handler unless async requested; otherwise enqueues.
  */
-export async function dispatchCommand(
-  name: string,
-  payload: any,
-  options: { async?: boolean; queue?: string } = {}
-) {
+export async function dispatchCommand(name: string, payload: any, options: { async?: boolean; queue?: string; } = {}) {
   if (!options.async) {
     const handler = commandHandlers.get(name);
     if (handler) return await handler(payload);
@@ -40,11 +36,7 @@ export async function dispatchCommand(
  * Where: Controllers/jobs across modules.
  * How: Broadcasts via Socket.IO and optionally enqueues job.
  */
-export async function dispatchEvent(
-  name: string,
-  payload: any,
-  options: { queue?: boolean | string; broadcast?: BroadcastOptions } = {}
-) {
+export async function dispatchEvent(name: string, payload: any, options: { queue?: boolean | string; broadcast?: BroadcastOptions; } = {}) {
   if (options.broadcast) {
     broadcast(name, payload, options.broadcast);
   }

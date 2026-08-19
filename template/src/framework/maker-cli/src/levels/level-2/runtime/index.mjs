@@ -1,11 +1,12 @@
-import { clearViteCache, runRuntime, runUi, runVite } from "./core.mjs";
+import { clearViteCache, runRuntime, runTest, runTestCoverage, runTestUI, runTestWatch, runUi, runVite } from "./core.mjs";
 
 /** Register runtime commands (dev, serve, queue, schedule, UI tools) on the CLI program. */
 export function registerRuntimeCommands(program, rawArgs) {
   program
     .command("dev")
     .description("Start API + Vue 3 frontend plus optional workers/tools")
-    .option("--view <tools>", "Comma-separated UI tools to launch (redis,maildev,studio,bullmq)")
+    .option("--view <tools>", "Comma-separated UI tools to launch (redis,maildev,studio)")
+    .option("--viewer <tools>", "Alias for --view (npm expands --view to --viewer)")
     .option("--with <tools>", "Alias for --view")
     .option("--with-redis-view", "Launch Redis Commander")
     .option("--with-maildev", "Launch MailDev")
@@ -68,4 +69,36 @@ export function registerRuntimeCommands(program, rawArgs) {
     .description("Clear Vite cache folders (cross-platform)")
     .allowUnknownOption(true)
     .action(async () => clearViteCache());
+  program
+    .command("test")
+    .description("Run Vitest backend tests")
+    .allowUnknownOption(true)
+    .action(async () => {
+      const args = process.argv.slice(3);
+      await runTest(args);
+    });
+  program
+    .command("test:watch")
+    .description("Run Vitest backend tests in watch mode")
+    .allowUnknownOption(true)
+    .action(async () => {
+      const args = process.argv.slice(3);
+      await runTestWatch(args);
+    });
+  program
+    .command("test:coverage")
+    .description("Run Vitest backend tests with code coverage")
+    .allowUnknownOption(true)
+    .action(async () => {
+      const args = process.argv.slice(3);
+      await runTestCoverage(args);
+    });
+  program
+    .command("test:ui")
+    .description("Run Vitest backend tests in UI mode")
+    .allowUnknownOption(true)
+    .action(async () => {
+      const args = process.argv.slice(3);
+      await runTestUI(args);
+    });
 }

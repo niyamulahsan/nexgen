@@ -14,6 +14,7 @@
           :maxlength="maxLengthAttr"
           :aria-describedby="`${inputId}Help`"
           v-bind="$attrs"
+          rows="3"
           @input="updateModel">
         </textarea>
         <label
@@ -66,6 +67,7 @@ const max = computed<number | null>(() => {
   const raw = $attrs.maxlength as string | number | undefined;
   return raw != null ? Number(raw) : null;
 });
+
 const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 const maxCounter = computed(() =>
   max.value == null ? "" : max.value - String(props.modelValue).length
@@ -96,8 +98,8 @@ onMounted(() => {
     left: 1px;
   }
 
-  textarea:focus + label,
-  textarea:not(:placeholder-shown) + label {
+  textarea:focus+label,
+  textarea:not(:placeholder-shown)+label {
     top: -6px;
   }
 }

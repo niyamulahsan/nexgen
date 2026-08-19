@@ -6,15 +6,29 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "strict": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/framework/maker-cli/**/*.mjs", "drizzle.config.ts"],
-  "exclude": ["node_modules", "dist", "src/resources", "src/storage/trash"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/framework/maker-cli/**/*.mjs",
+    "drizzle.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/resources",
+    "src/storage/trash"
+  ]
 }

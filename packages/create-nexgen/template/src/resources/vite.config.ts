@@ -1,11 +1,12 @@
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
-import { env } from "../env.ts";
 
 const cacheBase = process.env.LOCALAPPDATA || process.env.TEMP || ".";
-const apiUrl = env.APP_URL;
+const apiUrl = process.env.APP_URL || "http://localhost:3000";
+const socketEnabled = process.env.SOCKET !== "false";
 
 const proxy: Record<string, any> = {
   "/api": { target: apiUrl, changeOrigin: true },
@@ -16,7 +17,10 @@ const proxy: Record<string, any> = {
 proxy["/socket.io"] = { target: apiUrl, changeOrigin: true, ws: true };
 
 export default defineConfig({
-  define: { __SOCKET_ENABLED__: env.SOCKET },
+  define: {
+    __SOCKET_ENABLED__: socketEnabled,
+    __API_URL__: JSON.stringify(apiUrl)
+  },
   root: "src/resources",
   cacheDir: path.join(cacheBase, "nexgen", "vite-cache", "resources"),
   plugins: [vue()],

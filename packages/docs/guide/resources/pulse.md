@@ -244,7 +244,7 @@ pulse.disconnect(); // close the socket entirely
 
 ## Graceful Degradation
 
-When `SOCKET=false` in `.env` (or the compile-time `__SOCKET_ENABLED__` flag is false), Pulse returns a no-op implementation:
+When `SOCKET=false` in `.env`, Pulse returns a no-op implementation on the frontend, and the backend Socket.IO server does not start:
 
 ```ts
 pulse.channel("orders").listen("event", fn); // silent no-op
@@ -255,26 +255,31 @@ Your code never needs to check `if (SOCKET)` — Pulse handles it internally.
 
 ## Complete Example: Dashboard with Realtime Updates
 
+Since the auth store bootstraps asynchronously, use `onMounted` to ensure the user is loaded before joining the channel:
+
 ```vue
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
 import { useHead } from "@vueuse/head";
 import { pulse } from "@/plugins/pulse";
-import { useAuth } from "@/composables/useAuth";
+import { useAuthStore } from "@/stores/auth";
 
 useHead({ title: "Dashboard" });
 
-const { user } = useAuth();
-const ch = pulse.channel(`user:${user.value.id}`);
+const authStore = useAuthStore();
+let ch: ReturnType<typeof pulse.channel> | null = null;
 
 onMounted(() => {
+  if (!authStore.user?.id) return;
+
+  ch = pulse.channel(`user:${authStore.user.id}`);
   ch.listen("user.registered", (payload: any) => {
     console.log("User registered:", payload);
   });
 });
 
 onUnmounted(() => {
-  ch.stopListening("user.registered");
+  ch?.stopListening("user.registered");
 });
 </script>
 ```
@@ -345,11 +350,13 @@ pulse channel listener fires:
 
 ## Env Variables
 
+Pulse uses the general Redis and Socket configuration from `env.ts`:
+
 | Variable | Default | Description |
 |---|---|---|
-| `SOCKET` | `true` | Enable/disable Socket.IO server |
+| `SOCKET` | `true` | Enable/disable Socket.IO on both backend and frontend |
 | `APP_URL` | (required) | CORS origin for Socket.IO |
 | `FRONTEND_URL` | optional | Additional CORS origin |
 | `REDIS` | `false` | Enable Redis adapter for multi-process broadcasting |
-| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection |
-| `REDIS_PREFIX` | `nexgen` | Prefix for Redis pub/sub broadcast channel |
+| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection (shared across all Redis features) |
+| `REDIS_PREFIX` | `nexgen` | Prefix for Redis pub/sub broadcast channel (shared across all Redis features) |

@@ -14,6 +14,32 @@ export function makerCommandPrefix() {
 }
 
 /**
+ * Why: Overrides Commander's help so the subcommand listing shows the actual
+ * long flags (e.g. `--app-only|--server-only|--dev`) instead of a generic
+ * `[options]` marker.
+ * When: Building the CLI program before commands are registered.
+ * Where: Maker CLI entry flow.
+ * How: Injects a custom `subcommandTerm` via `configureHelp`.
+ */
+export function configureDeployHelp(program) {
+  program.configureHelp({
+    subcommandTerm(cmd) {
+      const flags = cmd.options
+        .map((option) => option.flags.split(" ")[0])
+        .filter((flag) => flag.startsWith("--"))
+        .join("|");
+      const args = cmd.registeredArguments.map((arg) => humanReadableArgName(arg)).join(" ");
+      return cmd.name() + (flags ? ` [${flags}]` : "") + (args ? ` ${args}` : "");
+    }
+  });
+}
+
+function humanReadableArgName(arg) {
+  const nameOutput = arg.name() + (arg.variadic === true ? "..." : "");
+  return arg.required ? `<${nameOutput}>` : `[${nameOutput}]`;
+}
+
+/**
  * Why: Shows commander-generated help for the maker CLI program.
  * When: CLI runs without a valid command.
  * Where: Maker CLI entry flow and error handlers.

@@ -16,5 +16,8 @@
     "database": "nexgen",
     "container": "mysql-global",
     "user": "root"
-  }
+  },
+  "preDeployCommands": [
+    "docker rm -f old-app 2>/dev/null || true"
+  ]
 }

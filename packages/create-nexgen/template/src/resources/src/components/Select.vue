@@ -27,8 +27,8 @@ interface FetchPack {
   params?: AnyRecord;
   mapFn?: (x: AnyRecord) => AnyRecord;
   option?:
-    | ((value: unknown) => void | Promise<void>)
-    | Array<(value: unknown) => void | Promise<void>>;
+  | ((value: unknown) => void | Promise<void>)
+  | Array<(value: unknown) => void | Promise<void>>;
   reset?: boolean;
   reload?: boolean;
 }
@@ -61,14 +61,15 @@ let observer = ref<IntersectionObserver | null>(null);
 let load = ref<HTMLElement | null>(null);
 
 // store callbacks coming from fetchedDropdown(pack)
-const hooks = ref<{ option: OptionHook | OptionHook[] }>({ option: null }); // function | function[] | null
+const hooks = ref<{ option: OptionHook | OptionHook[]; }>({ option: null }); // function | function[] | null
 
 // remember last fetch config and search so the child can refetch/append by itself
 const lastPack = ref<FetchPack | null>(null); // { url, data, params, mapFn }
 const lastSearch = ref(""); // current search term
+const lastSearchRows = ref<AnyRecord[]>([]); // results of the last search, to pin on top after clearing
 
 const hasNextPage = computed(() => {
-  const total = Number((fieldData.value as { total?: number }).total ?? 0);
+  const total = Number((fieldData.value as { total?: number; }).total ?? 0);
   return field.all.length < total;
 });
 
@@ -150,13 +151,14 @@ const inputSearch = debounce(async (search: string, loading: (value: boolean) =>
       await callParentFetched(search, { reset: true }).finally(() => loading(false));
     }
   } else {
-    // user erased the query manually
+    // user erased the query manually: refetch the full list, then pin the last search results on top
     field.page = 0;
     if (lastPack.value) {
       await fetchedDropdown("", { ...lastPack.value, reset: true });
     } else {
       await callParentFetched("");
     }
+    pinLastSearchRows();
     await nextTick();
     if (load.value && hasNextPage.value) observer.value?.observe(load.value);
   }
@@ -199,7 +201,7 @@ onBeforeUnmount(() => {
 });
 
 // prototype and it will call from parent
-const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number }>({
+const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number; }>({
   all: [],
   val: "",
   page: 0,
@@ -256,7 +258,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
     return;
   }
 
-  let key;
+  let key: any;
   try {
     key = await axios.get(url, { params: params ? { ...params, ...param } : param });
   } catch {
@@ -265,25 +267,48 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   const payload = key.data[data as string] as AnyRecord;
 
   fieldData.value = payload;
-  const rows = Array.isArray((payload as { data?: unknown }).data)
-    ? (payload as { data: AnyRecord[] }).data
+  const rows = Array.isArray((payload as { data?: unknown; }).data)
+    ? (payload as { data: AnyRecord[]; }).data
     : [];
+
+  const options = rows
+    .map((dt) => (dt == null ? null : mapFn(dt)))
+    .filter((opt): opt is AnyRecord => opt != null);
+
+  // remember the last fresh search results so they can be pinned on top after clearing the search
+  if (search?.trim().length && reset) {
+    lastSearchRows.value = options.map((opt) => ({ ...opt }));
+  }
+
   // console.log('Fetched', payload?.data);
-  rows.forEach((dt) => {
-    const opt = mapFn(dt);
+  options.forEach((opt) => {
     const key = opt?.id ?? opt?.title ?? JSON.stringify(opt); // build a comparison key: prefer id, then title, then full object
 
     if (
       !field.all.some(
         (o) =>
-          ((o as { id?: unknown; title?: unknown }).id ??
-            (o as { id?: unknown; title?: unknown }).title ??
+          o != null &&
+          ((o as { id?: unknown; title?: unknown; }).id ??
+            (o as { id?: unknown; title?: unknown; }).title ??
             JSON.stringify(o)) === key
       )
     ) {
       field.all = [...field.all, opt];
     }
   });
+};
+
+const optionKey = (o: AnyRecord) =>
+  (o as { id?: unknown; title?: unknown; }).id ??
+  (o as { id?: unknown; title?: unknown; }).title ??
+  JSON.stringify(o);
+
+// after a refetch, move the last search results to the top of the list
+const pinLastSearchRows = () => {
+  if (!lastSearchRows.value.length) return;
+  const pinKeys = new Set(lastSearchRows.value.map(optionKey));
+  const rest = field.all.filter((o) => !pinKeys.has(optionKey(o)));
+  field.all = [...lastSearchRows.value, ...rest];
 };
 
 /**
@@ -330,6 +355,8 @@ watch(
       return;
     } // parent cleared, don't fetch with null key
     await callParentFetched("", { reload: true });
+    pinLastSearchRows();
+    skipNextSearch.value = false; // allow subsequent empty-searches (backspace-to-empty)
   }
 );
 

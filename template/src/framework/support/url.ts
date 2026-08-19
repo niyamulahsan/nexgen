@@ -1,14 +1,14 @@
-import { env } from "@/env.js";
+import { appConfig } from "@/config/index.js";
 
 export const urls = {
   /**
    * Why: Returns normalized app base URL without trailing slash.
    * When: Building absolute links.
    * Where: Mail/reset URL generation.
-   * How: Trims trailing slash from APP_URL.
+   * How: Trims trailing slash from the configured app URL.
    */
   appUrl() {
-    return env.APP_URL.replace(/\/$/, "");
+    return appConfig.url.replace(/\/$/, "");
   },
 
   /**

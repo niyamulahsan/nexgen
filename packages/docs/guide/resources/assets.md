@@ -13,6 +13,10 @@ assets/
 │   ├── custom.scss
 │   ├── custom.css
 │   └── custom.css.map
+├── fonts/
+│   └── public-sans/
+│       ├── public-sans-latin.woff2
+│       └── public-sans-latin-ext.woff2
 └── images/
     ├── favicon/
     │   ├── favicon.ico
@@ -24,6 +28,17 @@ assets/
     ├── logo-sm.png
     ├── logo1.png
     └── logo2.png
+```
+
+## Typography
+
+The default UI font is **Public Sans**, self-hosted as WOFF2 in `assets/fonts/public-sans/` (latin + latin-ext subsets). It is applied to `body` and wired into Bootstrap via `--bs-body-font-family` and `--bs-font-sans-serif`. Override it in `custom.scss`:
+
+```scss
+body {
+  font-family: "Your Font", sans-serif;
+  --bs-body-font-family: "Your Font", sans-serif;
+}
 ```
 
 ## Theme System
@@ -56,3 +71,21 @@ $primary: #4f46e5;
   color: var(--bs-body-color);
 }
 ```
+
+### CSS variables
+
+The theme exposes a set of `--app-*` custom properties plus the Bootstrap runtime variables. Useful ones for your own styles:
+
+| Variable | Purpose |
+|---|---|
+| `--app-bg` | Page background |
+| `--app-text` | Default text color |
+| `--app-primary` | Brand primary color |
+| `--app-backdrop` | Overlay/dialog backdrop color |
+| `--app-hover` | Hover background |
+| `--app-skeleton` | Skeleton loader base color |
+| `--app-skeleton-hi` | Skeleton loader highlight color |
+| `--bs-secondary-bg-subtle` | Subtle secondary background (e.g. table hover) |
+| `.fs-7` | Small helper class (12px font-size) |
+
+Both `--app-skeleton` and `--app-skeleton-hi` are used by the `DataTableSkeleton` loading state and adapt to light/dark mode.

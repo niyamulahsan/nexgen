@@ -1,115 +1,85 @@
 <p align="center">
   <a href="https://nexgen.dev">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/.github/logo-dark.svg">
-      <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/.github/logo-light.svg" width="300">
-    </picture>
+    <img alt="nexgen" src="logo-favicon/nexgen.png" width="300">
   </a>
 </p>
 
-<p align="center">
-  Full-stack TypeScript framework with Hono, Vue 3, and Drizzle ORM
-</p>
+<h3 align="center">Full-stack TypeScript framework for modern web applications</h3>
 
 <p align="center">
-  <a href="https://niyamulahsan.github.io/nexgen"><img src="https://img.shields.io/badge/docs-nexgen-3b82f6" alt="Documentation"></a>
-  <a href="https://www.npmjs.com/package/create-nexgen"><img src="https://img.shields.io/npm/v/create-nexgen" alt="npm"></a>
+  <a href="https://niyamulahsan.github.io/nexgen"><img src="https://img.shields.io/badge/docs-nexgen.dev-3b8eed" alt="Documentation"></a>
+  <a href="https://www.npmjs.com/package/create-nexgen"><img src="https://img.shields.io/npm/v/create-nexgen" alt="npm version"></a>
   <a href="https://github.com/niyamulahsan/nexgen/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
+  <a href="https://github.com/niyamulahsan/nexgen"><img src="https://img.shields.io/github/stars/niyamulahsan/nexgen?style=social" alt="GitHub Stars"></a>
 </p>
 
 ---
 
-- [Install](#install)
-- [Quick start](#quick-start)
-  - [Basic route](#basic-route)
-  - [Basic form on the frontend](#basic-form-on-the-frontend)
-- [Core concepts](#core-concepts)
-  - [Modules](#modules)
-  - [Framework](#framework)
-  - [Frontend](#frontend)
-- [CLI](#cli)
-- [Deployment](#deployment)
-- [Ecosystem](#ecosystem)
-- [Contributing](#contributing)
-- [License](#license)
+nexgen is a batteries-included TypeScript framework that combines a modular backend (Hono, Drizzle ORM, BullMQ, Socket.IO) with a Vue 3 SPA frontend — all scaffolded with a single command and deployed with Docker Compose.
 
----
-
-## Install
+## Quick Start
 
 ```bash
 npm create nexgen@latest my-app
 cd my-app
-cp .env.example .env
 npm install
-```
-
-Requires **Node.js >= 24** or **Bun >= 1.3**.
-
-## Quick start
-
-```bash
-# Generate schema, run migrations, seed the database
 npm run maker db:migrate --seed
-
-# Start everything: API server + frontend HMR + queue worker
 npm run maker dev
 ```
 
-That's it. Your API is live at `http://localhost:3000`, the Scalar docs at `http://localhost:3000/api-docs`, and the Vue frontend (with hot reload) at `http://localhost:5173`.
+Your API is live at `http://localhost:3000`, Scalar docs at `/api-docs`, and the Vue frontend at `http://localhost:5173`.
 
-### Basic route
+Requires **Node.js >= 24** or **Bun >= 1.3**.
 
-```ts
-// src/modules/posts/routes/api.ts
-import {
-  createRoute,
-  group,
-  HttpStatusCodes,
-  jsonContent,
-} from "@/framework/facade.js";
+### Package Manager
 
-const listRoute = createRoute({
-  path: "/",
-  method: "get",
-  tags: ["Posts"],
-  responses: { [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list") },
-});
+All examples use `npm` as the default. nexgen works with any major package manager:
 
-export default group().api(listRoute, (c) =>
-  c.json([{ id: 1, title: "Hello" }]),
-);
+| Manager  | Create project             | Run commands          |
+| -------- | -------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest` | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen`       | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen`       | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen`        | `bun maker <cmd>`     |
+
+### Runtime
+
+nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
+
+| Runtime     | Minimum version | Notes                                                                 |
+| ----------- | --------------- | --------------------------------------------------------------------- |
+| **Node.js** | `>= 24`         | Default. Uses `node` in Dockerfile.                                   |
+| **Bun**     | `>= 1.3`        | Pass `--runtime=bun` to `deploy:init`. Uses `oven/bun` in Dockerfile. |
+
+## Features
+
+| Category            | What you get                                                                   |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting |
+| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`. |
+| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware  |
+| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard   |
+| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events       |
+| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                     |
+| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                         |
+| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)           |
+| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                |
+| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin       |
+| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy           |
+| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                   |
+
+## Architecture
+
 ```
-
-### Basic form on the frontend
-
-```vue
-<script setup lang="ts">
-import { useGumForm } from "@/plugins/gum";
-
-const form = useGumForm({ email: "", password: "" });
-
-function login() {
-  form.post("/api/auth/login", undefined, {
-    onSuccess: () => router.push("/"),
-    onError: () => {}, // errors populate form.errors automatically
-  });
-}
-</script>
-
-<template>
-  <form @submit.prevent="login">
-    <Input v-model="form.data.email" label="Email" :err="form.errors?.email" />
-    <InputPasswordToggle
-      v-model="form.data.password"
-      label="Password"
-      :err="form.errors?.password" />
-    <Button type="submit" label="Sign In" :loading="form.processing" />
-  </form>
-</template>
+src/
+├── env.ts              # Zod-validated environment config
+├── database/           # Drizzle schema, migrations, seeders
+├── framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
+├── modules/            # Application modules (auto-discovered)
+├── middlewares/        # Auth & role guards
+├── resources/          # Vue 3 SPA frontend
+└── storage/            # Uploaded files & logs
 ```
-
-## Core concepts
 
 ### Modules
 
@@ -117,17 +87,17 @@ Every feature is a self-contained module under `src/modules/<name>/`:
 
 ```
 src/modules/posts/
-├── controllers/       # Request handlers
+├── controllers/       # Request handlers + Zod schemas
 ├── routes/            # HTTP route definitions (auto-discovered)
 ├── database/
-│   ├── models/        # Drizzle schema definitions
-│   └── seeders/       # Test data
+│   ├── models/        # Drizzle table definitions
+│   └── seeders/       # Test data generators
 ├── jobs/              # BullMQ queue handlers
-├── console/           # CLI commands
-└── schedules/         # Cron jobs
+├── console/           # CLI commands & scheduled tasks
+└── schedules/         # Cron job definitions
 ```
 
-Modules are auto-discovered — no manual registration needed. Create one with:
+Modules are **auto-discovered** — no manual registration. Create one with:
 
 ```bash
 npm run maker module:make blog
@@ -136,26 +106,9 @@ npm run maker module:make-route blog post
 npm run maker module:make-model blog post
 ```
 
-### Framework
+### Framework Facade
 
-The framework at `src/framework/` provides all reusable infrastructure:
-
-| Subsystem         | Description                                                            |
-| ----------------- | ---------------------------------------------------------------------- |
-| **HTTP**          | Hono router, CORS, rate limiter, OpenAPI / Scalar docs                 |
-| **Database**      | Drizzle ORM with SQLite, MySQL, PostgreSQL                             |
-| **Auth**          | JWT access + refresh token rotation, role middleware                   |
-| **Cache**         | Redis-backed TTL cache with `get/put/forget/remember`                  |
-| **Session**       | Server-side session store with httpOnly cookies                        |
-| **Queue**         | BullMQ job processing with `shouldQueue` decorator                     |
-| **Events**        | String-based event dispatcher with broadcast + queue                   |
-| **Realtime**      | Socket.IO with auto room joining (user, role, auth)                    |
-| **Scheduler**     | Cron-based scheduling with distributed Redis lock                      |
-| **Storage**       | Local disk or S3-compatible file storage                               |
-| **Notifications** | Database-persisted notifications with broadcast + mail                 |
-| **Support**       | JWT, mail (nodemailer), password (bcrypt), signed cookies, URL builder |
-
-Access everything through the facade:
+Access all subsystems through a single import:
 
 ```ts
 import {
@@ -174,60 +127,70 @@ import {
 } from "@/framework/facade.js";
 ```
 
-### Frontend
+## CLI Reference
 
-A Vue 3 SPA lives at `src/resources/` with three built-in plugins:
-
-| Plugin     | Import                                               | Purpose                                   |
-| ---------- | ---------------------------------------------------- | ----------------------------------------- |
-| **Gum**    | `import { useGum, useGumForm } from "@/plugins/gum"` | Inertia-style page visits & form handling |
-| **Pulse**  | `import { pulse } from "@/plugins/pulse"`            | Socket.IO realtime channels               |
-| **Dialog** | `import { dialog } from "@/plugins/dialog"`          | Programmatic alert/confirm/prompt         |
-
-## CLI
-
-| Command                   | Description                                    |
-| ------------------------- | ---------------------------------------------- |
-| `maker dev`               | Start API server + frontend HMR + queue worker |
-| `maker serve`             | API server only (dev or prod)                  |
-| `maker queue:work`        | BullMQ worker process                          |
-| `maker schedule:work`     | Cron scheduler worker                          |
-| `maker db:migrate --seed` | Run migrations + seeders                       |
-| `maker module:make`       | Scaffold a new module                          |
-| `maker module:make-*`     | Scaffold controllers, routes, models, jobs     |
-| `maker deploy:local`      | Docker Compose local deploy                    |
-| `maker deploy:remote`     | SSH + Docker remote deploy                     |
+| Command                        | Description                                    |
+| ------------------------------ | ---------------------------------------------- |
+| `maker dev`                    | Start API server + frontend HMR + queue worker |
+| `maker serve [--prod]`         | API server (dev or production)                 |
+| `maker queue:work`             | BullMQ worker process                          |
+| `maker schedule:work`          | Cron scheduler                                 |
+| `maker db:migrate --seed`      | Run migrations + seeders                       |
+| `maker db:fresh`               | Drop all tables, re-migrate, re-seed           |
+| `maker module:make <name>`     | Scaffold a new module                          |
+| `maker deploy:init`            | Generate Docker deploy scaffolding             |
+| `maker deploy:workflow`        | Local deploy (Docker Desktop)                  |
+| `maker deploy:workflow:remote` | Remote deploy via SSH + rsync                  |
 
 ## Deployment
 
+nexgen includes a complete Docker deployment system out of the box.
+
+### Local (Docker Desktop)
+
 ```bash
-# Build the frontend
-npm run maker frontend:build
-
-# Start production server
-npm run maker serve --prod
-
-# Or deploy with Docker
-npm run maker deploy:local
+npm run maker deploy:init        # Generate deploy files (one-time)
+npm run maker deploy:workflow    # Build and start everything
 ```
 
-The framework includes Docker Compose files with:
+### Remote (VPS / Cloud)
 
-- Multi-stage Node.js app image
-- nginx-proxy with auto-SSL (Let's Encrypt)
-- Optional MySQL + Redis containers
-- Process supervisor for queue worker + scheduler
+```bash
+npm run maker deploy:init                      # Generate files
+# Edit deploy/workflow.remote.json with your SSH details
+npm run maker deploy:workflow:remote           # Deploy to server
+```
 
-## Ecosystem
+The deploy system provisions:
 
-| Package                                                      | Version | Description             |
-| ------------------------------------------------------------ | ------- | ----------------------- |
-| [create-nexgen](https://www.npmjs.com/package/create-nexgen) | 2.2.5   | Project scaffolding CLI |
-| [docs](https://niyamulahsan.github.io/nexgen)                | —       | Full documentation site |
+- **Multi-stage Dockerfile** — builder (install + build) → runner (minimal production image)
+- **Shared infrastructure** — nginx-proxy, MySQL/PostgreSQL, Redis, phpMyAdmin, pgAdmin
+- **Auto SSL** — Let's Encrypt via nginx-proxy companion
+- **Process supervisor** — API server, queue worker, cron scheduler, auto-migration
+- **Two-layer architecture** — server infra runs once per host, app stack rebuilds per deploy
+
+See the [deploy documentation](https://niyamulahsan.github.io/nexgen/deploy/overview) for full details.
+
+## Documentation
+
+Complete documentation is available at **[nexgen.dev](https://niyamulahsan.github.io/nexgen)**
 
 ## Contributing
 
 Contributions are welcome. Open an issue or pull request on [GitHub](https://github.com/niyamulahsan/nexgen).
+
+## Donate
+
+If nexgen helps you build faster, consider supporting the project:
+
+<p>
+  <a href="https://www.supportkori.com/niyam" target="_blank">
+    <img src="https://img.shields.io/badge/Support-Kori-ff6f00?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Kori">
+  </a>
+  <a href="https://github.com/sponsors/niyamulahsan">
+    <img src="https://img.shields.io/badge/GitHub-Sponsors-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors">
+  </a>
+</p>
 
 ## License
 

@@ -11,16 +11,16 @@ The middleware handles transparent token refresh — clients never need to imple
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `JWT_ACCESS_SECRET` | — | **Required.** Secret for signing access tokens (HS256) |
-| `JWT_REFRESH_SECRET` | — | **Required.** Secret for signing refresh tokens (HS256) |
-| `JWT_ACCESS_EXPIRY` | `900` (15 min) | Access token TTL in seconds |
-| `JWT_REFRESH_EXPIRY` | `2592000` (30 days) | Refresh token TTL in seconds |
-| `JWT_REFRESH_REMEMBER_EXPIRY` | `604800` (7 days) | Refresh token TTL when "remember me" is checked |
-| `COOKIE_NAME` | `nexgen` | Prefix for auth cookies (`{name}_access`, `{name}_refresh`) |
-| `COOKIE_SECRET` | — | **Required.** Secret for cookie signing |
-| `AUTH_REQUIRE_EMAIL_VERIFICATION` | `false` | Require email verification before login |
+| Variable                       | Default             | Description                                                                    |
+| ------------------------------ | ------------------- | ------------------------------------------------------------------------------ |
+| `JWT_ACCESS_SECRET`            | —                   | **Required.** Secret for signing access tokens (HS256)                         |
+| `JWT_REFRESH_SECRET`           | —                   | **Required.** Secret for signing refresh tokens (HS256)                        |
+| `COOKIE_SECRET`                | —                   | **Required.** Secret for cookie signing                                        |
+| `accessExpirySeconds`          | `900` (15 min)      | Access token TTL in seconds (config/jwt.ts)                                    |
+| `refreshExpirySeconds`         | `3600` (1 hour)     | Refresh token TTL in seconds (config/jwt.ts)                                   |
+| `refreshRememberExpirySeconds` | `2592000` (30 days) | Refresh token TTL when "remember me" is checked(config/jwt.ts)                 |
+| `name`                         | `nexgen`            | Prefix for auth cookies (config/cookie.ts) (`{name}_access`, `{name}_refresh`) |
+| `requireEmailVerification`     | `false`             | Require email verification before login (config/auth.ts)                       |
 
 ## Auth Flow
 
@@ -56,8 +56,9 @@ import { authMiddleware } from "@/middlewares/auth-middleware.js";
 ```
 
 **Logic:**
-1. Read `{COOKIE_NAME}_access` cookie → verify JWT → set `c.set("auth", { id, email, roleId, role })`
-2. If access token expired/missing → read `{COOKIE_NAME}_refresh` cookie → verify JWT → check `jti` in DB → issue **new** access token → set new cookie
+
+1. Read `{cookie.name}_access` cookie → verify JWT → set `c.set("auth", { id, email, roleId, role })`
+2. If access token expired/missing → read `{cookie.name}_refresh` cookie → verify JWT → check `jti` in DB → issue **new** access token → set new cookie
 3. If nothing valid → return 401
 
 The `auth` object is available in all protected handlers:
@@ -75,22 +76,22 @@ All mounted at `/api/auth/`.
 
 ### Public
 
-| Method | Path | Handler | Description |
-|---|---|---|---|
-| `POST` | `/register` | register | Create account |
-| `POST` | `/login` | login | Sign in |
-| `POST` | `/forgot-password` | forgotPassword | Request reset email |
-| `POST` | `/reset-password` | resetPassword | Reset with token |
-| `POST` | `/verify-email` | verifyEmail | Verify email address |
-| `POST` | `/refresh-token` | refreshToken | Exchange refresh token for new pair |
+| Method | Path               | Handler        | Description                         |
+| ------ | ------------------ | -------------- | ----------------------------------- |
+| `POST` | `/register`        | register       | Create account                      |
+| `POST` | `/login`           | login          | Sign in                             |
+| `POST` | `/forgot-password` | forgotPassword | Request reset email                 |
+| `POST` | `/reset-password`  | resetPassword  | Reset with token                    |
+| `POST` | `/verify-email`    | verifyEmail    | Verify email address                |
+| `POST` | `/refresh-token`   | refreshToken   | Exchange refresh token for new pair |
 
 ### Protected (authMiddleware)
 
-| Method | Path | Handler | Description |
-|---|---|---|---|
-| `GET` | `/me` | me | Current user profile |
-| `POST` | `/logout` | logout | Revoke current session |
-| `POST` | `/logout-all` | logoutAllDevices | Revoke all sessions |
+| Method | Path          | Handler          | Description            |
+| ------ | ------------- | ---------------- | ---------------------- |
+| `GET`  | `/me`         | me               | Current user profile   |
+| `POST` | `/logout`     | logout           | Revoke current session |
+| `POST` | `/logout-all` | logoutAllDevices | Revoke all sessions    |
 
 ## Role Middleware
 
@@ -110,17 +111,17 @@ Returns `401` if unauthenticated, `403` if wrong role.
 ### Access Token
 
 - Algorithm: HS256
-- Secret: `JWT_ACCESS_SECRET`
-- Default expiry: 15 min (`JWT_ACCESS_EXPIRY`)
-- Stored in cookie: `{COOKIE_NAME}_access`
+- Secret: `env.JWT_ACCESS_SECRET`
+- Default expiry: 15 min (`config/jwt.ts` → `accessExpirySeconds`)
+- Stored in cookie: `{cookie.name}_access`
 
 ### Refresh Token
 
 - Algorithm: HS256
-- Secret: `JWT_REFRESH_SECRET`
-- Default expiry: 30 days (`JWT_REFRESH_EXPIRY`)
-- With "remember me": 7 days (`JWT_REFRESH_REMEMBER_EXPIRY`)
-- Stored in cookie: `{COOKIE_NAME}_refresh`
+- Secret: `env.JWT_REFRESH_SECRET`
+- Default expiry: 1 hour (`config/jwt.ts` → `refreshExpirySeconds`)
+- With "remember me": 30 days (`config/jwt.ts` → `refreshRememberExpirySeconds`)
+- Stored in cookie: `{cookie.name}_refresh`
 - Tracked in DB: `refresh_tokens` table by `jti` (unique JWT ID)
 - Can be revoked (logout, password reset)
 
@@ -146,12 +147,12 @@ const match = await password.verifyPassword(plainPassword, hash);
 
 ## Cookies
 
-All auth cookies are `httpOnly`, `sameSite: "Lax"`, `path: "/"`:
+All auth cookies are `httpOnly`, `sameSite: "Lax"` (or `"None"` for cross-origin), `path: "/"`:
 
 | Cookie | Contents | Max-Age |
-|---|---|---|
-| `{COOKIE_NAME}_access` | JWT access token | `JWT_ACCESS_EXPIRY` |
-| `{COOKIE_NAME}_refresh` | JWT refresh token | `JWT_REFRESH_EXPIRY` |
+| --- | --- | --- |
+| `{cookie.name}_access` | JWT access token | `accessExpirySeconds` (config/jwt.ts) |
+| `{cookie.name}_refresh` | JWT refresh token | `refreshExpirySeconds` (config/jwt.ts) |
 
 ## Session
 
@@ -175,36 +176,36 @@ Session is separate from auth — it works for both guests and logged-in users.
 
 ### users
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | int PK | auto-increment |
-| `name` | varchar(255) | |
-| `email` | varchar(255) | unique |
-| `password` | text | bcrypt hash |
-| `roleId` | int FK → roles.id | set null on delete |
-| `emailVerifiedAt` | timestamp | nullable |
-| `createdAt` | timestamp | |
-| `updatedAt` | timestamp | |
+| Column            | Type              | Notes              |
+| ----------------- | ----------------- | ------------------ |
+| `id`              | int PK            | auto-increment     |
+| `name`            | varchar(255)      |                    |
+| `email`           | varchar(255)      | unique             |
+| `password`        | text              | bcrypt hash        |
+| `roleId`          | int FK → roles.id | set null on delete |
+| `emailVerifiedAt` | timestamp         | nullable           |
+| `createdAt`       | timestamp         |                    |
+| `updatedAt`       | timestamp         |                    |
 
 ### roles
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | int PK | auto-increment |
-| `name` | varchar(255) | unique |
-| `createdAt` | timestamp | |
-| `updatedAt` | timestamp | |
+| Column      | Type         | Notes          |
+| ----------- | ------------ | -------------- |
+| `id`        | int PK       | auto-increment |
+| `name`      | varchar(255) | unique         |
+| `createdAt` | timestamp    |                |
+| `updatedAt` | timestamp    |                |
 
 ### refresh_tokens
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | int PK | auto-increment |
-| `userId` | int FK → users.id | set null on delete |
-| `jti` | varchar(191) | unique, JWT ID |
-| `revoked` | boolean | default false |
-| `expiresAt` | timestamp | |
-| `createdAt` | timestamp | |
+| Column      | Type              | Notes              |
+| ----------- | ----------------- | ------------------ |
+| `id`        | int PK            | auto-increment     |
+| `userId`    | int FK → users.id | set null on delete |
+| `jti`       | varchar(191)      | unique, JWT ID     |
+| `revoked`   | boolean           | default false      |
+| `expiresAt` | timestamp         |                    |
+| `createdAt` | timestamp         |                    |
 
 Usage example with route definition:
 
@@ -232,7 +233,7 @@ export default createRouter()
 
 ## Email Verification
 
-When `AUTH_REQUIRE_EMAIL_VERIFICATION=true`:
+When `requireEmailVerification=true (config/auth.ts)`:
 
 1. Registration creates a `email_verification_tokens` record (24h expiry)
 2. Dispatches `"user:verify-email"` job to send email

@@ -11,13 +11,7 @@ export * as HttpStatusCodes from "stoker/http-status-codes";
 export { jsonContent } from "stoker/openapi/helpers";
 export { cache } from "@/framework/cache/cache.js";
 export { database, db } from "@/framework/database/connection.js";
-export {
-  type PaginatedResult,
-  paginate,
-  paginateModel,
-  paginateQuery,
-  paginateTable
-} from "@/framework/database/paginate.js";
+export { type PaginatedResult, paginate, paginateModel, paginateQuery, paginateTable } from "@/framework/database/paginate.js";
 export { command, dispatchCommand, dispatchEvent } from "@/framework/events/dispatcher.js";
 export { createRouter, group } from "@/framework/http/router.js";
 export { validate } from "@/framework/http/validation.js";

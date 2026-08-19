@@ -37,7 +37,7 @@ stopasgroup=true
 killasgroup=true
 
 [program:queue]
-command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/src/index.mjs queue:work --queue=default,mail --prod --runtime={{RUNTIME_NAME}}"
+command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/src/index.mjs queue:work --queue=default,mail,maintenance --prod --runtime={{RUNTIME_NAME}}"
 directory=/app
 autostart=true
 autorestart=true

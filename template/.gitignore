@@ -1,8 +1,6 @@
 .env
 node_modules/
 dist/
-coverage/
-src/storage/trash/
 
 public/*
 !public/.gitkeep

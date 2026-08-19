@@ -1,0 +1,11 @@
+import { group } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { list, unreadCount, markRead, markAllRead, remove } from "../controllers/{{module}}.controller.js";
+
+export default group()
+  .use(authMiddleware)
+  .get("/", list)
+  .get("/unread-count", unreadCount)
+  .patch("/:id/read", markRead)
+  .patch("/read-all", markAllRead)
+  .delete("/:id", remove);

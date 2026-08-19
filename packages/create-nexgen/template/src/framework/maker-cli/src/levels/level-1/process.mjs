@@ -8,11 +8,7 @@ export async function runNodeScript(script, args = [], options = {}) {
     const child = spawn(process.execPath, [script, ...args], {
       stdio: options.silent ? "ignore" : "inherit"
     });
-    child.on("exit", (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`${script} ${args.join(" ")} failed with code ${code}`))
-    );
+    child.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`${script} ${args.join(" ")} failed with code ${code}`))));
     child.on("error", reject);
   });
 }
@@ -39,21 +35,17 @@ export async function runCommand(commandName, commandArgs = [], options = {}) {
   await new Promise((resolve, reject) => {
     const isWindowsScript = process.platform === "win32" && /\.(cmd|ps1)$/i.test(commandName);
     const child = isWindowsScript
-      ? spawn(
-          [commandName, ...commandArgs]
-            .map((part) => (/\s/.test(part) ? `"${part.replace(/"/g, '\\"')}"` : part))
-            .join(" "),
-          { shell: true, stdio: options.silent ? "ignore" : "inherit" }
-        )
+      ? spawn([commandName, ...commandArgs].map((part) => (/\s/.test(part) ? `"${part.replace(/"/g, '\\"')}"` : part)).join(" "), {
+          shell: true,
+          stdio: options.silent ? "ignore" : "inherit"
+        })
       : spawn(commandName, commandArgs, {
           shell: false,
           stdio: options.silent ? "ignore" : "inherit"
         });
 
     child.on("exit", (code) =>
-      code === 0
-        ? resolve()
-        : reject(new Error(`${commandName} ${commandArgs.join(" ")} failed with code ${code}`))
+      code === 0 ? resolve() : reject(new Error(`${commandName} ${commandArgs.join(" ")} failed with code ${code}`))
     );
     child.on("error", reject);
   });

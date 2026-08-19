@@ -4,18 +4,14 @@ import { defineConfig } from "drizzle-kit";
 config({ path: ".env" });
 
 function sqlitePathFromUrl(url: string) {
-  if (url.startsWith("sqlite:///")) return url.replace("sqlite:///", "/");
+  if (url.startsWith("sqlite:///")) return url.replace("sqlite:///", "");
   if (url.startsWith("sqlite://")) return url.replace("sqlite://", "");
   if (url.startsWith("sqlite:")) return url.replace("sqlite:", "");
   return url;
 }
 
 const databaseUrl = process.env.DATABASE_URL || "sqlite:./src/storage/database/nexgen.sqlite";
-const dialect = databaseUrl.startsWith("mysql")
-  ? "mysql"
-  : databaseUrl.startsWith("postgres")
-    ? "postgresql"
-    : "sqlite";
+const dialect = databaseUrl.startsWith("mysql") ? "mysql" : databaseUrl.startsWith("postgres") ? "postgresql" : "sqlite";
 
 export default defineConfig({
   schema: process.env.DRIZZLE_SCHEMA || "./src/database/schema.ts",
@@ -25,5 +21,5 @@ export default defineConfig({
     ? { url: databaseUrl }
     : databaseUrl.startsWith("postgres")
       ? { url: databaseUrl }
-      : { url: sqlitePathFromUrl(databaseUrl) }
+      : { url: `file:${sqlitePathFromUrl(databaseUrl)}` }
 });

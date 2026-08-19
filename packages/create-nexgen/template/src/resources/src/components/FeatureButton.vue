@@ -1,7 +1,7 @@
 <template></template>
 
 <script setup lang="ts">
-import { inject, onBeforeUnmount, onMounted, useAttrs } from "vue";
+import { inject, onBeforeUnmount, onMounted, useAttrs, useSlots } from "vue";
 
 defineOptions({ name: "FeatureButton", inheritAttrs: false });
 
@@ -9,7 +9,7 @@ const props = defineProps<{
   icon?: string;
   label?: string;
   title?: string;
-  attrs?: Record<string, string>;
+  buttonClass?: any;
 }>();
 
 const emit = defineEmits<(e: "click") => void>();
@@ -20,13 +20,14 @@ interface ButtonEntry {
   label: string;
   title: string;
   attrs?: Record<string, string>;
+  class?: any;
   onClick: () => void;
+  render?: () => any[];
 }
 
 const featureButtons = inject<ButtonEntry[]>("featureButtons")!;
-
-const rawAttrs = useAttrs();
-const { class: _c, style: _s, ...extra } = rawAttrs;
+const slots = useSlots();
+const fallthroughAttrs = useAttrs();
 
 const id = Symbol();
 
@@ -36,8 +37,10 @@ onMounted(() => {
     icon: props.icon,
     label: props.label ?? "",
     title: props.title ?? props.label ?? "",
-    attrs: { ...(extra as Record<string, string>), ...props.attrs },
-    onClick: () => emit("click")
+    attrs: fallthroughAttrs as any,
+    class: props.buttonClass,
+    onClick: () => emit("click"),
+    render: slots.default || undefined
   });
 });
 

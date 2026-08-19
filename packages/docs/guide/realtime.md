@@ -11,10 +11,10 @@
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `SOCKET` | `true` | Enable/disable Socket.IO server entirely |
-| `REDIS` | `false` | Enable Redis adapter for multi-instance broadcast |
+| Variable  | Default  | Description                                       |
+| --------- | -------- | ------------------------------------------------- |
+| `SOCKET`  | `true`   | Enable/disable Socket.IO server entirely          |
+| `REDIS`   | `false`  | Enable Redis adapter for multi-instance broadcast |
 
 Set `SOCKET=false` in `.env` to disable all WebSocket functionality. `dispatchEvent()` with `broadcast` options will be a no-op.
 
@@ -22,11 +22,11 @@ Set `SOCKET=false` in `.env` to disable all WebSocket functionality. `dispatchEv
 
 When a client connects, the `initRealtime()` middleware extracts the JWT from the handshake cookie and joins the socket to rooms automatically:
 
-| Condition | Rooms Joined |
-|---|---|
-| Authenticated | `"auth"`, `"user:<userId>"`, `"role:<role1>"`, `"role:<role2>"`, ... |
-| Unauthenticated | `"guest"` |
-| Client emits `"join"` event | Any custom room name(s) |
+| Condition                   | Rooms Joined                                                         |
+| --------------------------- | -------------------------------------------------------------------- |
+| Authenticated               | `"auth"`, `"user:<userId>"`, `"role:<role1>"`, `"role:<role2>"`, ... |
+| Unauthenticated             | `"guest"`                                                            |
+| Client emits `"join"` event | Any custom room name(s)                                              |
 
 ```ts
 // Server-side: socket joins these rooms automatically
@@ -47,28 +47,32 @@ Use `dispatchEvent()` with `broadcast` options from anywhere — controllers, qu
 import { dispatchEvent } from "@/framework/facade.js";
 
 // To all connected clients
-await dispatchEvent("post.published", { postId: 1 }, {
-  broadcast: { all: true }
-});
+await dispatchEvent(
+  "post.published",
+  { postId: 1 },
+  {
+    broadcast: { all: true },
+  },
+);
 
 // To all authenticated users
 await dispatchEvent("notification.new", payload, {
-  broadcast: { auth: true }
+  broadcast: { auth: true },
 });
 
 // To specific roles
 await dispatchEvent("admin.alert", payload, {
-  broadcast: { roles: ["admin"] }
+  broadcast: { roles: ["admin"] },
 });
 
 // To specific users
 await dispatchEvent("user.message", payload, {
-  broadcast: { users: [recipientId] }
+  broadcast: { users: [recipientId] },
 });
 
 // To custom rooms
 await dispatchEvent("chat.message", payload, {
-  broadcast: { rooms: ["room:chat:general"] }
+  broadcast: { rooms: ["room:chat:general"] },
 });
 
 // Combine targets
@@ -76,8 +80,8 @@ await dispatchEvent("event.name", payload, {
   broadcast: {
     roles: ["admin"],
     users: [authorId],
-    all: false
-  }
+    all: false,
+  },
 });
 ```
 
@@ -92,17 +96,29 @@ import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 shouldQueue("user:signup", "mail", async (job) => {
   const { userId, name, email } = job.data;
 
-  await mail.sendMail({ to: email, subject: "Welcome", html: `<p>Hi ${name}</p>` });
+  await mail.sendMail({
+    to: email,
+    subject: "Welcome",
+    html: `<p>Hi ${name}</p>`,
+  });
 
   // Notify admins in realtime
-  await dispatchEvent("admin.user.registered", { userId, name, email }, {
-    broadcast: { roles: ["admin"] }
-  });
+  await dispatchEvent(
+    "admin.user.registered",
+    { userId, name, email },
+    {
+      broadcast: { roles: ["admin"] },
+    },
+  );
 
   // Notify the new user
-  await dispatchEvent("user.registered", { message: "Welcome!" }, {
-    broadcast: { users: [userId] }
-  });
+  await dispatchEvent(
+    "user.registered",
+    { message: "Welcome!" },
+    {
+      broadcast: { users: [userId] },
+    },
+  );
 });
 ```
 
@@ -162,26 +178,28 @@ onUnmounted(() => {
 
 ### Pulse API Reference
 
-| Method | Description |
-|---|---|
-| `pulse.channel(name)` | Join a room (auto-connects) and return a channel for listening |
-| `pulse.private(name)` | Alias for `channel("private:<name>")` |
-| `pulse.disconnect()` | Disconnect the socket |
-| `pulse.leave(name)` | Leave a room and remove all listeners |
-| `channel.listen(event, cb)` | Listen for an event on this channel |
-| `channel.stopListening(event, cb?)` | Stop listening (omit cb to remove all) |
+| Method                              | Description                                                    |
+| ----------------------------------- | -------------------------------------------------------------- |
+| `pulse.channel(name)`               | Join a room (auto-connects) and return a channel for listening |
+| `pulse.private(name)`               | Alias for `channel("private:<name>")`                          |
+| `pulse.disconnect()`                | Disconnect the socket                                          |
+| `pulse.leave(name)`                 | Leave a room and remove all listeners                          |
+| `channel.listen(event, cb)`         | Listen for an event on this channel                            |
+| `channel.stopListening(event, cb?)` | Stop listening (omit cb to remove all)                         |
 
-The JWT access cookie (`<COOKIE_NAME>_access`) is sent automatically with `withCredentials: true`, and the server extracts the user's identity and roles from it to assign rooms.
+The JWT access cookie (`{cookie.name}_access`) is sent automatically with `withCredentials: true`, and the server extracts the user's identity and roles from it to assign rooms.
 
 ## Toggling Realtime
 
 Set `SOCKET=false` in `.env` to disable Socket.IO entirely:
 
-```env
+```bash
+# .env
 SOCKET=false
 ```
 
 When disabled:
+
 - `initRealtime()` returns `null`
 - `socketServer()` returns `null`
 - `broadcast()` returns immediately without emitting
@@ -215,14 +233,22 @@ shouldQueue("post.publish", "default", async (job) => {
   // ... process images, generate thumbnails, etc.
 
   // Broadcast completion to all clients
-  await dispatchEvent("post.published", { postId, status: "live" }, {
-    broadcast: { all: true }
-  });
+  await dispatchEvent(
+    "post.published",
+    { postId, status: "live" },
+    {
+      broadcast: { all: true },
+    },
+  );
 
   // Notify the author specifically
-  await dispatchEvent("post.notification", { postId, message: "Your post is live!" }, {
-    broadcast: { users: [job.data.authorId] }
-  });
+  await dispatchEvent(
+    "post.notification",
+    { postId, message: "Your post is live!" },
+    {
+      broadcast: { users: [job.data.authorId] },
+    },
+  );
 });
 ```
 

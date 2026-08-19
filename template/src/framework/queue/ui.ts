@@ -2,29 +2,126 @@ import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { env } from "@/env.js";
-import { ensureQueues, getAllQueues, getQueue } from "@/framework/queue/queue.js";
+import type { Context, Next } from "hono";
+import { queueConfig, redisConfig } from "@/config/index.js";
+import { ensureQueues, getQueue } from "@/framework/queue/queue.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+import { cookie } from "@/framework/support/cookie.js";
+import { jwt } from "@/framework/support/jwt.js";
 import { parseCsvOrFallback } from "@/framework/support/lifecycle.js";
-import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
-let bullBoard: ReturnType<typeof createBullBoard> | null = null;
+const BASE_PATH = queueConfig.queueUi || "/queues";
+
+const POLL_INTERVAL_MS = 5_000;
+
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+let boardApp: ReturnType<typeof serverAdapter.registerPlugin> | null = null;
+let syncInFlight = false;
 
-export function stopBullBoardPoll() {
+const dashboardQueueNames = new Set<string>();
+
+const serverAdapter = new HonoAdapter(serveStatic);
+serverAdapter.setBasePath(BASE_PATH);
+
+const bullBoard = createBullBoard({
+  queues: [],
+  serverAdapter,
+  options: {
+    uiConfig: {
+      boardTitle: "Queue Dashboard"
+    }
+  }
+});
+
+export function stopQueueDashboard() {
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
   }
 }
 
-function redisAvailable() {
-  return redisClientIfReady() !== null;
+/**
+ * Why: Keeps the dashboard queue list in sync with queues that actually exist
+ *      in Redis (including ones created after boot, e.g. `demo`).
+ * When: Dashboard setup and on an interval while the server runs.
+ * Where: Queue dashboard bootstrap.
+ * How: Scans BullMQ `:meta` keys for queue names, materializes Queue objects,
+ *      and adds/removes their bull-board adapters as queues appear or vanish.
+ */
+async function refreshDashboardQueues() {
+  if (syncInFlight) return;
+  syncInFlight = true;
+
+  try {
+    const client = redisClientIfReady();
+    if (!client) return;
+
+    const discovered = (await discoverQueueNames()).sort();
+    ensureQueues(discovered);
+
+    for (const name of discovered) {
+      if (dashboardQueueNames.has(name)) continue;
+      const queue = getQueue(name);
+      if (!queue) continue;
+      bullBoard.addQueue(new BullMQAdapter(queue));
+      dashboardQueueNames.add(name);
+    }
+
+    for (const name of Array.from(dashboardQueueNames)) {
+      if (!discovered.includes(name)) {
+        bullBoard.removeQueue(name);
+        dashboardQueueNames.delete(name);
+      }
+    }
+  } catch {
+    // Keep the previous queue list if a refresh fails.
+  } finally {
+    syncInFlight = false;
+  }
 }
 
-function allowedBullmqEmails() {
-  const emails = parseCsvOrFallback(env.BULLMQ_UI_ALLOWED_EMAILS, []);
+function queuePrefix() {
+  return queueConfig.prefix;
+}
+
+function allowedQueueDashboardEmails() {
+  const emails = parseCsvOrFallback(queueConfig.allowedEmails, []);
   return new Set(emails.map((email) => email.toLowerCase()));
+}
+
+/**
+ * Why: Builds the dashboard auth hook from the app's access-token cookie.
+ * When: Every `/admin/queues` request needs authorization.
+ * Where: Queue dashboard bootstrap.
+ * How: Reads the signed access cookie through the framework cookie helper,
+ *      verifies the JWT, and applies the email allow-list; unauthorized
+ *      requests get a 401 JSON response.
+ */
+function dashboardAuth() {
+  const allowedEmails = allowedQueueDashboardEmails();
+
+  return async (c: Context, next: Next) => {
+    const rawToken = await cookie.getAuth(c);
+    if (!rawToken) {
+      return c.json({ message: "Unauthorized" }, 401);
+    }
+
+    const payload = await jwt.verifyToken(rawToken, "access");
+    if (!payload) {
+      return c.json({ message: "Unauthorized" }, 401);
+    }
+
+    const normalized = payload as Record<string, unknown>;
+    const email = String(normalized.email ?? "")
+      .trim()
+      .toLowerCase();
+
+    if (allowedEmails.size > 0 && !allowedEmails.has(email)) {
+      return c.json({ message: "Unauthorized" }, 401);
+    }
+
+    await next();
+  };
 }
 
 /** Why: Discovers all BullMQ queues in Redis by scanning queue:meta keys. */
@@ -32,7 +129,7 @@ async function discoverQueueNames(): Promise<string[]> {
   const client = redisClientIfReady();
   if (!client) return [];
 
-  const prefix = `${env.REDIS_PREFIX}:queue:`;
+  const prefix = `${queuePrefix()}:`;
   const names = new Set<string>();
   let cursor = 0;
 
@@ -48,102 +145,55 @@ async function discoverQueueNames(): Promise<string[]> {
   return Array.from(names);
 }
 
+function unavailableHtml() {
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <title>Queue Dashboard Unavailable</title>
+        <style>
+          body { font-family: system-ui, sans-serif; padding: 48px; text-align: center; }
+          h1 { color: #dc2626; }
+        </style>
+      </head>
+      <body>
+        <h1>Queue Dashboard Unavailable</h1>
+        <p>Redis is not connected. Check the Redis URL in src/config/redis.ts and make sure Redis is running.</p>
+        <p>Redis URL: ${redisConfig.url}</p>
+      </body>
+    </html>
+  `;
+}
+
 /**
- * Why: Initializes BullBoard dashboard with auth protection, auto-discovering all queues from Redis.
+ * Why: Initializes the bull-board dashboard (Hono adapter) with auth protection.
  * When: HTTP kernel boots queue UI integration.
- * Where: Kernel startup and `/bullmq` route mounting.
- * How: Builds protected route; returns unavailable page when Redis is down.
+ * Where: Kernel startup and `/admin/queues` route mounting.
+ * How: Builds the bull-board Hono plugin from the shared Redis connection and
+ *      mounts it behind the access-token auth middleware; returns an
+ *      unavailable page when Redis is down.
  */
-export async function setupBullBoard() {
-  const basePath = "/bullmq";
-  const allowedEmails = allowedBullmqEmails();
-
-  const protectRoute = (app: any) => {
-    const guard = async (c: any, next: any) => {
-      const response = await authMiddleware(c, async () => {
-        const auth = c.get("auth");
-        const email = String(auth?.email || "")
-          .trim()
-          .toLowerCase();
-
-        if (allowedEmails.size > 0 && !allowedEmails.has(email)) {
-          return c.json({ message: "Forbidden" }, 403);
-        }
-
-        await next();
-      });
-
-      return response;
-    };
-
-    app.use(basePath, guard);
-    app.use(`${basePath}/*`, guard);
-  };
-
-  if (!redisAvailable()) {
+export async function setupQueueDashboard() {
+  if (!redisClientIfReady()) {
     const route = (app: any) => {
-      protectRoute(app);
-      app.get(basePath, (c: any) =>
-        c.html(`
-        <!doctype html>
-        <html>
-          <head>
-            <title>Queue Dashboard Unavailable</title>
-            <style>
-              body { font-family: system-ui, sans-serif; padding: 48px; text-align: center; }
-              h1 { color: #dc2626; }
-            </style>
-          </head>
-          <body>
-            <h1>Queue Dashboard Unavailable</h1>
-            <p>Redis is not connected. Check REDIS_URL and make sure Redis is running.</p>
-            <p>Redis URL: ${env.REDIS_URL}</p>
-          </body>
-        </html>
-      `)
-      );
-
-      app.get(`${basePath}/*`, (c: any) => c.redirect(basePath));
+      app.get(BASE_PATH, (c: any) => c.html(unavailableHtml()));
+      app.get(`${BASE_PATH}/*`, (c: any) => c.redirect(BASE_PATH));
     };
 
-    return { basePath, enabled: false, route };
+    return { basePath: BASE_PATH, enabled: false, route };
   }
 
-  const discovered = await discoverQueueNames();
-  ensureQueues(["default", "mail", ...discovered]);
+  boardApp = serverAdapter.registerPlugin();
 
-  const serverAdapter = new HonoAdapter(serveStatic);
-  serverAdapter.setBasePath(basePath);
-
-  bullBoard = createBullBoard({
-    queues: getAllQueues().map((queue) => new BullMQAdapter(queue)),
-    serverAdapter,
-    options: {
-      uiConfig: {
-        boardTitle: "Queue Dashboard",
-        hideRedisDetails: true
-      }
-    }
-  });
-
-  if (env.APP_ENV === "development") {
-    pollTimer = setInterval(async () => {
-      const names = await discoverQueueNames();
-      const existing = new Set(getAllQueues().map((q) => q.name));
-      for (const name of names) {
-        if (!existing.has(name)) {
-          const queue = getQueue(name);
-          if (queue) bullBoard?.addQueue(new BullMQAdapter(queue));
-        }
-      }
-    }, 15000);
+  await refreshDashboardQueues();
+  if (!pollTimer) {
+    pollTimer = setInterval(refreshDashboardQueues, POLL_INTERVAL_MS);
   }
 
-  const pluginRoute = serverAdapter.registerPlugin();
   const route = (app: any) => {
-    protectRoute(app);
-    app.route(basePath, pluginRoute);
+    app.use(`${BASE_PATH}/*`, dashboardAuth());
+    app.route(BASE_PATH, boardApp!);
   };
 
-  return { basePath, enabled: true, route };
+  return { basePath: BASE_PATH, enabled: true, route };
 }

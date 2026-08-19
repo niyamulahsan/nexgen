@@ -36,17 +36,18 @@ It uses **IP-based** keying so a single IP cannot exceed the login limit regardl
 
 ## Changing Limits
 
-### Via environment variables (recommended)
+### Via config file (recommended)
 
-Set `RATE_LIMIT_MAX`, `RATE_LIMIT_LOGIN_MAX`, and `RATE_LIMIT_WINDOW_MS` in your `.env` file:
+Edit `src/config/rateLimit.ts`:
 
-```env
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX=500
-RATE_LIMIT_LOGIN_MAX=10
+```ts
+export const rateLimitConfig = {
+  windowMs: 60000,       // 1 minute window
+  maxRequests: 500,      // per window (global)
+  loginMaxRequests: 60,  // per window (login, per IP)
+  keyPrefix: `${redisConfig.prefix}:rl`,
+};
 ```
-
-The defaults are defined in `src/env.ts:43-45`.
 
 ### Per-route customization
 
@@ -70,18 +71,15 @@ router.post("/upload", uploadLimiter, uploadHandler);
 
 | File | What it controls |
 |---|---|
+| `src/config/rateLimit.ts` | Rate limit settings (window, max, login max) |
 | `src/framework/http/ratelimiter.ts` | Core limiter logic — lazy singleton, store selection, key generation |
-| `src/framework/http/app.ts:45` | Where `rateLimiterMiddleware` is registered globally |
-| `src/modules/auth/routes/api.ts:139` | Where `loginLimiter` is applied to public auth routes |
-| `src/env.ts:43-45` | Environment variable defaults and Zod schema |
+| `src/framework/http/app.ts` | Where `rateLimiterMiddleware` is registered globally |
+| `src/modules/auth/routes/api.ts` | Where `loginLimiter` is applied to public auth routes |
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `RATE_LIMIT_WINDOW_MS` | `60000` (1 min) | Time window in milliseconds |
-| `RATE_LIMIT_MAX` | `500` | Max requests per window (global) |
-| `RATE_LIMIT_LOGIN_MAX` | `10` | Max login requests per window per IP |
 | `REDIS` | `false` | Enable Redis for persistent rate limiting across restarts |
 | `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection string |
 | `REDIS_PREFIX` | `nexgen` | Key prefix for namespacing |

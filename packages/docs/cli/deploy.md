@@ -24,366 +24,115 @@ bun maker <command> [options]
 
 :::
 
-## Scaffold Commands
+## Command Summary
 
-### `deploy:create`
+| Command | Purpose |
+|---|---|
+| [`deploy:init`](#deploy-init) | Generate deploy scaffolding (app + server) and both workflow configs |
+| [`deploy:workflow`](#deploy-workflow) | Run the local workflow — infra and/or app, from a config file or flags |
+| [`deploy:workflow:remote`](#deploy-workflow-remote) | Upload the project and deploy on a remote Docker host |
+| [`deploy:workflow:promote`](#deploy-workflow-promote) | Run the local workflow, then the remote workflow |
+| [`deploy:db:import`](#deploy-db-import) | Import a SQL dump into the local Docker container |
+| [`deploy:db:import:remote`](#deploy-db-import-remote) | Import a SQL dump into a remote Docker container via SSH |
 
-Generate the full deploy scaffolding — Dockerfile, docker-compose, env templates, supervisor config, auto-migration script, and (with `--server`) shared infrastructure compose.
+### `deploy:init`
 
-::: code-group
+Generate the full deploy scaffolding — Dockerfile, docker-compose, env templates, supervisor config, auto-migration script, shared infrastructure compose, and both workflow configs. Detection (database dialect, Redis, package manager) reads your `.env`.
 
-```bash [npm]
-npm run maker deploy:create -- --server --runtime=node
-npm run maker deploy:create -- --force
-npm run maker deploy:create -- --runtime=bun
-```
-
-```bash [pnpm]
-pnpm maker deploy:create --server --runtime=node
-pnpm maker deploy:create --force
-pnpm maker deploy:create --runtime=bun
-```
-
-```bash [yarn]
-yarn maker deploy:create --server --runtime=node
-yarn maker deploy:create --force
-yarn maker deploy:create --runtime=bun
-```
-
-```bash [bun]
-bun maker deploy:create --server --runtime=node
-bun maker deploy:create --force
-bun maker deploy:create --runtime=bun
-```
-
-:::
-
-### `deploy:create:app`
-
-Generate only application deploy files (Dockerfile, docker-compose.yml, .env, supervisor, scripts).
+Also creates `deploy/workflow.local.json` and `deploy/workflow.remote.json` (unless they already exist).
 
 ::: code-group
 
 ```bash [npm]
-npm run maker deploy:create:app -- --force
+npm run maker deploy:init
+npm run maker deploy:init -- --force
+npm run maker deploy:init -- --runtime=bun
+npm run maker deploy:init -- --pm=pnpm
+npm run maker deploy:init -- --app-only
+npm run maker deploy:init -- --server-only --dev
 ```
 
 ```bash [pnpm]
-pnpm maker deploy:create:app --force
+pnpm maker deploy:init
+pnpm maker deploy:init --force
+pnpm maker deploy:init --runtime=bun
+pnpm maker deploy:init --pm=pnpm
+pnpm maker deploy:init --app-only
+pnpm maker deploy:init --server-only --dev
 ```
 
 ```bash [yarn]
-yarn maker deploy:create:app --force
+yarn maker deploy:init
+yarn maker deploy:init --force
+yarn maker deploy:init --runtime=bun
+yarn maker deploy:init --pm=pnpm
+yarn maker deploy:init --app-only
+yarn maker deploy:init --server-only --dev
 ```
 
 ```bash [bun]
-bun maker deploy:create:app --force
+bun maker deploy:init
+bun maker deploy:init --force
+bun maker deploy:init --runtime=bun
+bun maker deploy:init --pm=pnpm
+bun maker deploy:init --app-only
+bun maker deploy:init --server-only --dev
 ```
 
 :::
-
-### `deploy:create:server`
-
-Generate only shared infrastructure files (server docker-compose, env, pgAdmin config, redis.conf, nginx vhost).
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:create:server -- --force
-```
-
-```bash [pnpm]
-pnpm maker deploy:create:server --force
-```
-
-```bash [yarn]
-yarn maker deploy:create:server --force
-```
-
-```bash [bun]
-bun maker deploy:create:server --force
-```
-
-:::
-
-### `deploy:create:server:dev`
-
-Generate server infrastructure with Redis port exposed for local development access.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:create:server:dev -- --force
-```
-
-```bash [pnpm]
-pnpm maker deploy:create:server:dev --force
-```
-
-```bash [yarn]
-yarn maker deploy:create:server:dev --force
-```
-
-```bash [bun]
-bun maker deploy:create:server:dev --force
-```
-
-:::
-
-## Local Runtime Commands
-
-### `deploy:server`
-
-Start the shared infrastructure containers — nginx-proxy, MySQL, PostgreSQL, Redis, phpMyAdmin, pgAdmin. Creates Docker networks (`nginx-proxy`, `infra`) if missing.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:server
-```
-
-```bash [pnpm]
-pnpm maker deploy:server
-```
-
-```bash [yarn]
-yarn maker deploy:server
-```
-
-```bash [bun]
-bun maker deploy:server
-```
-
-:::
-
-### `deploy:app`
-
-Build the Docker image (multi-stage: install deps → schema gen → build → production image) and start the app container with supervisor.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:app
-```
-
-```bash [pnpm]
-pnpm maker deploy:app
-```
-
-```bash [yarn]
-yarn maker deploy:app
-```
-
-```bash [bun]
-bun maker deploy:app
-```
-
-:::
-
-### `deploy:db:import`
-
-Import a SQL dump into the local MySQL container. Creates the target database if it doesn't exist.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:db:import -- --file=deploy/nexgen.sql --database=nexgen
-npm run maker deploy:db:import -- --file=dump.sql --database=myapp --container=mysql-global --user=root
-```
-
-```bash [pnpm]
-pnpm maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
-pnpm maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
-```
-
-```bash [yarn]
-yarn maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
-yarn maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
-```
-
-```bash [bun]
-bun maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
-bun maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
-```
-
-:::
-
-## Remote Commands
-
-### `deploy:remote:server`
-
-Start server infrastructure on a remote host via SSH.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:remote:server -- --config=deploy/workflow.remote.json
-```
-
-```bash [pnpm]
-pnpm maker deploy:remote:server --config=deploy/workflow.remote.json
-```
-
-```bash [yarn]
-yarn maker deploy:remote:server --config=deploy/workflow.remote.json
-```
-
-```bash [bun]
-bun maker deploy:remote:server --config=deploy/workflow.remote.json
-```
-
-:::
-
-### `deploy:remote:app`
-
-Build and start the app on a remote host via SSH.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:remote:app -- --config=deploy/workflow.remote.json
-```
-
-```bash [pnpm]
-pnpm maker deploy:remote:app --config=deploy/workflow.remote.json
-```
-
-```bash [yarn]
-yarn maker deploy:remote:app --config=deploy/workflow.remote.json
-```
-
-```bash [bun]
-bun maker deploy:remote:app --config=deploy/workflow.remote.json
-```
-
-:::
-
-### `deploy:db:import:remote`
-
-Import a SQL dump into the remote MySQL container via SSH pipe.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:db:import:remote -- --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
-npm run maker deploy:db:import:remote -- --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
-```
-
-```bash [pnpm]
-pnpm maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
-pnpm maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
-```
-
-```bash [yarn]
-yarn maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
-yarn maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
-```
-
-```bash [bun]
-bun maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
-bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
-```
-
-:::
-
-## Workflow Commands
 
 ### `deploy:workflow`
 
-Run a custom workflow from a JSON config file. Executes each defined step sequentially.
+Run the local deploy workflow (Docker Desktop). With `--config`, reads the steps from a JSON file and runs each enabled step in sequence. Without `--config`, runs the built-in pipeline (shared infra, then app stack).
 
 ::: code-group
 
 ```bash [npm]
+npm run maker deploy:workflow
+npm run maker deploy:workflow -- --server-only
+npm run maker deploy:workflow -- --app-only
+npm run maker deploy:workflow -- --refresh
 npm run maker deploy:workflow -- --config=deploy/workflow.local.json
 npm run maker deploy:workflow -- --config=custom.json --dry-run
 ```
 
 ```bash [pnpm]
+pnpm maker deploy:workflow
+pnpm maker deploy:workflow --server-only
+pnpm maker deploy:workflow --app-only
+pnpm maker deploy:workflow --refresh
 pnpm maker deploy:workflow --config=deploy/workflow.local.json
 pnpm maker deploy:workflow --config=custom.json --dry-run
 ```
 
 ```bash [yarn]
+yarn maker deploy:workflow
+yarn maker deploy:workflow --server-only
+yarn maker deploy:workflow --app-only
+yarn maker deploy:workflow --refresh
 yarn maker deploy:workflow --config=deploy/workflow.local.json
 yarn maker deploy:workflow --config=custom.json --dry-run
 ```
 
 ```bash [bun]
+bun maker deploy:workflow
+bun maker deploy:workflow --server-only
+bun maker deploy:workflow --app-only
+bun maker deploy:workflow --refresh
 bun maker deploy:workflow --config=deploy/workflow.local.json
 bun maker deploy:workflow --config=custom.json --dry-run
 ```
 
 :::
 
-### `deploy:workflow:init`
-
-Create `deploy/workflow.local.json` with default steps (server + app). Edit the file to customize.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:workflow:init
-```
-
-```bash [pnpm]
-pnpm maker deploy:workflow:init
-```
-
-```bash [yarn]
-yarn maker deploy:workflow:init
-```
-
-```bash [bun]
-bun maker deploy:workflow:init
-```
-
-:::
-
-### `deploy:workflow:local`
-
-Run the local deploy pipeline — a convenience wrapper around `deploy:workflow --config=deploy/workflow.local.json`.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:workflow:local
-npm run maker deploy:workflow:local -- --server-only
-npm run maker deploy:workflow:local -- --app-only
-npm run maker deploy:workflow:local -- --refresh
-```
-
-```bash [pnpm]
-pnpm maker deploy:workflow:local
-pnpm maker deploy:workflow:local --server-only
-pnpm maker deploy:workflow:local --app-only
-pnpm maker deploy:workflow:local --refresh
-```
-
-```bash [yarn]
-yarn maker deploy:workflow:local
-yarn maker deploy:workflow:local --server-only
-yarn maker deploy:workflow:local --app-only
-yarn maker deploy:workflow:local --refresh
-```
-
-```bash [bun]
-bun maker deploy:workflow:local
-bun maker deploy:workflow:local --server-only
-bun maker deploy:workflow:local --app-only
-bun maker deploy:workflow:local --refresh
-```
-
-:::
-
 ### `deploy:workflow:remote`
 
-Full remote deploy pipeline — uploads project via rsync, then runs server infra and/or app on the remote host.
+Full remote deploy pipeline — uploads the project via `rsync` (or `scp` as fallback), then runs server infra and/or app on the remote host.
 
 **What happens:**
-1. Creates target directory on remote: `ssh mkdir -p /home/deploy/nexgen`
-2. Rsyncs project (excludes `node_modules`, `.git`, `dist`, `.env*`)
-3. Creates Docker networks on remote
+1. Creates target directory on remote: `ssh mkdir -p <targetPath>`
+2. Uploads project (excludes `node_modules`, `.git`, `dist`, `.env*`)
+3. Creates Docker networks on remote (`nginx-proxy`, `infra`) if missing
 4. Starts server infra compose
 5. Builds and starts app compose
 
@@ -419,33 +168,9 @@ bun maker deploy:workflow:remote --app-only
 
 :::
 
-### `deploy:workflow:remote:init`
-
-Create `deploy/workflow.remote.json` with SSH connection template. Edit with your server details.
-
-::: code-group
-
-```bash [npm]
-npm run maker deploy:workflow:remote:init
-```
-
-```bash [pnpm]
-pnpm maker deploy:workflow:remote:init
-```
-
-```bash [yarn]
-yarn maker deploy:workflow:remote:init
-```
-
-```bash [bun]
-bun maker deploy:workflow:remote:init
-```
-
-:::
-
 ### `deploy:workflow:promote`
 
-Run local workflow first (validate the build), then remote workflow (deploy to production). Useful for pre-production testing.
+Run the local workflow first (validate the build), then the remote workflow (deploy to production). Useful for pre-production testing.
 
 ::: code-group
 
@@ -471,19 +196,83 @@ bun maker deploy:workflow:promote --config=deploy/workflow.remote.json
 
 :::
 
+### `deploy:db:import`
+
+Import a SQL dump into the local Docker container. Auto-detects MySQL or PostgreSQL from `deploy/server/.env` (or the configured container name) and streams the file into the running container.
+
+::: code-group
+
+```bash [npm]
+npm run maker deploy:db:import -- --file=deploy/nexgen.sql --database=nexgen
+npm run maker deploy:db:import -- --file=dump.sql --database=myapp --container=mysql-global --user=root
+```
+
+```bash [pnpm]
+pnpm maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
+pnpm maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
+```
+
+```bash [yarn]
+yarn maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
+yarn maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
+```
+
+```bash [bun]
+bun maker deploy:db:import --file=deploy/nexgen.sql --database=nexgen
+bun maker deploy:db:import --file=dump.sql --database=myapp --container=mysql-global --user=root
+```
+
+:::
+
+### `deploy:db:import:remote`
+
+Import a SQL dump into a remote Docker container via SSH. Auto-detects MySQL or PostgreSQL from the `databaseImport.container` setting in the workflow config.
+
+::: code-group
+
+```bash [npm]
+npm run maker deploy:db:import:remote -- --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
+npm run maker deploy:db:import:remote -- --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
+```
+
+```bash [pnpm]
+pnpm maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
+pnpm maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
+```
+
+```bash [yarn]
+yarn maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
+yarn maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
+```
+
+```bash [bun]
+bun maker deploy:db:import:remote --config=deploy/workflow.remote.json --file=deploy/nexgen.sql --database=nexgen
+bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql --database=myapp --dry-run
+```
+
+:::
+
 ## Options Reference
 
 ### Shared flags
 
 | Flag | Available on | Purpose |
 |---|---|---|
-| `--force` | `deploy:create:*` | Overwrite existing files |
-| `--runtime=node\|bun` | `deploy:create*` | Choose Dockerfile runtime |
-| `--dry-run` | Most | Preview without executing |
-| `--config=<path>` | Remote/workflow | Path to workflow JSON config |
-| `--server-only` | Workflow commands | Skip app, run infra only |
-| `--app-only` | Workflow commands | Skip infra, run app only |
-| `--refresh` | Workflow commands | Regenerate deploy files before running |
+| `--force` | `deploy:init` | Overwrite existing deploy files |
+| `--runtime=node\|bun` | `deploy:init` | Choose Dockerfile runtime |
+| `--pm=npm\|pnpm\|yarn\|bun` | `deploy:init` | Package manager for the node runtime (default: auto-detect) |
+| `--app-only` | `deploy:init`, workflows | Skip server infra, only app |
+| `--server-only` | `deploy:init`, workflows | Skip app, only server infra |
+| `--dev` | `deploy:init` | Server infra in dev mode (exposed Redis port) |
+| `--refresh` | `deploy:workflow`, `deploy:workflow:promote` | Regenerate deploy files before running |
+| `--dry-run` | Workflows, `deploy:db:import:remote` | Preview without executing |
+| `--config=<path>` | Workflows | Path to workflow JSON config |
+| `--file=<path>` | `deploy:db:import:*` | Path to the SQL dump file |
+| `--database=<name>` | `deploy:db:import:*` | Target database name |
+| `--container=<name>` | `deploy:db:import:*` | DB container (`mysql-global` or `postgres-global`) |
+| `--user=<name>` | `deploy:db:import:*` | DB user (defaults to server `.env`) |
+| `--password=<password>` | `deploy:db:import:*` | DB password (defaults to server `.env`) |
+| `--no-drop` | `deploy:db:import` (PostgreSQL) | Keep the existing database instead of dropping it for a clean restore |
 
 ### Remote config (`deploy/workflow.remote.json`)
 
@@ -496,13 +285,20 @@ bun maker deploy:workflow:promote --config=deploy/workflow.remote.json
     "keyPath": "~/.ssh/id_rsa",
     "targetPath": "/home/deploy/nexgen"
   },
+  "upload": {
+    "source": ".",
+    "targetSubPath": "."
+  },
   "databaseImport": {
     "enabled": false,
     "file": "deploy/nexgen.sql",
     "database": "nexgen",
     "container": "mysql-global",
     "user": "root"
-  }
+  },
+  "preDeployCommands": [
+    "docker rm -f old-app 2>/dev/null || true"
+  ]
 }
 ```
 
@@ -511,10 +307,30 @@ bun maker deploy:workflow:promote --config=deploy/workflow.remote.json
 ```json
 {
   "steps": [
-    { "name": "Generate deploy files", "run": "deploy:create --server --force", "enabled": false },
-    { "name": "Start shared infra", "run": "deploy:server", "enabled": true },
-    { "name": "Start app stack", "run": "deploy:app", "enabled": true },
-    { "name": "Import MySQL dump", "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen", "enabled": false }
+    { "name": "Generate deploy files", "run": "deploy:init --force", "enabled": false },
+    { "name": "Start shared infra", "run": "deploy:workflow --server-only", "enabled": true },
+    { "name": "Start app stack", "run": "deploy:workflow --app-only", "enabled": true },
+    { "name": "Import database dump (optional)", "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen", "enabled": false }
   ]
 }
 ```
+
+## Removed Commands
+
+The following commands were merged into the six above and no longer exist:
+
+| Removed command | Replaced by |
+|---|---|
+| `deploy:create` | `deploy:init` |
+| `deploy:create:app` | `deploy:init --app-only` |
+| `deploy:create:server` | `deploy:init --server-only` |
+| `deploy:create:server:dev` | `deploy:init --server-only --dev` |
+| `deploy:server` | `deploy:workflow --server-only` |
+| `deploy:app` | `deploy:workflow --app-only` |
+| `deploy:workflow:init` | `deploy:init` |
+| `deploy:workflow:local` | `deploy:workflow` |
+| `deploy:workflow:remote:init` | `deploy:init` |
+| `deploy:remote:server` | `deploy:workflow:remote --server-only` |
+| `deploy:remote:app` | `deploy:workflow:remote --app-only` |
+
+The old `deploy:create`, `deploy:server`, and `deploy:app` steps are still accepted inside a workflow config file for backward compatibility.

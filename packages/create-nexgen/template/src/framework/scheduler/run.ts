@@ -8,8 +8,8 @@ import { logger } from "@/framework/support/logger.js";
 await initDatabase();
 await initRedis();
 await bootQueueJobs();
-await startScheduler();
-console.log("Scheduler started");
+const count = await startScheduler();
+console.log(`Scheduler started [${count} schedule(s)]`);
 
 let shuttingDown = false;
 
@@ -18,7 +18,8 @@ async function shutdown(signal: ShutdownSignal) {
   shuttingDown = true;
 
   logger.info("Scheduler shutdown signal received", { signal });
-  await Promise.allSettled([Promise.resolve(stopScheduler()), stopQueueRuntime(), closeRedis()]);
+  await Promise.allSettled([Promise.resolve(stopScheduler()), stopQueueRuntime()]);
+  await closeRedis();
 
   process.exit(0);
 }

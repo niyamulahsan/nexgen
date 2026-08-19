@@ -5,7 +5,7 @@ This folder holds per-domain nginx overrides for `jwilder/nginx-proxy`.
 ## Usage
 
 1. Copy `app.example.com` to your real app domain file name.
-2. Edit rules as needed (timeouts, upload limits, auth for `/bullmq`, etc).
+2. Edit rules as needed (timeouts, upload limits, auth for `/board`, etc).
 3. Recreate or reload proxy container if needed.
 
 Example:

@@ -1,6 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { serveEmojiFavicon } from "stoker/middlewares";
-import { env } from "@/env.js";
+import { appConfig } from "@/config/index.js";
 import { corsMiddleware } from "@/framework/http/cors.js";
 import { loggerMiddleware, notFound, onError } from "@/framework/http/logger.js";
 import { configureOpenApi } from "@/framework/http/openapi.js";
@@ -34,7 +34,7 @@ export function createHttpApp() {
     }
   });
 
-  if (env.OPEN_API) {
+  if (appConfig.openApiEnabled) {
     configureOpenApi(app);
     app.api(healthRoute, (c: any) => c.json({ message: "Application is healthy" }));
   }
@@ -47,10 +47,10 @@ export function createHttpApp() {
   app.use(serveEmojiFavicon("🚀"));
 
   if (!hasFrontendBuild()) {
-    app.get("/", (c: any) => c.json({ name: env.APP_NAME, ok: true }));
+    app.get("/", (c: any) => c.json({ name: appConfig.name, ok: true }));
   }
 
-  if (!env.OPEN_API) {
+  if (!appConfig.openApiEnabled) {
     app.get("/health", (c: any) => c.json({ message: "Application is healthy" }));
   }
 

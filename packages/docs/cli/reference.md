@@ -46,10 +46,10 @@ The CLI auto-detects your package manager from the `npm_config_user_agent` env v
 
 | Category | File | Commands | Purpose |
 |---|---|---|---|
-| [Module](/cli/module) | `level-2/module/` | 17 | Scaffold modules, controllers, models, routes, jobs, seeders, schedules |
-| [Database](/cli/database) | `level-2/db/` | 13 | Schema generation, migrations, seeding, push, studio |
-| [Runtime](/cli/runtime) | `level-2/runtime/` | 10 | Dev server, queue worker, scheduler, frontend, dev tools |
-| [Deploy](/cli/deploy) | `level-2/deploy/` | 16 | Docker scaffolding, local/remote compose, workflows, DB import |
+| [Module](/cli/module) | `level-2/module/` | 16 | Scaffold modules, controllers, models, routes, jobs, seeders, schedules, tests |
+| [Database](/cli/database) | `level-2/db/` | 14 | Schema generation, migrations, seeding, push, studio |
+| [Runtime](/cli/runtime) | `level-2/runtime/` | 14 | Dev server, queue worker, scheduler, frontend, testing, dev tools |
+| [Deploy](/cli/deploy) | `level-2/deploy/` | 6 | Docker scaffolding, local/remote compose, workflows, DB import |
 
 ## Architecture
 

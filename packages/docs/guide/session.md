@@ -10,7 +10,7 @@ A `sessionId` is automatically attached to every request via `sessionMiddleware`
 
 The `sessionMiddleware` runs on every request and is applied globally in `app.ts`. It:
 
-1. Checks for an existing `SESSION_COOKIE` cookie
+1. Checks for an existing `nexgen_session` cookie (configured in `src/config/session.ts`)
 2. If absent — generates a new `randomUUID()`, sets an httpOnly cookie with the configured TTL
 3. Stores `sessionId` in the Hono context (`c.set("sessionId", ...)`)
 4. Refreshes the session TTL on every request
@@ -25,15 +25,15 @@ The `session` object is exported from the facade and provides five methods for w
 import { session } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
-| `session.start(data?)` | Creates a new session document and returns its ID. Use when you need a server-side session that is independent of the request cookie flow. |
-| `session.all(id)` | Fetches the entire session payload as an object. Use when you need to inspect or iterate over all stored values. |
-| `session.get(id, key)` | Reads a single key from the session. Use when you need one specific value without manual parsing. |
-| `session.put(id, key, value)` | Writes or updates a single key in the session. Use when you need to persist incremental state (e.g., add an item to a cart). |
-| `session.refresh(id)` | Extends the session TTL from the current moment. Called automatically by the middleware on every request. |
-| `session.destroy(id)` | Deletes the session document from Redis. Use on logout or when invalidating a session. |
-| `session.isAvailable()` | Returns `true` if Redis is configured and connected. Use as a runtime guard before accessing session data. |
+| Method                        | Purpose                                                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `session.start(data?)`        | Creates a new session document and returns its ID. Use when you need a server-side session that is independent of the request cookie flow. |
+| `session.all(id)`             | Fetches the entire session payload as an object. Use when you need to inspect or iterate over all stored values.                           |
+| `session.get(id, key)`        | Reads a single key from the session. Use when you need one specific value without manual parsing.                                          |
+| `session.put(id, key, value)` | Writes or updates a single key in the session. Use when you need to persist incremental state (e.g., add an item to a cart).               |
+| `session.refresh(id)`         | Extends the session TTL from the current moment. Called automatically by the middleware on every request.                                  |
+| `session.destroy(id)`         | Deletes the session document from Redis. Use on logout or when invalidating a session.                                                     |
+| `session.isAvailable()`       | Returns `true` if Redis is configured and connected. Use as a runtime guard before accessing session data.                                 |
 
 ## Usage
 
@@ -69,12 +69,23 @@ const data = await session.all(sessionId);
 const newId = await session.start({ source: "webhook", ref: "abc" });
 ```
 
-## Environment Variables
+## Configuration
 
-| Variable | Default | Description |
-|---|---|---|
-| `SESSION_COOKIE` | — | Name of the session cookie (required) |
-| `SESSION_TTL_SECONDS` | — | Session TTL in seconds, refreshed on each request (required) |
+Session settings live in `src/config/session.ts`:
+
+```ts
+export const sessionConfig = {
+  cookieName: `${cookieConfig.name}_session`, // "nexgen_session"
+  ttlSeconds: 7200, // 2 hours, refreshed on each request
+  keyPrefix: `${redisConfig.prefix}:session`, // "nexgen:session"
+};
+```
+
+| Setting      | Default          | Description                                       |
+| ------------ | ---------------- | ------------------------------------------------- |
+| `cookieName` | `nexgen_session` | Name of the session cookie                        |
+| `ttlSeconds` | `7200`           | Session TTL in seconds, refreshed on each request |
+| `keyPrefix`  | `nexgen:session` | Redis key prefix for session storage              |
 
 ### Destroy a session
 

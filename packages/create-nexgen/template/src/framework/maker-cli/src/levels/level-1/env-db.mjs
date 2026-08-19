@@ -36,12 +36,12 @@ export function openApiEnabled() {
   return value !== "false" && value !== "0" && value !== "no";
 }
 
-/** Check if REDIS env is enabled (defaults to false). */
+/** Check if REDIS env is enabled (defaults to false). Matches Zod transform in env.ts. */
 export function redisEnabled() {
   const value = String(process.env.REDIS ?? "false")
     .trim()
     .toLowerCase();
-  return value === "true" || value === "1" || value === "yes";
+  return value !== "false" && value !== "0";
 }
 
 /** Detect DB dialect for deploy context (uses raw DATABASE_URL or explicit URL). */

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
+
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { env } from "@/env.js";
+import { appConfig, redisConfig, sessionConfig } from "@/config/index.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
 
 /** Extract origin from a URL string. Returns empty string on invalid/missing input. */
@@ -16,14 +17,14 @@ function originOf(url?: string) {
 
 /** Returns true when FRONTEND_URL and APP_URL point to different origins — requires SameSite=None; Secure for session cookies. */
 function needsCrossSiteCookie() {
-  const appOrigin = originOf(env.APP_URL);
-  const frontendOrigin = originOf(env.FRONTEND_URL);
+  const appOrigin = originOf(appConfig.url);
+  const frontendOrigin = originOf(appConfig.frontendUrl);
   return Boolean(appOrigin && frontendOrigin && appOrigin !== frontendOrigin);
 }
 
 /** Builds the Redis key for a session id using the configured prefix. */
 function sessionKey(id: string) {
-  return `${env.REDIS_PREFIX}:session:${id}`;
+  return `${sessionConfig.keyPrefix}:${id}`;
 }
 
 /**
@@ -34,17 +35,17 @@ function sessionKey(id: string) {
  * - Refreshes the Redis session TTL on every request.
  */
 export async function sessionMiddleware(c: Context, next: Next) {
-  let sessionId = getCookie(c, env.SESSION_COOKIE);
+  let sessionId = getCookie(c, sessionConfig.cookieName);
 
   if (!sessionId) {
     sessionId = randomUUID();
     const crossSiteCookie = needsCrossSiteCookie();
-    setCookie(c, env.SESSION_COOKIE, sessionId, {
+    setCookie(c, sessionConfig.cookieName, sessionId, {
       httpOnly: true,
       sameSite: crossSiteCookie ? "None" : "Lax",
       secure: crossSiteCookie,
       path: "/",
-      maxAge: env.SESSION_TTL_SECONDS
+      maxAge: sessionConfig.ttlSeconds
     });
   }
 
@@ -61,7 +62,7 @@ export const session = {
     if (!client) return "";
 
     const id = randomUUID();
-    await client.set(sessionKey(id), JSON.stringify(data), "EX", env.SESSION_TTL_SECONDS);
+    await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
     return id;
   },
 
@@ -87,7 +88,7 @@ export const session = {
 
     const data = (await session.all<Record<string, unknown>>(id)) || {};
     data[key] = value;
-    await client.set(sessionKey(id), JSON.stringify(data), "EX", env.SESSION_TTL_SECONDS);
+    await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
     return true;
   },
 
@@ -96,7 +97,7 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    await client.expire(sessionKey(id), env.SESSION_TTL_SECONDS);
+    await client.expire(sessionKey(id), sessionConfig.ttlSeconds);
     return true;
   },
 
@@ -111,6 +112,6 @@ export const session = {
 
   /** Returns true when Redis is enabled and the Redis client is ready — guards against using session store without Redis. */
   isAvailable() {
-    return env.REDIS && redisClientIfReady() !== null;
+    return redisConfig.enabled && redisClientIfReady() !== null;
   }
 };

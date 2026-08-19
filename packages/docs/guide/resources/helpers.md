@@ -4,33 +4,89 @@ Utility functions live in `src/resources/src/helpers/`.
 
 ## `nformatter.ts`
 
-Number formatting utilities:
+Compact number formatting (e.g. `1200` → `"1.2K"`):
 
 ```ts
-// Format a number with locale-aware separators
-formatNumber(value: number): string
+import { formatCompactNumber } from "@/helpers/nformatter";
 
-// Format as currency
-formatCurrency(value: number, currency?: string): string
-
-// Format as percentage
-formatPercentage(value: number, decimals?: number): string
+formatCompactNumber(999);     // 999
+formatCompactNumber(1200);    // "1.2K"
+formatCompactNumber(1500000); // "1.5M"
+formatCompactNumber(NaN);     // "NaN"
 ```
+
+Uses `Intl.NumberFormat` with `notation: "compact"`.
 
 ## `utils.ts`
 
-General-purpose utility functions:
+General-purpose utilities:
+
+### `inArray`
 
 ```ts
-// Deep clone an object
-deepClone<T>(obj: T): T
+import { inArray } from "@/helpers/utils";
 
-// Debounce a function call
-debounce<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void
+inArray("a", ["a", "b", "c"]);          // true
+inArray("a", ["a", "b", "c"], true);    // true (strict)
+inArray(NaN, [NaN]);                     // true (loose)
+inArray(NaN, [NaN], true);              // false (strict uses includes)
+```
 
-// Generate a unique ID
-uniqueId(prefix?: string): string
+### `empty`
 
-// Truncate a string with ellipsis
-truncate(str: string, maxLength: number): string
+Check if a value is empty (PHP-style):
+
+```ts
+import { empty } from "@/helpers/utils";
+
+empty(null);       // true
+empty(undefined);  // true
+empty("");         // true
+empty("0");        // true
+empty(0);          // true
+empty(NaN);        // true
+empty([]);         // true
+empty({});         // true
+empty(new Map());  // true
+empty(false);      // true
+empty("hello");    // false
+empty([1, 2]);     // false
+```
+
+### `downloadFile` / `downloadExcel`
+
+Trigger a browser file download from a URL:
+
+```ts
+import { downloadFile, downloadExcel } from "@/helpers/utils";
+
+// Direct URL
+await downloadFile("/api/reports/monthly.pdf", "report.pdf");
+
+// Same as downloadFile (alias)
+await downloadExcel("/api/reports/monthly.xlsx", "report.xlsx");
+```
+
+If the URL is not absolute, it's passed through a `route()` helper.
+
+### `formatTaxPeriod`
+
+Format a `"yyyy-MM"` string as `"MMM yyyy"`:
+
+```ts
+import { formatTaxPeriod } from "@/helpers/utils";
+
+formatTaxPeriod("2025-04"); // "Apr 2025"
+formatTaxPeriod("");        // ""
+```
+
+### `formatDate`
+
+Format an ISO date string as `"dd MMM yyyy"`:
+
+```ts
+import { formatDate } from "@/helpers/utils";
+
+formatDate("2025-04-02T10:30:00Z"); // "02 Apr 2025"
+formatDate(null);                    // ""
 ```

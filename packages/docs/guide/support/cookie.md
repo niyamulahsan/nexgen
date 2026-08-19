@@ -35,8 +35,8 @@ cookie.setRefresh(c, refreshToken, 604800); // 7 days
 ### Read cookies in middleware
 
 ```ts
-const accessToken = cookie.getAuth(c);
-const refreshToken = cookie.getRefresh(c);
+const accessToken = await cookie.getAuth(c);
+const refreshToken = await cookie.getRefresh(c);
 ```
 
 ### Clear cookies on logout
@@ -46,13 +46,25 @@ cookie.deleteAuth(c);
 cookie.deleteRefresh(c);
 ```
 
-## Environment Variables
+## Configuration
 
-| Variable | Default | Description |
+Cookie settings are in `src/config/cookie.ts`. The cookie name is a plain literal you can change there. Secrets stay in `.env`.
+
+| Setting | Default | Description |
 |---|---|---|
-| `COOKIE_NAME` | `nexgen` | Prefix for auth cookie names |
-| `COOKIE_SECRET` | — | **Required.** Secret for cookie signing |
-| `JWT_ACCESS_EXPIRY` | `900` (15 min) | Max-Age for access cookie |
-| `JWT_REFRESH_EXPIRY` | `2592000` (30 days) | Default Max-Age for refresh cookie |
+| `name` | `nexgen` | Prefix for auth cookie names (`_access`, `_refresh` appended) |
+| `secret` | `env.COOKIE_SECRET` | **Required.** Secret for cookie signing |
 
-All cookies are httpOnly, sameSite `Lax`, and scoped to `/`.
+## Cross-origin cookies
+
+When `APP_URL` and `FRONTEND_URL` are on different origins, cookies are set with `sameSite: "None"` and `secure: true`. Otherwise they use `sameSite: "Lax"`.
+
+## Related config (`config/jwt.ts`)
+
+| Setting | Default | Description |
+|---|---|---|
+| `accessExpirySeconds` | `900` (15 min) | Max-Age for access cookie |
+| `refreshExpirySeconds` | `3600` (1 hour) | Default Max-Age for refresh cookie |
+| `refreshRememberExpirySeconds` | `2592000` (30 days) | Max-Age for "remember me" refresh cookie |
+
+All cookies are httpOnly and scoped to `/`.

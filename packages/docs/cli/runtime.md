@@ -26,7 +26,7 @@ bun maker <command> [options]
 
 ### `dev`
 
-Start the full development stack — API server, Vue 3 frontend, queue worker (if Redis enabled), and optional dev tools — all in parallel with a single command.
+Start the full development stack — API server, frontend, queue worker (if Redis enabled), and optional dev tools — all in parallel with a single command.
 
 **What starts:**
 
@@ -64,22 +64,22 @@ bun maker dev
 ::: code-group
 
 ```bash [npm]
-npm run maker dev -- --view=redis,maildev,studio,bullmq
+npm run maker dev -- --view=redis,maildev,studio
 npm run maker dev -- --with-redis-view --with-maildev --with-db-studio
 ```
 
 ```bash [pnpm]
-pnpm maker dev --view=redis,maildev,studio,bullmq
+pnpm maker dev --view=redis,maildev,studio
 pnpm maker dev --with-redis-view --with-maildev --with-db-studio
 ```
 
 ```bash [yarn]
-yarn maker dev --view=redis,maildev,studio,bullmq
+yarn maker dev --view=redis,maildev,studio
 yarn maker dev --with-redis-view --with-maildev --with-db-studio
 ```
 
 ```bash [bun]
-bun maker dev --view=redis,maildev,studio,bullmq
+bun maker dev --view=redis,maildev,studio
 bun maker dev --with-redis-view --with-maildev --with-db-studio
 ```
 
@@ -90,11 +90,10 @@ bun maker dev --with-redis-view --with-maildev --with-db-studio
 | Redis Commander | `redis` / `--with-redis-view` | Web UI at port 1369 to inspect Redis keys |
 | MailDev | `maildev` / `--with-maildev` | SMTP server at port 1089 + web UI at port 1080 to view sent emails |
 | Drizzle Studio | `studio` / `--with-db-studio` | Web UI at `local.drizzle.studio` for database browsing |
-| BullMQ Dashboard | `bullmq` | Queue management UI at `/admin/queues` |
 
 ### `frontend:dev`
 
-Start only the Vue 3 frontend dev server (alias: `admin:dev`). Useful when you want to run the API separately.
+Start only the frontend dev server (alias: `admin:dev`). Useful when you want to run the API separately.
 
 ::: code-group
 
@@ -122,13 +121,14 @@ bun maker frontend:dev
 
 Start the HTTP API server.
 
-**Modes:**
+**Flags:**
 
-| Mode | What happens | Use case |
+| Flag | Default | Description |
 |---|---|---|
-| Source (default) | Runs `tsx src/framework/server.ts` with watch | Development with hot reload |
-| `--prod` | Runs compiled `dist/src/framework/server.js` | Docker/production |
-| `--runtime=bun` | Uses `bun` instead of Node.js | Bun runtime |
+| `--prod` | — | Run compiled `dist/src/framework/server.js` |
+| `--runtime <name>` | `node` | Runtime: `node` or `bun` |
+| `--watch` | — | Watch for file changes (source mode) |
+| `--src` | — | Force source mode even if `dist/` exists |
 
 ::: code-group
 
@@ -138,6 +138,7 @@ npm run maker serve -- --prod
 npm run maker serve -- --prod --runtime=node
 npm run maker serve -- --runtime=bun
 npm run maker serve -- --watch
+npm run maker serve -- --src
 ```
 
 ```bash [pnpm]
@@ -146,6 +147,7 @@ pnpm maker serve --prod
 pnpm maker serve --prod --runtime=node
 pnpm maker serve --runtime=bun
 pnpm maker serve --watch
+pnpm maker serve --src
 ```
 
 ```bash [yarn]
@@ -154,6 +156,7 @@ yarn maker serve --prod
 yarn maker serve --prod --runtime=node
 yarn maker serve --runtime=bun
 yarn maker serve --watch
+yarn maker serve --src
 ```
 
 ```bash [bun]
@@ -162,6 +165,7 @@ bun maker serve --prod
 bun maker serve --prod --runtime=node
 bun maker serve --runtime=bun
 bun maker serve --watch
+bun maker serve --src
 ```
 
 :::
@@ -172,17 +176,19 @@ bun maker serve --watch
 
 Start a BullMQ queue worker that processes jobs from named queues.
 
-| Queue | Purpose |
-|---|---|
-| `default` | General application jobs |
-| `mail` | Email delivery jobs |
+| Flag | Default | Description |
+|---|---|---|
+| `--queue <names>` | `default` | Comma-separated queue names (e.g. `default,mail,maintenance`) |
+| `--prod` | — | Run from compiled `dist/` instead of source |
+| `--runtime <name>` | `node` | Runtime: `node` or `bun` |
+| `--src` | — | Force source mode even if `dist/` exists |
 
 ::: code-group
 
 ```bash [npm]
 npm run maker queue:work
 npm run maker queue:work -- --queue=mail
-npm run maker queue:work -- --queue=default,mail
+npm run maker queue:work -- --queue=default,mail,maintenance
 npm run maker queue:work -- --prod
 npm run maker queue:work -- --queue=default,mail --prod --runtime=node
 ```
@@ -190,7 +196,7 @@ npm run maker queue:work -- --queue=default,mail --prod --runtime=node
 ```bash [pnpm]
 pnpm maker queue:work
 pnpm maker queue:work --queue=mail
-pnpm maker queue:work --queue=default,mail
+pnpm maker queue:work --queue=default,mail,maintenance
 pnpm maker queue:work --prod
 pnpm maker queue:work --queue=default,mail --prod --runtime=node
 ```
@@ -198,7 +204,7 @@ pnpm maker queue:work --queue=default,mail --prod --runtime=node
 ```bash [yarn]
 yarn maker queue:work
 yarn maker queue:work --queue=mail
-yarn maker queue:work --queue=default,mail
+yarn maker queue:work --queue=default,mail,maintenance
 yarn maker queue:work --prod
 yarn maker queue:work --queue=default,mail --prod --runtime=node
 ```
@@ -206,7 +212,7 @@ yarn maker queue:work --queue=default,mail --prod --runtime=node
 ```bash [bun]
 bun maker queue:work
 bun maker queue:work --queue=mail
-bun maker queue:work --queue=default,mail
+bun maker queue:work --queue=default,mail,maintenance
 bun maker queue:work --prod
 bun maker queue:work --queue=default,mail --prod --runtime=node
 ```
@@ -263,6 +269,108 @@ yarn maker schedule:work --prod
 ```bash [bun]
 bun maker schedule:work
 bun maker schedule:work --prod
+```
+
+:::
+
+## Testing
+
+### `test`
+
+Run Vitest backend tests once.
+
+::: code-group
+
+```bash [npm]
+npm run maker test
+npm run maker test -- -- --filter=posts
+```
+
+```bash [pnpm]
+pnpm maker test
+pnpm maker test --filter=posts
+```
+
+```bash [yarn]
+yarn maker test
+yarn maker test --filter=posts
+```
+
+```bash [bun]
+bun maker test
+bun maker test --filter=posts
+```
+
+:::
+
+### `test:watch`
+
+Run Vitest backend tests in watch mode — re-runs on file changes.
+
+::: code-group
+
+```bash [npm]
+npm run maker test:watch
+```
+
+```bash [pnpm]
+pnpm maker test:watch
+```
+
+```bash [yarn]
+yarn maker test:watch
+```
+
+```bash [bun]
+bun maker test:watch
+```
+
+:::
+
+### `test:coverage`
+
+Run Vitest backend tests with code coverage reporting.
+
+::: code-group
+
+```bash [npm]
+npm run maker test:coverage
+```
+
+```bash [pnpm]
+pnpm maker test:coverage
+```
+
+```bash [yarn]
+yarn maker test:coverage
+```
+
+```bash [bun]
+bun maker test:coverage
+```
+
+:::
+
+### `test:ui`
+
+Run Vitest backend tests in the visual UI mode.
+
+::: code-group
+
+```bash [npm]
+npm run maker test:ui
+```
+
+```bash [pnpm]
+pnpm maker test:ui
+```
+
+```bash [yarn]
+yarn maker test:ui
+```
+
+```bash [bun]
+bun maker test:ui
 ```
 
 :::
@@ -359,6 +467,10 @@ bun maker vite:cache:clear
 | `queue:work` | Queue worker from source | Queue worker from dist |
 | `schedule:work` | Scheduler from source | Scheduler from dist |
 | `frontend:dev` | Vite dev server | — |
+| `test` | Run tests once | — |
+| `test:watch` | Run tests in watch mode | — |
+| `test:coverage` | Run tests with coverage | — |
+| `test:ui` | Run tests in UI mode | — |
 | `queue:clear` | Development cleanup | — |
 | `maildev:view` | Email testing | — |
 | `redis:view` | Redis inspection | — |

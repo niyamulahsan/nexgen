@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { env } from "@/env.js";
+import { mailConfig } from "@/config/index.js";
 import { logger } from "@/framework/support/logger.js";
 
 type MailPayload = {
@@ -10,10 +10,10 @@ type MailPayload = {
 };
 
 const transport = nodemailer.createTransport({
-  host: env.MAIL_HOST,
-  port: env.MAIL_PORT,
-  secure: false,
-  auth: env.MAIL_USERNAME ? { user: env.MAIL_USERNAME, pass: env.MAIL_PASSWORD } : undefined
+  host: mailConfig.host,
+  port: mailConfig.port,
+  secure: mailConfig.encryption === "ssl",
+  auth: mailConfig.username ? { user: mailConfig.username, pass: mailConfig.password } : undefined
 });
 
 export const mail = {
@@ -21,12 +21,12 @@ export const mail = {
    * Why: Sends transactional email through configured SMTP transport.
    * When: Features need notifications/password reset/signup email.
    * Where: Jobs and event handlers.
-   * How: Uses nodemailer transport and respects MAIL_FAIL_SILENT behavior.
+   * How: Uses nodemailer transport and respects the fail-silent setting.
    */
   async sendMail(payload: MailPayload) {
     try {
       return await transport.sendMail({
-        from: env.MAIL_FROM_ADDRESS,
+        from: mailConfig.fromAddress,
         ...payload
       });
     } catch (error) {
@@ -36,7 +36,7 @@ export const mail = {
         error: error instanceof Error ? error.message : error
       });
 
-      if (!env.MAIL_FAIL_SILENT) throw error;
+      if (!mailConfig.failSilent) throw error;
       return null;
     }
   }

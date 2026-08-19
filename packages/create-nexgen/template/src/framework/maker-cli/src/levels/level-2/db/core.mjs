@@ -15,12 +15,21 @@ function detectMigrationDialectFromSql(sql = "") {
   const source = sql.toLowerCase();
   if (!source.trim()) return "unknown";
 
-  const sqliteHints = ["autoincrement", "integer primary key", "pragma"];
-  const mysqlHints = ["auto_increment", "engine=", "datetime", "varchar("];
-  const postgresHints = ["serial", "bigserial", "timestamp with time zone", "public."];
+  // PostgreSQL: drizzle emits `GENERATED ALWAYS AS IDENTITY` (or serial/bigserial) and
+  // `varchar(` is shared with MySQL, so it cannot be used to distinguish them.
+  const postgresHints = [
+    "generated always as identity",
+    "bigserial",
+    "serial",
+    "timestamp with time zone",
+    "public."
+  ];
+  // MySQL: backtick-quoted identifiers, AUTO_INCREMENT and ENGINE=.
+  const mysqlHints = ["auto_increment", "engine=", "`"];
+  const sqliteHints = ["autoincrement", "pragma"];
 
-  if (mysqlHints.some((hint) => source.includes(hint))) return "mysql";
   if (postgresHints.some((hint) => source.includes(hint))) return "postgresql";
+  if (mysqlHints.some((hint) => source.includes(hint))) return "mysql";
   if (sqliteHints.some((hint) => source.includes(hint))) return "sqlite";
   return "unknown";
 }
@@ -77,21 +86,20 @@ async function ensurePostgresDatabaseExists() {
   const targetUrl = parsedDatabaseUrl();
   const database = databaseNameFromUrl(targetUrl);
   if (!targetUrl || !database) return;
-  const pg = await import("pg");
-  const admin = new pg.Client({
+  const postgres = (await import("postgres")).default;
+  const admin = postgres({
     host: targetUrl.hostname,
     port: targetUrl.port ? Number(targetUrl.port) : 5432,
     user: decodeURIComponent(targetUrl.username || "postgres"),
     password: decodeURIComponent(targetUrl.password || ""),
     database: "postgres",
-    ssl: targetUrl.searchParams.get("ssl") === "true" ? { rejectUnauthorized: false } : undefined
+    ssl: targetUrl.searchParams.get("ssl") === "true" ? "require" : false
   });
-  await admin.connect();
   try {
-    const { rows } = await admin.query("SELECT 1 FROM pg_database WHERE datname = $1", [database]);
+    const rows = await admin.unsafe("SELECT 1 FROM pg_database WHERE datname = $1", [database]);
     if (!rows.length) {
       const safe = database.replace(/"/g, '""');
-      await admin.query(`CREATE DATABASE "${safe}"`);
+      await admin.unsafe(`CREATE DATABASE "${safe}"`);
       console.log(`Created Postgres database: ${database}`);
     }
   } finally {
@@ -155,24 +163,23 @@ async function resetPostgresDatabase() {
   const targetUrl = parsedDatabaseUrl();
   const database = databaseNameFromUrl(targetUrl);
   if (!targetUrl || !database) return;
-  const pg = await import("pg");
-  const admin = new pg.Client({
+  const postgres = (await import("postgres")).default;
+  const admin = postgres({
     host: targetUrl.hostname,
     port: targetUrl.port ? Number(targetUrl.port) : 5432,
     user: decodeURIComponent(targetUrl.username || "postgres"),
     password: decodeURIComponent(targetUrl.password || ""),
     database: "postgres",
-    ssl: targetUrl.searchParams.get("ssl") === "true" ? { rejectUnauthorized: false } : undefined
+    ssl: targetUrl.searchParams.get("ssl") === "true" ? "require" : false
   });
-  await admin.connect();
   try {
     const safe = database.replace(/"/g, '""');
-    await admin.query(
+    await admin.unsafe(
       "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()",
       [database]
     );
-    await admin.query(`DROP DATABASE IF EXISTS "${safe}"`);
-    await admin.query(`CREATE DATABASE "${safe}"`);
+    await admin.unsafe(`DROP DATABASE IF EXISTS "${safe}"`);
+    await admin.unsafe(`CREATE DATABASE "${safe}"`);
   } finally {
     await admin.end();
   }
@@ -190,18 +197,16 @@ export async function resetDatabase() {
 export async function hasExistingAppTables() {
   const dialect = detectDialect();
   if (dialect === "sqlite") {
-    const sqlite = await import("better-sqlite3");
+    const libsql = await import("@libsql/client");
     const file = sqliteDatabasePath();
-    const db = sqlite.default(file);
+    const client = libsql.createClient({ url: `file:${file.replace(/\\/g, "/")}` });
     try {
-      const rows = db
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '__drizzle_migrations'"
-        )
-        .all();
-      return rows.length > 0;
+      const result = await client.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != '__drizzle_migrations'"
+      );
+      return result.rows.length > 0;
     } finally {
-      db.close();
+      client.close();
     }
   }
 
@@ -218,14 +223,13 @@ export async function hasExistingAppTables() {
     }
   }
 
-  const pg = await import("pg");
-  const client = new pg.Client({ connectionString: databaseUrl() });
-  await client.connect();
+  const postgres = (await import("postgres")).default;
+  const client = postgres(databaseUrl());
   try {
-    const result = await client.query(
+    const rows = await client.unsafe(
       "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != '__drizzle_migrations'"
     );
-    return result.rows.length > 0;
+    return rows.length > 0;
   } finally {
     await client.end();
   }

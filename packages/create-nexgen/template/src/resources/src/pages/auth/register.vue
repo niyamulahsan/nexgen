@@ -2,8 +2,8 @@
   <div class="container position-absolute start-50 top-50 translate-middle">
     <div class="auth col-12 col-sm-9 col-md-7 col-lg-5 col-xl-4 mx-auto py-5">
       <div class="card card-body border-0">
-        <div class="d-block mb-2">
-          <h3 class="m-0 text-uppercase text-center fw-semibold">nexgen</h3>
+        <div class="d-block mb-2 text-center">
+          <img src="@/assets/images/logo.png" alt="nexgen" style="max-height: 60px;" />
         </div>
         <h4 class="text-center">Create Account</h4>
         <p
