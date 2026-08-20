@@ -95,16 +95,15 @@
     "pnpm": ">=11",
     "yarn": ">=4"
   },
-  "trustedDependencies": [
-    "esbuild",
-    "@parcel/watcher",
-    "msgpackr-extract"
-  ],
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "@parcel/watcher",
-      "msgpackr-extract"
-    ]
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    },
+    "@parcel/watcher": {
+      "built": true
+    },
+    "msgpackr-extract": {
+      "built": true
+    }
   }
 }
