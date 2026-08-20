@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.0.7] — 2026-08-21
+
+### Fixed
+
+- **`--with` flag parsing** — `parseWithOptions` now splits on `/[,\s]+/` so commas and spaces both work, fixing yarn's `--with=redis,maildev,studio` being treated as a single argument.
+- **`@hono/zod-openapi` pinned to `~1.5.3`** — `^1.5.2` resolved to 1.6.1 which pulls `@asteasolutions/zod-to-openapi@^9`, breaking `stoker`'s peer dependency on `^8`. Tilde keeps it on 1.5.x.
+- **`redis-commander` bumped to `^0.9.0`** — old `^0.4.5` uses `express@3` + `ejs@0.8` which crash with pnpm's newer EJS resolution. `0.9.0` uses `express@4` + `ejs@3`.
+
+### Documentation
+
+- **Quick Start — Package Manager Setup** — new section explaining extra files needed for pnpm (`pnpm-workspace.yaml` with `allowBuilds`) and yarn (`.yarnrc.yml` with `nodeLinker: node-modules` + `dependenciesMeta` in `package.json`).
+
+---
+
 ## [3.0.3] — 2026-08-20
 
 ### Fixed
