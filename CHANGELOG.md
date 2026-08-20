@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.3] — 2026-08-20
+
+### Fixed
+
+- **create-nexgen yarn PnP crash** — scaffolder always downloads the tarball from the npm registry instead of using a local copy, fixing `cpSync` ENOENT errors under Yarn PnP (zip-mounted `node_modules`).
+- **create-nexgen leaked `index.js`** — tar extraction now only includes `package/template/*` paths, preventing the CLI source file from appearing in the scaffolded project.
+- **create-nexgen peerDependencies synced** — replaced Winston with Pino, bumped `@bull-board/*` to ^8, `nodemailer` to ^9, `redis-commander` to ^0.4, added `@libsql/client`, `@socket.io/bun-engine`, `bullmq-durable`, `croner`, `postgres`; engines updated to `node >=24`, `bun >=1.3.0`, `pnpm >=10`, `yarn >=4`.
+- **create-nexgen template dependencies synced** — root `template/package.json` updated to match all framework dependencies.
+
+---
+
 ## [3.0.0] — 2026-08-19
 
 ### Overview
@@ -258,7 +269,7 @@ Replaced ESLint + Prettier with Biome, unifying linting and formatting under a s
 
 ### Fixes
 
-- **Paginate count query** — count subquery now uses `db.select({ val: sql\`1\` }).from(query.as("_inner"))` instead of broken `.as("paginate_rows")` pattern
+- **Paginate count query** — count subquery now uses `db.select({ val: sql\`1\` }).from(query.as("\_inner"))`instead of broken`.as("paginate_rows")` pattern
 - **Subcriteria dropdown** — `subcriteriaDD` returns `null` when no criteria is selected, preventing unnecessary API requests
 - **FloatButton** — simplified template; renamed unused `floatStyle` to `_floatStyle` for Biome compliance
 - **env.d.ts** — added blank line separators between `declare module` blocks for Biome formatting
