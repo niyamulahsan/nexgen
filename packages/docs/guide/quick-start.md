@@ -77,6 +77,8 @@ allowBuilds:
   esbuild: true
   "@parcel/watcher": true
   msgpackr-extract: true
+  redis-commander: true
+  bcrypt: true
 ```
 
 Alternatively, run `pnpm approve-builds` during install to approve them interactively.
