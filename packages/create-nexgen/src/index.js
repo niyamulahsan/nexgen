@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync, renameSync, readdirSync } from "node:fs";
+import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync, renameSync, readdirSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline";
+import { gunzipSync } from "node:zlib";
+import https from "node:https";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_DIR = join(__dirname, "..", "template");
 const PKG_PATH = join(__dirname, "..", "package.json");
 
 const pkg = JSON.parse(readFileSync(PKG_PATH, "utf-8"));
@@ -40,6 +41,64 @@ function resolveTargetDir(name) {
   return dir;
 }
 
+function octalToInt(str) {
+  return parseInt(str.replace(/\0.*$/, "").trim(), 8) || 0;
+}
+
+function extractTarGz(tgzBuffer, destDir) {
+  const buf = gunzipSync(tgzBuffer);
+  let offset = 0;
+
+  while (offset < buf.length - 512) {
+    const header = buf.slice(offset, offset + 512);
+    if (header.every((b) => b === 0)) break;
+
+    const name = header.slice(0, 100).toString("utf-8").replace(/\0.*$/, "");
+    const size = octalToInt(header.slice(124, 136).toString("utf-8"));
+    const type = header[156];
+
+    offset += 512;
+
+    if (name && name.startsWith("package/template/")) {
+      const relativePath = name.slice("package/template/".length);
+      if (relativePath) {
+        const fullPath = join(destDir, relativePath);
+        if (type === 48 || type === 0) {
+          const dir = dirname(fullPath);
+          if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+          writeFileSync(fullPath, buf.slice(offset, offset + size));
+        } else if (type === 53) {
+          if (!existsSync(fullPath)) mkdirSync(fullPath, { recursive: true });
+        }
+      }
+    }
+
+    offset += Math.ceil(size / 512) * 512;
+  }
+}
+
+function fetchTarball(pkgName, pkgVersion) {
+  return new Promise((resolve, reject) => {
+    const url = `https://registry.npmjs.org/${pkgName}/-/${pkgName}-${pkgVersion}.tgz`;
+    https.get(url, { headers: { Accept: "application/octet-stream" } }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        https.get(res.headers.location, (res2) => {
+          const chunks = [];
+          res2.on("data", (c) => chunks.push(c));
+          res2.on("end", () => resolve(Buffer.concat(chunks)));
+          res2.on("error", reject);
+        }).on("error", reject);
+        return;
+      }
+      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => resolve(Buffer.concat(chunks)));
+      res.on("error", reject);
+    }).on("error", reject);
+  });
+}
+
 async function main() {
   const args = process.argv.slice(2);
   let projectName = args.find((a) => !a.startsWith("--"));
@@ -68,15 +127,17 @@ async function main() {
 
   console.log(`\nCreating project "${projectName}"...\n`);
 
-  if (!existsSync(TEMPLATE_DIR)) {
-    console.error("Error: Template not found. Reinstall create-nexgen.");
-    process.exit(1);
-  }
-
   mkdirSync(targetDir, { recursive: true });
-  for (const entry of readdirSync(TEMPLATE_DIR)) {
-    if (entry === "node_modules") continue;
-    cpSync(join(TEMPLATE_DIR, entry), join(targetDir, entry), { recursive: true });
+
+  try {
+    console.log("  Downloading template from npm...");
+    const tgz = await fetchTarball("create-nexgen", version);
+    extractTarGz(tgz, targetDir);
+  } catch (err) {
+    console.error("Error: Failed to download template from npm registry.");
+    console.error("  " + err.message);
+    rmSync(targetDir, { recursive: true, force: true });
+    process.exit(1);
   }
 
   const gitignoreStub = join(targetDir, "gitignore-stub");

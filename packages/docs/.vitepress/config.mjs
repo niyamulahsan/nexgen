@@ -43,6 +43,7 @@ export default defineConfig({
             { text: "Modules", link: "/guide/modules" },
             { text: "Database", link: "/guide/database" },
             { text: "Authentication", link: "/guide/auth" },
+            { text: "Unit Testing", link: "/guide/testing" },
           ],
         },
         {

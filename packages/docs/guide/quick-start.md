@@ -8,6 +8,8 @@
 
 ## Create a Project
 
+Nexgen ships as a scaffolding CLI called [`create-nexgen`](https://www.npmjs.com/package/create-nexgen). It downloads the latest stable template from npm and sets up a ready-to-run project.
+
 ::: code-group
 
 ```bash [npm]
@@ -15,15 +17,15 @@ npm create nexgen@latest my-project
 ```
 
 ```bash [pnpm]
-pnpm create nexgen my-project
+pnpm create nexgen@latest my-project
 ```
 
 ```bash [yarn]
-yarn create nexgen my-project
+yarn create nexgen@latest my-project
 ```
 
 ```bash [bun]
-bun create nexgen my-project
+bun create nexgen@latest my-project
 ```
 
 :::
@@ -137,7 +139,7 @@ All URLs are printed in the console when the dev server starts:
 
 - `http://localhost:3000` — API server
 - `http://localhost:3000/api-docs` — API documentation (Scalar)
-- `http://localhost:3000/bullmq` — BullMQ queue dashboard (auto-enabled when Redis is on)
+- `http://localhost:3000/queues` — BullMQ queue dashboard (auto-enabled when Redis is on)
 - `http://localhost:5173` — Vue 3 frontend (hot reload)
 
 ### Sidecar Tools

@@ -42,12 +42,12 @@ This starts the API server, Vue 3 frontend, and queue worker (if Redis enabled) 
 
 Commands in this README use `bun maker` as shorthand. Use the equivalent for your package manager:
 
-| Manager | Command |
-|---|---|
-| npm | `npm run maker -- <command>` |
-| pnpm | `pnpm maker <command>` |
-| yarn | `yarn maker <command>` |
-| bun | `bun maker <command>` |
+| Manager | Command                      |
+| ------- | ---------------------------- |
+| npm     | `npm run maker -- <command>` |
+| pnpm    | `pnpm maker <command>`       |
+| yarn    | `yarn maker <command>`       |
+| bun     | `bun maker <command>`        |
 
 ## Architecture
 
@@ -113,18 +113,18 @@ Client → @hono/node-server → sessionMiddleware → corsMiddleware
 Modules are self-contained units under `src/modules/<name>/`. Each module can contain:
 
 ```
-src/modules/blog/
-├── controllers/         # Request handlers + Zod schemas
+src/modules/posts/
+├── console/                # CLI commands & scheduled tasks
+├── controllers/            # Request handlers + Zod schemas
 │   ├── blog.controller.ts
 │   └── blog.schema.ts
-├── routes/              # Route definitions (auto-discovered)
-│   └── api.ts
 ├── database/
-│   ├── models/          # Drizzle table definitions
-│   ├── seeders/         # Database seeders
+│   ├── models/             # Drizzle table definitions
+│   ├── seeders/            # Database seeders
 │   └── index.ts
-├── jobs/                # Queue job handlers
-└── console/             # Scheduled commands
+├── jobs/                   # BullMQ queue handlers
+├── routes/                 # HTTP route definitions (auto-discovered)
+└── __test__/               # Unit test
 ```
 
 ### Creating a Module
@@ -149,7 +149,21 @@ bun maker module:make-console blog cleanup
 The framework's public API is exported from `@/framework/facade.js`:
 
 ```ts
-import { db, cache, session, queue, dispatchEvent, notify, storage, mail, jwt, password, urls, logger, paginate } from "@/framework/facade.js";
+import {
+  db,
+  cache,
+  session,
+  queue,
+  dispatchEvent,
+  notify,
+  storage,
+  mail,
+  jwt,
+  password,
+  urls,
+  logger,
+  paginate,
+} from "@/framework/facade.js";
 ```
 
 ## Database
@@ -214,7 +228,11 @@ await dispatchEvent("user:signup", { userId: 1 });
 await dispatchEvent("user:signup", { userId: 1 }, { queue: "default" });
 
 // Fire and broadcast to authenticated users
-await dispatchEvent("post.created", { postId: 1 }, { broadcast: { auth: true } });
+await dispatchEvent(
+  "post.created",
+  { postId: 1 },
+  { broadcast: { auth: true } },
+);
 
 // Queue, then broadcast from handler (recommended pattern)
 ```
@@ -235,7 +253,7 @@ shouldQueue("user:signup", "default", async (job) => {
 Start the worker:
 
 ```bash
-bun maker queue:work --queue=default,mail
+bun maker queue:work --queue=default,mail,maintenance
 ```
 
 ### dispatchCommand
@@ -284,17 +302,29 @@ bun maker schedule:work
 Broadcast events to connected clients via Socket.IO:
 
 ```ts
-await dispatchEvent("chat.message", { text: "Hello" }, {
-  broadcast: { users: [recipientId] }
-});
+await dispatchEvent(
+  "chat.message",
+  { text: "Hello" },
+  {
+    broadcast: { users: [recipientId] },
+  },
+);
 
-await dispatchEvent("admin.alert", { cpu: 92 }, {
-  broadcast: { roles: ["admin"] }
-});
+await dispatchEvent(
+  "admin.alert",
+  { cpu: 92 },
+  {
+    broadcast: { roles: ["admin"] },
+  },
+);
 
-await dispatchEvent("system.update", { status: "ok" }, {
-  broadcast: { all: true }
-});
+await dispatchEvent(
+  "system.update",
+  { status: "ok" },
+  {
+    broadcast: { all: true },
+  },
+);
 ```
 
 ### Client-side
@@ -453,10 +483,10 @@ See the [deploy documentation](https://niyamulahsan.github.io/nexgen/deploy/over
 
 ## Optional Packages
 
-| Package | Feature | When needed |
-|---|---|---|
-| `exceljs` | Excel import/export | If using `/examples/download/excel/*` endpoints |
-| `playwright` | PDF export | If using `/examples/download/pdf/*` endpoints |
+| Package      | Feature             | When needed                                     |
+| ------------ | ------------------- | ----------------------------------------------- |
+| `exceljs`    | Excel import/export | If using `/examples/download/excel/*` endpoints |
+| `playwright` | PDF export          | If using `/examples/download/pdf/*` endpoints   |
 
 ```bash
 npm i exceljs

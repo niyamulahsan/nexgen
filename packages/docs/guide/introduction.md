@@ -124,7 +124,7 @@ bun maker dev
 |---|---|
 | API server | `http://localhost:3000` |
 | API docs (Scalar) | `http://localhost:3000/api-docs` |
-| Queue dashboard | `http://localhost:3000/bullmq` |
+| Queue dashboard | `http://localhost:3000/queues` |
 | Vue 3 frontend (HMR) | `http://localhost:5173` |
 
 ## Pick Your Learning Path

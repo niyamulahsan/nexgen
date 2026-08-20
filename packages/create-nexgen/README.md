@@ -35,12 +35,12 @@ Open `http://localhost:3000/api-docs` for API docs or `http://localhost:5173` fo
 
 ### Package Manager
 
-| Manager | Create project | Run commands |
-|---|---|---|
-| **npm** | `npm create nexgen@latest` | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen` | `pnpm maker <cmd>` |
-| **yarn** | `yarn create nexgen` | `yarn maker <cmd>` |
-| **bun** | `bun create nexgen` | `bun maker <cmd>` |
+| Manager  | Create project             | Run commands          |
+| -------- | -------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest` | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen`       | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen`       | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen`        | `bun maker <cmd>`     |
 
 ### Runtime
 
@@ -54,8 +54,7 @@ my-app/
 │   ├── env.ts              # Zod-validated environment config
 │   ├── framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
 │   ├── modules/            # Application modules (auto-discovered)
-│   │   ├── auth/           # Auth controllers, routes, models, jobs
-│   │   └── welcome/        # Example module
+│   │   └── auth/           # Auth controllers, routes, models, jobs
 │   ├── middlewares/        # Auth & role guards
 │   ├── resources/          # Vue 3 SPA frontend
 │   └── storage/            # Uploaded files & logs
@@ -78,18 +77,18 @@ my-app/
 
 ## CLI Commands
 
-| Command | Description |
-|---|---|
-| `maker dev` | Start API server + frontend HMR + queue worker |
-| `maker serve [--prod]` | API server (dev or production) |
-| `maker queue:work` | BullMQ worker process |
-| `maker schedule:work` | Cron scheduler |
-| `maker db:migrate --seed` | Run migrations + seeders |
-| `maker db:fresh` | Drop all tables, re-migrate, re-seed |
-| `maker module:make <name>` | Scaffold a new module |
-| `maker deploy:init` | Generate Docker deploy scaffolding |
-| `maker deploy:workflow` | Local deploy (Docker Desktop) |
-| `maker deploy:workflow:remote` | Remote deploy via SSH + rsync |
+| Command                        | Description                                    |
+| ------------------------------ | ---------------------------------------------- |
+| `maker dev`                    | Start API server + frontend HMR + queue worker |
+| `maker serve [--prod]`         | API server (dev or production)                 |
+| `maker queue:work`             | BullMQ worker process                          |
+| `maker schedule:work`          | Cron scheduler                                 |
+| `maker db:migrate --seed`      | Run migrations + seeders                       |
+| `maker db:fresh`               | Drop all tables, re-migrate, re-seed           |
+| `maker module:make <name>`     | Scaffold a new module                          |
+| `maker deploy:init`            | Generate Docker deploy scaffolding             |
+| `maker deploy:workflow`        | Local deploy (Docker Desktop)                  |
+| `maker deploy:workflow:remote` | Remote deploy via SSH + rsync                  |
 
 ## Documentation
 

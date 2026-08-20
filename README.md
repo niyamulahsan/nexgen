@@ -35,12 +35,12 @@ Requires **Node.js >= 24** or **Bun >= 1.3**.
 
 All examples use `npm` as the default. nexgen works with any major package manager:
 
-| Manager  | Create project             | Run commands          |
-| -------- | -------------------------- | --------------------- |
-| **npm**  | `npm create nexgen@latest` | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen`       | `pnpm maker <cmd>`    |
-| **yarn** | `yarn create nexgen`       | `yarn maker <cmd>`    |
-| **bun**  | `bun create nexgen`        | `bun maker <cmd>`     |
+| Manager  | Create project              | Run commands          |
+| -------- | --------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest`  | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen@latest` | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen@latest` | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen@latest`  | `bun maker <cmd>`     |
 
 ### Runtime
 
@@ -87,14 +87,14 @@ Every feature is a self-contained module under `src/modules/<name>/`:
 
 ```
 src/modules/posts/
+├── console/           # CLI commands & scheduled tasks
 ├── controllers/       # Request handlers + Zod schemas
-├── routes/            # HTTP route definitions (auto-discovered)
 ├── database/
 │   ├── models/        # Drizzle table definitions
 │   └── seeders/       # Test data generators
 ├── jobs/              # BullMQ queue handlers
-├── console/           # CLI commands & scheduled tasks
-└── schedules/         # Cron job definitions
+├── routes/            # HTTP route definitions (auto-discovered)
+└── __test__/          # Unit test
 ```
 
 Modules are **auto-discovered** — no manual registration. Create one with:
