@@ -27,17 +27,16 @@ function parseWithOptions(flags = []) {
 
   for (const raw of candidates) {
     if (!raw) continue;
-    for (const item of raw.split(",")) {
+    for (const item of raw.split(/[,\s]+/)) {
       const key = item.trim().toLowerCase();
       if (!key) continue;
 
-      const normalized = key;
-      if (!supported.has(normalized)) {
+      if (!supported.has(key)) {
         console.warn(`[dev] Unknown --with option '${key}' (supported: redis, maildev, studio)`);
         continue;
       }
 
-      selected.add(normalized);
+      selected.add(key);
     }
   }
 
