@@ -64,6 +64,45 @@ bun install
 
 :::
 
+## Package Manager Setup
+
+**npm** and **bun** work out of the box — no extra configuration needed.
+
+### pnpm
+
+pnpm 11+ blocks install scripts by default. Create a `pnpm-workspace.yaml` in the project root:
+
+```yaml
+allowBuilds:
+  esbuild: true
+  "@parcel/watcher": true
+  msgpackr-extract: true
+```
+
+Alternatively, run `pnpm approve-builds` during install to approve them interactively.
+
+### Yarn
+
+Yarn 4.14+ disables build scripts and uses PnP by default. Create a `.yarnrc.yml` in the project root:
+
+```yaml
+nodeLinker: node-modules
+```
+
+Also add `dependenciesMeta` to your `package.json` to allow build scripts for required packages:
+
+```json
+{
+  "dependenciesMeta": {
+    "esbuild": { "built": true },
+    "@parcel/watcher": { "built": true },
+    "msgpackr-extract": { "built": true }
+  }
+}
+```
+
+Without `.yarnrc.yml`, you'll also need to install peer dependencies explicitly (e.g. `@asteasolutions/zod-to-openapi`, `@bull-board/ui`, `@popperjs/core`).
+
 ## Configure Database
 
 Edit `.env` and set your `DATABASE_URL`:
