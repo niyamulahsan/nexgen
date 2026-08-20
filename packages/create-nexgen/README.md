@@ -35,12 +35,12 @@ Open `http://localhost:3000/api-docs` for API docs or `http://localhost:5173` fo
 
 ### Package Manager
 
-| Manager  | Create project             | Run commands          |
-| -------- | -------------------------- | --------------------- |
-| **npm**  | `npm create nexgen@latest` | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen`       | `pnpm maker <cmd>`    |
-| **yarn** | `yarn create nexgen`       | `yarn maker <cmd>`    |
-| **bun**  | `bun create nexgen`        | `bun maker <cmd>`     |
+| Manager  | Create project              | Run commands          |
+| -------- | --------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest`  | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen@latest` | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen@latest` | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen@latest`  | `bun maker <cmd>`     |
 
 ### Runtime
 
