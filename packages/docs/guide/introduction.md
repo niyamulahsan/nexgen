@@ -8,7 +8,12 @@ Here is a minimal example (with `OPEN_API=true`):
 
 ```ts
 // src/modules/posts/routes/api.ts
-import { createRoute, group, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
 
 const listRoute = createRoute({
   path: "/",
@@ -27,8 +32,7 @@ With `OPEN_API=false`, the same route looks like:
 ```ts
 import { group } from "@/framework/facade.js";
 
-export default group()
-  .get("/", (c) => c.json([{ id: 1, title: "Hello" }]));
+export default group().get("/", (c) => c.json([{ id: 1, title: "Hello" }]));
 ```
 
 The above example auto-registers the route — no manual wiring needed. Create a file, export a group, and it works.
@@ -43,7 +47,20 @@ Most JavaScript frameworks focus on either the frontend or the backend. nexgen c
 - **Services** — Redis-backed cache, session, BullMQ queue, Socket.IO realtime, cron scheduler, file storage, and notifications — all accessible through a single facade.
 
 ```ts
-import { db, cache, session, queue, dispatchEvent, notify, storage, jwt, mail, password, urls, logger } from "@/framework/facade.js";
+import {
+  db,
+  cache,
+  session,
+  queue,
+  dispatchEvent,
+  notify,
+  storage,
+  jwt,
+  mail,
+  password,
+  urls,
+  logger,
+} from "@/framework/facade.js";
 ```
 
 ## Module System
@@ -52,14 +69,14 @@ Every feature is a self-contained module under `src/modules/<name>/`:
 
 ```
 src/modules/posts/
+├── console/           # CLI commands
 ├── controllers/       # Request handlers
-├── routes/            # HTTP route definitions (auto-discovered)
 ├── database/
 │   ├── models/        # Drizzle schema definitions
 │   └── seeders/       # Test data
 ├── jobs/              # BullMQ queue handlers
-├── console/           # CLI commands
-└── schedules/         # Cron jobs
+├── routes/            # HTTP route definitions (auto-discovered)
+└── __test__/          # Unit testing
 ```
 
 Modules are auto-discovered — no manual registration needed. Create one with the CLI:
@@ -120,12 +137,12 @@ bun maker dev
 
 :::
 
-| Component | URL |
-|---|---|
-| API server | `http://localhost:3000` |
-| API docs (Scalar) | `http://localhost:3000/api-docs` |
-| Queue dashboard | `http://localhost:3000/queues` |
-| Vue 3 frontend (HMR) | `http://localhost:5173` |
+| Component            | URL                              |
+| -------------------- | -------------------------------- |
+| API server           | `http://localhost:3000`          |
+| API docs (Scalar)    | `http://localhost:3000/api-docs` |
+| Queue dashboard      | `http://localhost:3000/queues`   |
+| Vue 3 frontend (HMR) | `http://localhost:5173`          |
 
 ## Pick Your Learning Path
 
