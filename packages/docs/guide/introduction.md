@@ -293,6 +293,42 @@ logger.error("Payment failed", { orderId: "abc", error: err.message });
 
 Logs rotate at 10MB — 5 app log files and 3 fatal log files are kept.
 
+## Self Deploy to VPS
+
+Deploy directly from your terminal to any Linux VPS — no GitHub Actions, no CI/CD platform, no third-party service. Just SSH + Docker. Works on **Windows**, **Linux**, and **macOS** — the CLI uses `rsync` when available and falls back to `scp` automatically (including Windows with Git Bash / WSL).
+
+```bash
+# One-time: generate all Docker files
+npm run maker deploy:init
+
+# Edit deploy/workflow.remote.json with your server IP + SSH key
+# Then deploy:
+npm run maker deploy:workflow:remote
+```
+
+That single command uploads your project via rsync, creates Docker networks, starts the database + Redis + nginx proxy, builds your app image, runs migrations, and starts the server — all over SSH.
+
+What you get on the remote server:
+
+| Component | What it does |
+|---|---|
+| **nginx-proxy** | Reverse proxy with auto Let's Encrypt SSL |
+| **mysql / postgres** | Database server (shared across apps) |
+| **redis** | Cache, queue, session, realtime backend |
+| **pgAdmin / phpMyAdmin** | Database admin UIs |
+| **app container** | Your app with supervisor managing API + queue worker + scheduler |
+| **auto-migrate** | Runs `db:migrate --seed` on first deploy (one-shot) |
+
+```bash
+# Promote: test locally first, then deploy remote
+npm run maker deploy:workflow:promote
+
+# Import a database dump
+npm run maker deploy:db:import:remote -- --file=deploy/nexgen.sql
+```
+
+The system auto-detects your database dialect, package manager, and runtime — the generated Dockerfile works with npm, pnpm, yarn, and Bun. See [Deploy Overview](/deploy/overview) for the full architecture.
+
 ## Everything in One Import
 
 All features are accessible from a single facade:
