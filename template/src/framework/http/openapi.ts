@@ -1,5 +1,5 @@
 import { Scalar } from "@scalar/hono-api-reference";
-import { appConfig } from "@/config/index.js";
+import { openApiConfig } from "@/config/index.js";
 import type { NexgenRouter } from "@/framework/http/router.js";
 
 /**
@@ -10,25 +10,23 @@ import type { NexgenRouter } from "@/framework/http/router.js";
  */
 export function configureOpenApi(app: NexgenRouter) {
   app.doc("/doc", {
-    openapi: "3.0.0",
+    openapi: openApiConfig.version,
     info: {
-      title: `${appConfig.name} API`,
-      version: "0.1.0"
-    }
+      title: openApiConfig.title,
+      version: openApiConfig.apiVersion,
+      ...(openApiConfig.description ? { description: openApiConfig.description } : {}),
+    },
   });
 
   app.get(
-    "/api-docs",
+    openApiConfig.scalar.docsPath,
     Scalar({
-      url: "/doc",
-      layout: "classic",
-      theme: "moon",
-      pageTitle: `${appConfig.name} API`,
-      defaultHttpClient: {
-        targetKey: "js",
-        clientKey: "fetch"
-      },
-      defaultOpenAllTags: true
+      url: openApiConfig.scalar.specUrl,
+      layout: openApiConfig.scalar.layout,
+      theme: openApiConfig.scalar.theme,
+      pageTitle: openApiConfig.scalar.pageTitle,
+      defaultHttpClient: openApiConfig.scalar.defaultHttpClient,
+      defaultOpenAllTags: openApiConfig.scalar.defaultOpenAllTags,
     })
   );
 }

@@ -5,7 +5,7 @@
 The auth system uses a **dual-token JWT strategy** with automatic refresh:
 
 - **Access token** (short-lived, 15 min default) — stored in httpOnly cookie, sent on every request
-- **Refresh token** (long-lived, 30 days default) — stored in httpOnly cookie, used to silently rotate access tokens when they expire
+- **Refresh token** (1 hour default, 30 days with "remember me") — stored in httpOnly cookie, used to silently rotate access tokens when they expire
 
 The middleware handles transparent token refresh — clients never need to implement refresh logic.
 
@@ -166,9 +166,9 @@ await session.put(sessionId, "cart", items);
 const cart = await session.get(sessionId, "cart");
 ```
 
-- Cookie: `SESSION_COOKIE` (default `nexgen_session`)
+- Cookie: `nexgen_session` (configured in `src/config/session.ts`)
 - Backend: Redis (gracefully no-op if Redis is off)
-- TTL: `SESSION_TTL_SECONDS` (default 2 hours)
+- TTL: 7200 seconds / 2 hours (configured in `src/config/session.ts`)
 
 Session is separate from auth — it works for both guests and logged-in users.
 

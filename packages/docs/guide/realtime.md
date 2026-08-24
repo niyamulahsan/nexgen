@@ -13,7 +13,7 @@
 
 | Variable  | Default  | Description                                       |
 | --------- | -------- | ------------------------------------------------- |
-| `SOCKET`  | `true`   | Enable/disable Socket.IO server entirely          |
+| `SOCKET`  | `false`  | Enable/disable Socket.IO server entirely          |
 | `REDIS`   | `false`  | Enable Redis adapter for multi-instance broadcast |
 
 Set `SOCKET=false` in `.env` to disable all WebSocket functionality. `dispatchEvent()` with `broadcast` options will be a no-op.
@@ -41,47 +41,45 @@ socket.emit("join", "room:chat:general");
 
 ## Broadcasting
 
-Use `dispatchEvent()` with `broadcast` options from anywhere — controllers, queue handlers, or scheduled tasks:
+### Direct `broadcast()`
+
+Use `broadcast()` directly when you only need to emit a Socket.IO event — no event dispatching, no queue:
+
+```ts
+import { broadcast } from "@/framework/facade.js";
+
+// To all connected clients
+broadcast("post.published", { postId: 1 }, { all: true });
+
+// To all authenticated users
+broadcast("notification.new", payload, { auth: true });
+
+// To specific users
+broadcast("user.message", payload, { users: [recipientId] });
+
+// To specific roles
+broadcast("admin.alert", payload, { roles: ["admin"] });
+
+// To custom rooms
+broadcast("chat.message", payload, { rooms: ["room:chat:general"] });
+```
+
+### Via `dispatchEvent()`
+
+Use `dispatchEvent()` when you need to broadcast **and** optionally enqueue a background job at the same time:
 
 ```ts
 import { dispatchEvent } from "@/framework/facade.js";
 
-// To all connected clients
-await dispatchEvent(
-  "post.published",
-  { postId: 1 },
-  {
-    broadcast: { all: true },
-  },
-);
-
-// To all authenticated users
-await dispatchEvent("notification.new", payload, {
-  broadcast: { auth: true },
+// Broadcast only (same as broadcast())
+await dispatchEvent("post.published", { postId: 1 }, {
+  broadcast: { all: true },
 });
 
-// To specific roles
-await dispatchEvent("admin.alert", payload, {
-  broadcast: { roles: ["admin"] },
-});
-
-// To specific users
-await dispatchEvent("user.message", payload, {
-  broadcast: { users: [recipientId] },
-});
-
-// To custom rooms
-await dispatchEvent("chat.message", payload, {
-  broadcast: { rooms: ["room:chat:general"] },
-});
-
-// Combine targets
-await dispatchEvent("event.name", payload, {
-  broadcast: {
-    roles: ["admin"],
-    users: [authorId],
-    all: false,
-  },
+// Broadcast + enqueue
+await dispatchEvent("post.published", { postId: 1 }, {
+  broadcast: { all: true },
+  queue: "default",
 });
 ```
 

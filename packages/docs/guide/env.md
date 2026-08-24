@@ -16,7 +16,7 @@ cp .env.example .env
 | `APP_URL`      | `http://localhost:3000` | Public-facing URL of the application (required)                                                      |
 | `FRONTEND`     | `true`                | Set `false` for API-only mode (no frontend build/serve)                                              |
 | `FRONTEND_URL` | —                     | Separate frontend URL when frontend is on a different domain. Leave empty when served from `APP_URL` |
-| `SOCKET`       | `true`                | Enable/disable Socket.IO on both backend and frontend                                                |
+| `SOCKET`       | `false`               | Enable/disable Socket.IO on both backend and frontend                                                |
 
 ## Database
 
@@ -104,9 +104,9 @@ Use `FRONTEND=false` for API-only mode (separate frontend, mobile app, third-par
 ### `OPEN_API`
 
 - **Type:** boolean (`true` / `false`)
-- **Default:** `false`
+- **Default:** `true`
 
-Controls the OpenAPI / Scalar documentation endpoint at `/api-docs`. Set `OPEN_API=true` in `.env` to enable. Routes still work when disabled — only the documentation endpoints are removed.
+Controls the OpenAPI / Scalar documentation endpoint at `/api-docs`. Set `OPEN_API=false` in `.env` to disable. Routes still work when disabled — only the documentation endpoints are removed.
 
 ## Feature Interaction Map
 
@@ -128,9 +128,6 @@ FRONTEND=false → API-only (set FRONTEND_URL for CORS)
 
 OPEN_API=true  → /api-docs + /doc
 OPEN_API=false → bare API, no docs endpoints
-
-AUTH_REQUIRE_EMAIL_VERIFICATION=true
- └── Requires MAIL_HOST + queue:work running
 ```
 
 ## Configuration

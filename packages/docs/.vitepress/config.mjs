@@ -40,6 +40,7 @@ export default defineConfig({
             { text: "Environment", link: "/guide/env" },
             { text: "Configuration", link: "/guide/configuration" },
             { text: "Routing", link: "/guide/routing" },
+            { text: "OpenAPI", link: "/guide/openapi" },
             { text: "Modules", link: "/guide/modules" },
             { text: "Database", link: "/guide/database" },
             { text: "Authentication", link: "/guide/auth" },

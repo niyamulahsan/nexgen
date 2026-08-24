@@ -16,6 +16,7 @@ export { command, dispatchCommand, dispatchEvent } from "@/framework/events/disp
 export { createRouter, group } from "@/framework/http/router.js";
 export { validate } from "@/framework/http/validation.js";
 export { notify } from "@/framework/notification/index.js";
+export { broadcast } from "@/framework/realtime/index.js";
 export { queue, queueJob, shouldQueue } from "@/framework/queue/queue.js";
 export { defineSchedule } from "@/framework/scheduler/scheduler.js";
 export { session } from "@/framework/session/session.js";

@@ -402,7 +402,7 @@ export async function createDeploy(flags = []) {
           OPEN_API:
             process.env.OPEN_API || (await readEnvValue(path.resolve(process.cwd(), ".env"), "OPEN_API")) || "false",
           SOCKET:
-            process.env.SOCKET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SOCKET")) || "true",
+            process.env.SOCKET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SOCKET")) || "false",
           FRONTEND: (await resolveFrontendOn()) ? "true" : "false",
           FRONTEND_URL: process.env.FRONTEND_URL || (await readEnvValue(path.resolve(process.cwd(), ".env"), "FRONTEND_URL")) || "",
           REDIS_PREFIX: process.env.REDIS_PREFIX || (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS_PREFIX")) || "nexgen",

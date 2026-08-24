@@ -108,12 +108,12 @@ Apply middleware per-route or per-group:
 
 ```ts
 import { group } from "@/framework/facade.js";
-import { authMiddleware } from "@/middlewares/auth.js";
-import { roleMiddleware } from "@/middlewares/role.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
 
 export default group(authMiddleware) // all routes require auth
   .api(listRoute, index)
-  .api(showRoute, [roleMiddleware("admin")], show); // only admin role
+  .api(showRoute, [requireRole("admin")], show); // only admin role
 ```
 
 ## Built-in Middleware

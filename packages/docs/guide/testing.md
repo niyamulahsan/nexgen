@@ -132,8 +132,7 @@ describe("database", () => {
 The `@` alias works in tests — same as in your application code:
 
 ```ts
-import { cache } from "@/framework/facade.js";
-import { hash } from "@/framework/support/password.js";
+import { cache, password } from "@/framework/facade.js";
 ```
 
 ### Testing modules

@@ -47,7 +47,7 @@ const envSchema = z
       .transform((value) => value.trim().toLowerCase() !== "false" && value.trim() !== "0"),
     SOCKET: z
       .string()
-      .default("true")
+      .default("false")
       .transform((value) => value.trim().toLowerCase() !== "false" && value.trim() !== "0")
   })
   .superRefine((data, ctx) => {

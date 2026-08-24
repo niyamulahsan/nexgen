@@ -19,7 +19,7 @@ No manual setup is needed. The middleware is already wired in the framework boot
 
 ## Session Utility
 
-The `session` object is exported from the facade and provides five methods for working with server-side session data:
+The `session` object is exported from the facade and provides seven methods for working with server-side session data:
 
 ```ts
 import { session } from "@/framework/facade.js";

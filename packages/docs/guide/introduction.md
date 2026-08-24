@@ -103,10 +103,10 @@ Server-side sessions stored in Redis with automatic cookie management. Supports 
 import { session } from "@/framework/facade.js";
 
 // In a route handler
-const sessionId = session.start({ userId: user.id, role: "admin" });
-const user = session.get(sessionId, "user");
-session.put(sessionId, "lastSeen", new Date().toISOString());
-session.destroy(sessionId); // logout
+const sessionId = await session.start({ userId: user.id, role: "admin" });
+const user = await session.get(sessionId, "user");
+await session.put(sessionId, "lastSeen", new Date().toISOString());
+await session.destroy(sessionId); // logout
 ```
 
 ## Queue with Durable Jobs
@@ -117,20 +117,20 @@ BullMQ-powered background processing with a web dashboard. Jobs can be durable �
 import { queueJob, shouldQueue } from "@/framework/facade.js";
 
 // Register a durable handler (survives crashes)
-shouldQueue("send-email", async (ctx, data) => {
+shouldQueue("send-email", "mail", async (job, ctx) => {
   await ctx.step("validate", async () => {
-    validateEmailData(data);
+    validateEmailData(job.data);
   });
   await ctx.step("send", async () => {
-    await mail.sendMail({ to: data.to, subject: data.subject, html: data.body });
+    await mail.sendMail({ to: job.data.to, subject: job.data.subject, html: job.data.body });
   });
 }, { durable: true });
 
 // Enqueue a job
-await queueJob("send-email", { to: "user@example.com", subject: "Welcome!", body: "<h1>Welcome</h1>" });
+await queueJob("send-email", { to: "user@example.com", subject: "Welcome!", body: "<h1>Welcome</h1>" }, { queue: "mail" });
 
-// With delay, priority, and retry
-await queueJob("send-email", data, { delay: 5000, priority: 1, attempts: 3 });
+// With delay (seconds), priority, and retry
+await queueJob("send-email", data, { queue: "mail", delay: 5, priority: 1, attempts: 3 });
 ```
 
 The queue dashboard is available at `/queues` with email-based access control.
@@ -147,8 +147,8 @@ defineSchedule({
   name: "cleanup-sessions",
   expression: "0 * * * *",
   handler: async () => {
-    const deleted = await session.cleanup expired();
-    logger.info(`Cleaned ${deleted} expired sessions`);
+    const keys = await cache.forget("session:*");
+    logger.info("Cleaned expired sessions");
   },
 });
 
@@ -163,7 +163,7 @@ defineSchedule({
 
 ## Storage
 
-Unified file storage that works with the local filesystem or any S3-compatible service (AWS S3, MinIO, etc.). Switch drivers by changing an environment variable.
+Unified file storage that works with the local filesystem or any S3-compatible service (AWS S3, MinIO, etc.). Switch drivers by changing `driver` in `src/config/storage.ts`.
 
 ```ts
 import { storage } from "@/framework/facade.js";
@@ -233,13 +233,13 @@ await notify(userId, {
 Drizzle ORM with support for **SQLite**, **MySQL**, and **PostgreSQL** — just change `DATABASE_URL` and it auto-detects the dialect. Includes pagination, topological seeding, and migration hooks.
 
 ```ts
-import { db, paginate } from "@/framework/facade.js";
+import { db, paginateModel } from "@/framework/facade.js";
 
 // Query
 const posts = await db.query.posts.findMany({ with: { author: true } });
 
 // Paginated list (reads page/per_page from query string)
-const result = await paginate(c, db.query.posts, 20);
+const result = await paginateModel(c, { findMany: (opts) => db.query.posts.findMany(opts), with: { author: true } });
 // Returns: { current_page, data, total, links, ... }
 ```
 
@@ -277,7 +277,7 @@ Automatic rate limiting with a Redis-backed store that falls back to in-memory w
 // Returns standard RateLimit-* headers (draft-6)
 
 // Login-specific limiter (applied automatically to login routes)
-// 5 attempts per 15 minutes per IP
+// 60 attempts per 60 seconds per IP
 ```
 
 ## Structured Logging
@@ -373,7 +373,7 @@ src/modules/posts/
 │   └── seeders/       # Test data
 ├── jobs/              # BullMQ queue handlers
 ├── routes/            # HTTP route definitions (auto-discovered)
-└── __test__/          # Unit testing
+└── __tests__/         # Unit testing
 ```
 
 Modules are auto-discovered — no manual registration needed. Create one with the CLI:

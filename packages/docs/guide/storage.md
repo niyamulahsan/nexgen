@@ -14,7 +14,7 @@ Three isolated disk pools:
 | `private` | User-specific / sensitive files | `src/storage/app/private/` |
 | `tmp`     | Ephemeral generated files       | `src/storage/app/tmp/`     |
 
-Set the default disk with `STORAGE_DISK=public` in `.env`.
+Set the default disk in `src/config/storage.ts`:
 
 ## Configuration
 
@@ -42,7 +42,7 @@ import { storage } from "@/framework/facade.js";
 
 ### Default Disk
 
-Top-level methods use `STORAGE_DISK`:
+Top-level methods use the default disk (configured in `src/config/storage.ts`):
 
 ```ts
 await storage.put("avatars/user-1.jpg", fileBuffer);
@@ -399,7 +399,7 @@ await storage.disk("tmp").delete("exports/report.csv");
 
 ## S3 Provider Compatibility
 
-| Provider            | `STORAGE_ENDPOINT`                           | `FORCE_PATH_STYLE` |
+| Provider            | `endpoint` (config/storage.ts)              | `forcePathStyle` |
 | ------------------- | -------------------------------------------- | ------------------ |
 | AWS S3              | (empty)                                      | `false`            |
 | DigitalOcean Spaces | `https://<region>.digitaloceanspaces.com`    | `false`            |

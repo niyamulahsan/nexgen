@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.8] — 2026-08-21
+
+### Added
+
+- **`broadcast` exported from facade** — `broadcast()` can now be imported directly from `@/framework/facade.js` for direct Socket.IO emission without `dispatchEvent()`.
+- **OpenAPI config file** (`src/config/openapi.ts`) — new editable config for Scalar theme/layout/docsPath/specUrl/title/version/description.
+
+### Changed
+
+- **`openapi.ts` reads from config** — Scalar and OpenAPI settings now come from `src/config/openapi.ts` instead of being hardcoded.
+- **`config/index.ts`** — `openApiConfig` import/export added; `config.openAggregated` includes OpenAPI settings.
+
+### Documentation
+
+- **24 discrepancies fixed** across 16 docs files — wrong imports, wrong defaults, fake env vars, missing options, syntax errors.
+- **Realtime docs** — added `broadcast()` direct usage alongside `dispatchEvent()`.
+- **Scheduler docs** — added `queue`, `job`, `data`, `immediately` options.
+- **New: `guide/openapi.md`** — full OpenAPI setup page (Scalar, metadata, auth, custom theme).
+
+---
+
 ## [3.0.7] — 2026-08-21
 
 ### Fixed

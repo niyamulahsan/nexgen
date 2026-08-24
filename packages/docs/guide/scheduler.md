@@ -28,9 +28,13 @@ defineSchedule({
 | ------------ | ---------- | --------- | ----------------------------------------------------------------- |
 | `name`       | `string`   | —         | **Required.** Unique identifier used as the lock key              |
 | `expression` | `string`   | —         | **Required.** Cron expression (`* * * * *`)                       |
-| `handler`    | `function` | —         | **Required.** Async function with the task logic                  |
+| `handler`    | `function` | —         | Async function with the task logic (required in handler mode)     |
+| `queue`      | `string`   | —         | Queue name for queue mode — dispatches `job` to this queue        |
+| `job`        | `string`   | `name`    | Job name enqueued on each tick (queue mode, defaults to `name`)   |
+| `data`       | `any`      | —         | Static data passed to every enqueued job (queue mode)             |
+| `immediately`| `boolean`  | `false`   | Dispatch one job immediately at boot (queue mode)                 |
 | `timezone`   | `string`   | server TZ | Timezone for cron evaluation (e.g. `"America/New_York"`)          |
-| `runOnInit`  | `boolean`  | `false`   | Run the handler immediately when the scheduler starts             |
+| `runOnInit`  | `boolean`  | `false`   | Run the handler immediately when the scheduler starts (handler mode) |
 | `enabled`    | `boolean`  | `true`    | Set to `false` to disable without deleting                        |
 | `ttlMs`      | `number`   | `120000`  | Lock TTL in milliseconds — prevents overlap if a run exceeds this |
 

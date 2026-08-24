@@ -354,7 +354,7 @@ Pulse uses the general Redis and Socket configuration from `env.ts`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `SOCKET` | `true` | Enable/disable Socket.IO on both backend and frontend |
+| `SOCKET` | `false` | Enable/disable Socket.IO on both backend and frontend |
 | `APP_URL` | (required) | CORS origin for Socket.IO |
 | `FRONTEND_URL` | optional | Additional CORS origin |
 | `REDIS` | `false` | Enable Redis adapter for multi-process broadcasting |

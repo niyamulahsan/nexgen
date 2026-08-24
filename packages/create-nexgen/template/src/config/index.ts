@@ -7,6 +7,7 @@ import { type DatabaseConfig, databaseConfig } from "./database.js";
 import { type JwtConfig, jwtConfig } from "./jwt.js";
 import { type LoggingConfig, loggingConfig } from "./logging.js";
 import { type MailConfig, mailConfig } from "./mail.js";
+import { type OpenApiConfig, openApiConfig } from "./openapi.js";
 import { type QueueConfig, queueConfig } from "./queue.js";
 import { type RateLimitConfig, rateLimitConfig } from "./rateLimit.js";
 import { type RealtimeConfig, realtimeConfig } from "./realtime.js";
@@ -23,6 +24,7 @@ export { databaseConfig } from "./database.js";
 export { jwtConfig } from "./jwt.js";
 export { loggingConfig } from "./logging.js";
 export { mailConfig } from "./mail.js";
+export { openApiConfig } from "./openapi.js";
 export { queueConfig } from "./queue.js";
 export { rateLimitConfig } from "./rateLimit.js";
 export { realtimeConfig } from "./realtime.js";
@@ -47,6 +49,7 @@ export const config = {
   jwt: jwtConfig,
   logging: loggingConfig,
   mail: mailConfig,
+  openApi: openApiConfig,
   queue: queueConfig,
   rateLimit: rateLimitConfig,
   realtime: realtimeConfig,
@@ -66,6 +69,7 @@ export type {
   JwtConfig,
   LoggingConfig,
   MailConfig,
+  OpenApiConfig,
   QueueConfig,
   RateLimitConfig,
   RealtimeConfig,

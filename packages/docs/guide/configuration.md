@@ -14,6 +14,7 @@ src/config/
 ├── jwt.ts            # Access/refresh secrets, expiry times
 ├── logging.ts        # Log level and HTTP request logging
 ├── mail.ts           # SMTP host, port, credentials
+├── openapi.ts        # OpenAPI spec and Scalar UI settings
 ├── queue.ts          # Queue names, concurrency, BullBoard
 ├── rateLimit.ts      # Window, max requests, login limit
 ├── realtime.ts       # Socket.IO enabled flag and path
@@ -51,6 +52,33 @@ export default {
   frontendEnabled: env.FRONTEND, // serve Vue SPA
 };
 ```
+
+## OpenAPI
+
+```ts
+// src/config/openapi.ts
+export default {
+  version: "3.0.0",
+  title: "nexgen API",
+  apiVersion: "0.1.0",
+  description: "",
+
+  scalar: {
+    specUrl: "/doc",
+    docsPath: "/api-docs", // change this to rename the docs URL
+    layout: "classic", // "classic" | "modern"
+    theme: "moon", // "default" | "moon" | "purple" | "solarized" | "bluePlanet" | "fastify" | "kepler" | "mars" | "nebula" | "none"
+    pageTitle: "nexgen API",
+    defaultHttpClient: {
+      targetKey: "js",
+      clientKey: "fetch",
+    },
+    defaultOpenAllTags: true,
+  },
+};
+```
+
+Controls the OpenAPI spec metadata and the Scalar docs UI at `/api-docs`. Requires `OPEN_API=true` in `.env`. See [OpenAPI](/guide/openapi) for the full guide.
 
 ## Auth
 

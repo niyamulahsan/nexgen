@@ -81,9 +81,9 @@ Stack details:
 | Middleware                | File                  | Purpose                                                |
 | ------------------------- | --------------------- | ------------------------------------------------------ |
 | `sessionMiddleware`       | `session/session.ts`  | Attaches/generates session cookie, refreshes Redis TTL |
-| `corsMiddleware`          | `http/cors.ts`        | CORS headers from `CORS_ORIGIN`                        |
+| `corsMiddleware`          | `http/cors.ts`        | CORS headers from `corsConfig.origin`                   |
 | `loggerMiddleware`        | `http/logger.ts`      | Structured request logging                             |
-| `rateLimiterMiddleware`   | `http/ratelimiter.ts` | Rate limiting per IP                                   |
+| `rateLimiterMiddleware`   | `http/ratelimiter.ts` | Rate limiting per session (auth) / per IP (guest)      |
 | `storageStaticMiddleware` | `http/static.ts`      | Serve uploaded files from `/storage/*`                 |
 | OpenAPI                   | `http/openapi.ts`     | Scalar API docs UI at `/api-docs` (if `OPEN_API=true`) |
 | `notFound`                | `http/logger.ts`      | 404 JSON response                                      |
@@ -151,7 +151,7 @@ src/framework/
 │   ├── ui.ts              # BullBoard dashboard
 │   └── clear.ts           # Queue key cleanup
 ├── realtime/              # Socket.IO server, auth, broadcast, admin UI
-│   ├── index.ts           # Realtime entrypoint (isAvailable, enabled)
+│   ├── index.ts           # Realtime barrel (broadcast, initRealtime, closeRealtime, socketServer, ioServer)
 │   ├── socket.ts          # Socket.IO server init, room joining, admin UI
 │   ├── socket-cookie.ts   # Cookie-based Socket.IO auth
 │   ├── broadcast.ts       # dispatchEvent → Socket.IO broadcast

@@ -149,7 +149,7 @@ const socketLine = !realtimeConfig.enabled
   : realtime
     ? `Realtime (Socket.IO) enabled: ${serverUrl(server, WS_PATH).replace(/^http/, "ws")}${socketAdmin.enabled ? " | Admin UI: https://admin.socket.io" : ""}`
     : "Realtime (Socket.IO) unavailable";
-console.log(socketLine);
+console.log(!realtimeConfig.enabled ? chalk.gray(socketLine) : realtime ? chalk.green(socketLine) : chalk.yellow(socketLine));
 
 if (views.has("maildev")) {
   const maildevLine = `MailDev: http://localhost:${mailConfig.maildev.webPort} (SMTP ${mailConfig.maildev.smtpPort})`;
@@ -170,7 +170,7 @@ if (appConfig.frontendEnabled) {
     console.log("Frontend enabled");
   }
 } else {
-  console.log("Frontend disabled (disabled in src/config/app.ts)");
+  console.log(chalk.gray("Frontend disabled (disabled in src/config/app.ts)"));
 }
 
 console.log(`${appConfig.name} API running on ${serverUrl(server)}`);

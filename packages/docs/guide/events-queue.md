@@ -277,9 +277,9 @@ The worker process:
 
 ## BullMQ Dashboard
 
-When Redis is enabled, BullBoard is auto-mounted at `/queues` in development.
+When Redis is enabled, BullBoard is auto-mounted at `/queues`.
 
-In production, access is gated by `allowedEmails (config/queue.ts)` — set a comma-separated list of emails whose JWT-authenticated users can view the dashboard:
+Access is gated by `allowedEmails` in `src/config/queue.ts` — set a comma-separated list of emails whose JWT-authenticated users can view the dashboard:
 
 ```bash
 allowedEmails="admin@example.com,dev@example.com"
@@ -301,7 +301,6 @@ This lets you develop with SQLite and no Redis, then add Redis later for product
 | ------------------- | ------------------------------- |
 | `maker queue:work`  | Start worker process            |
 | `maker queue:clear` | Clear all queue keys from Redis |
-| `maker queue:list`  | List registered queue names     |
 
 ## Controller Example
 
