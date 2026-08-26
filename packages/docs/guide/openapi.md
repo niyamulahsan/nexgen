@@ -167,6 +167,101 @@ export default group(authMiddleware)
   .api(showRoute, [requireRole("admin")], show);
 ```
 
+## Group Routes
+
+Use `group()` to create a router with shared middleware, then chain `.api()` calls for multiple routes. This keeps related routes together with the same auth/access rules:
+
+```ts
+import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+
+const listRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["Role"],
+  summary: "List all roles",
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(z.array(RoleSchema), "role list"),
+  },
+});
+
+const showRoute = createRoute({
+  path: "/{id}",
+  method: "get",
+  tags: ["Role"],
+  summary: "Get a role by ID",
+  request: {
+    params: z.object({ id: z.coerce.number().openapi({ example: 1 }) }),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(RoleSchema, "role details"),
+    [HttpStatusCodes.NOT_FOUND]: { description: "Role not found" },
+  },
+});
+
+// Group: authMiddleware applies to ALL routes, requireRole per-route
+export default createRouter()
+  .group(authMiddleware)
+  .api(listRoute, [requireRole("admin")], list)
+  .api(showRoute, [requireRole("admin")], show);
+```
+
+### Public vs Protected Groups
+
+Split routes into separate groups with different middleware:
+
+```ts
+import { createRouter, createRoute, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import { loginLimiter } from "@/framework/http/ratelimiter.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+
+const registerRoute = createRoute({
+  path: "/register",
+  method: "post",
+  tags: ["Auth"],
+  summary: "Register a new user",
+  request: { body: jsonContent(RegisterSchema, "register payload") },
+  responses: {
+    [HttpStatusCodes.CREATED]: jsonContent(AuthResponseSchema, "registered"),
+  },
+});
+
+const meRoute = createRoute({
+  path: "/me",
+  method: "get",
+  tags: ["Auth"],
+  summary: "Get authenticated user",
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(UserSchema, "current user"),
+  },
+});
+
+// Public routes: rate-limited, no auth
+const publicRoutes = createRouter()
+  .group(loginLimiter)
+  .api(registerRoute, register);
+
+// Protected routes: require authentication
+const protectedRoutes = createRouter()
+  .group(authMiddleware)
+  .api(meRoute, me);
+
+// Combine both groups under the same prefix
+export default createRouter()
+  .route("/", publicRoutes)
+  .route("/", protectedRoutes);
+```
+
+### `group()` vs `createRouter().group()`
+
+| Pattern | Use case |
+|---|---|
+| `group(middleware)` | Simple single-group export, no sub-grouping needed |
+| `createRouter().group(middleware)` | Multiple independent groups in the same file (public vs protected) |
+
+Both return the same router type — the difference is whether you need one group or multiple groups to compose together.
+
 ## Request Validation
 
 With OpenAPI enabled, request validation is automatic. The handler receives typed, validated data:
