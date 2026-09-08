@@ -93,7 +93,7 @@ export default defineConfig({
       { text: mi("home", "Home"), link: "/" },
       { text: mi("zap", "Quick Start"), link: "/guide/quick-start" },
       { text: mi("layered", "Guide"), link: "/guide/introduction" },
-      { text: mi("api", "API"), link: "/api/index" },
+      { text: mi("api", "API"), link: "/api/index", activeMatch: "/api/" },
       { text: mi("cli", "CLI"), link: "/cli/reference" },
       { text: mi("rocket", "Deploy"), link: "/deploy/overview" },
     ],
