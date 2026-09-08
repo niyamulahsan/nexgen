@@ -1,5 +1,4 @@
 import type { AddressInfo } from "node:net";
-
 import type { RealtimeServeWebSocket } from "@/framework/realtime/socket.js";
 import { WS_PATH } from "@/framework/realtime/socket.js";
 import { runtime } from "@/framework/runtime/runtime.js";

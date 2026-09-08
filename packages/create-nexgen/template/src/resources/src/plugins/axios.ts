@@ -20,9 +20,7 @@ axios.interceptors.response.use(
       window.location.pathname === "/verify-email";
 
     if (status === 401 && !isAuthPage) {
-      const redirect = encodeURIComponent(
-        window.location.pathname + window.location.search + window.location.hash
-      );
+      const redirect = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
       window.location.href = `/login?redirect=${redirect}`;
     }
 

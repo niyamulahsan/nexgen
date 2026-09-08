@@ -1,7 +1,7 @@
 import fsSync from "node:fs";
 import { runtime } from "@/framework/runtime/runtime.js";
 
-export function hasFrontendBuild() {
+export function hasUiBuild() {
   return fsSync.existsSync("public/index.html");
 }
 
@@ -39,8 +39,9 @@ export async function storageStaticMiddleware(c: any, next: any) {
   return _storageStaticMiddleware(c, next);
 }
 
-let _frontendStaticMiddleware: ReturnType<Awaited<ReturnType<typeof resolveServeStatic>>> | null = null;
-let _frontendIndexMiddleware: ReturnType<Awaited<ReturnType<typeof resolveServeStatic>>> | null = null;
+let _uiStaticMiddleware: ReturnType<Awaited<ReturnType<typeof resolveServeStatic>>> | null = null;
+
+let _uiIndexMiddleware: ReturnType<Awaited<ReturnType<typeof resolveServeStatic>>> | null = null;
 
 function ensurePublicDir() {
   if (!fsSync.existsSync("public")) {
@@ -48,22 +49,22 @@ function ensurePublicDir() {
   }
 }
 
-async function frontendStaticMiddleware(c: any, next: any) {
+async function uiStaticMiddleware(c: any, next: any) {
   ensurePublicDir();
-  if (!_frontendStaticMiddleware) {
+  if (!_uiStaticMiddleware) {
     const serveStatic = await resolveServeStatic();
-    _frontendStaticMiddleware = serveStatic({ root: "./public" });
+    _uiStaticMiddleware = serveStatic({ root: "./public" });
   }
-  return _frontendStaticMiddleware(c, next);
+  return _uiStaticMiddleware(c, next);
 }
 
-async function frontendIndexMiddleware(c: any, next: any) {
+async function uiIndexMiddleware(c: any, next: any) {
   ensurePublicDir();
-  if (!_frontendIndexMiddleware) {
+  if (!_uiIndexMiddleware) {
     const serveStatic = await resolveServeStatic();
-    _frontendIndexMiddleware = serveStatic({ path: "./public/index.html" });
+    _uiIndexMiddleware = serveStatic({ path: "./public/index.html" });
   }
-  return _frontendIndexMiddleware(c, next);
+  return _uiIndexMiddleware(c, next);
 }
 
-export { ensurePublicDir, frontendIndexMiddleware, frontendStaticMiddleware };
+export { ensurePublicDir, uiIndexMiddleware, uiStaticMiddleware };

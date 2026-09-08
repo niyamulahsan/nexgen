@@ -1,9 +1,9 @@
 # Pulse
 
-Pulse is Nexgen's realtime event system. It pairs backend `dispatchEvent()` broadcasts with a frontend Socket.IO client for live push notifications, presence updates, and collaborative features.
+Pulse is Nexgen's realtime event system. It pairs backend `dispatchEvent()` broadcasts with a UI Socket.IO client for live push notifications, presence updates, and collaborative features.
 
 ```
-Backend                              Frontend
+Backend                              UI
   │                                      │
   │  dispatchEvent("order.placed",       │
   │    payload, { broadcast: ... })      │
@@ -19,7 +19,7 @@ Backend                              Frontend
 | Server | Socket.IO (Node.js) | Room-based event fan-out |
 | Transport | WebSocket (polling fallback) | Bidirectional realtime communication |
 | Backend API | `dispatchEvent()` + `BroadcastOptions` | Emit events from controllers/jobs |
-| Frontend client | `pulse` plugin | Subscribe to rooms and listen for events |
+| UI client | `pulse` plugin | Subscribe to rooms and listen for events |
 | Auth | JWT from httpOnly cookie | Authenticate socket connections and assign rooms |
 
 ## Backend: Broadcasting Events
@@ -106,7 +106,7 @@ shouldQueue("user:signup", "mail", async (job) => {
 });
 ```
 
-## Frontend: Pulse Client
+## UI: Pulse Client
 
 Import and use Pulse from any Vue component:
 
@@ -193,10 +193,10 @@ ch.listen("order.placed", handler);
 
 ## Room Strategy Reference
 
-The bridge between frontend and backend is the room name:
+The bridge between UI and backend is the room name:
 
 ```
-Backend dispatchEvent                    Frontend channel
+Backend dispatchEvent                    UI channel
 ─────────────────────                    ────────────────
 broadcast: { users: [42] }       <──>    pulse.channel("user:42")
 broadcast: { roles: ["admin"] }  <──>    pulse.channel("role:admin")
@@ -244,7 +244,7 @@ pulse.disconnect(); // close the socket entirely
 
 ## Graceful Degradation
 
-When `SOCKET=false` in `.env`, Pulse returns a no-op implementation on the frontend, and the backend Socket.IO server does not start:
+When `SOCKET=false` in `.env`, Pulse returns a no-op implementation on the UI, and the backend Socket.IO server does not start:
 
 ```ts
 pulse.channel("orders").listen("event", fn); // silent no-op
@@ -354,7 +354,7 @@ Pulse uses the general Redis and Socket configuration from `env.ts`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `SOCKET` | `false` | Enable/disable Socket.IO on both backend and frontend |
+| `SOCKET` | `false` | Enable/disable Socket.IO on both backend and UI |
 | `APP_URL` | (required) | CORS origin for Socket.IO |
 | `FRONTEND_URL` | optional | Additional CORS origin |
 | `REDIS` | `false` | Enable Redis adapter for multi-process broadcasting |

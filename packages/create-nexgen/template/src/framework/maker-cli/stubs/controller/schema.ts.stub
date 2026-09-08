@@ -30,3 +30,4 @@ export const {{ClassName}}ResponseSchema = z.object({
 export const {{ClassName}}MessageSchema = z.object({
   message: z.string()
 });
+

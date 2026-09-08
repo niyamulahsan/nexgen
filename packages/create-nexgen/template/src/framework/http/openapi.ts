@@ -14,8 +14,8 @@ export function configureOpenApi(app: NexgenRouter) {
     info: {
       title: openApiConfig.title,
       version: openApiConfig.apiVersion,
-      ...(openApiConfig.description ? { description: openApiConfig.description } : {}),
-    },
+      ...(openApiConfig.description ? { description: openApiConfig.description } : {})
+    }
   });
 
   app.get(
@@ -26,7 +26,7 @@ export function configureOpenApi(app: NexgenRouter) {
       theme: openApiConfig.scalar.theme,
       pageTitle: openApiConfig.scalar.pageTitle,
       defaultHttpClient: openApiConfig.scalar.defaultHttpClient,
-      defaultOpenAllTags: openApiConfig.scalar.defaultOpenAllTags,
+      defaultOpenAllTags: openApiConfig.scalar.defaultOpenAllTags
     })
   );
 }

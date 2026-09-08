@@ -33,3 +33,4 @@ defineSchedule({
     DateTime.now().toISO();
   }
 });
+

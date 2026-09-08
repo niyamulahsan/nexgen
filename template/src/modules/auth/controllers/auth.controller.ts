@@ -123,7 +123,7 @@ export const login: Handler = async (c: any) => {
     }
 
     await revokeCurrentRefreshToken(c);
-    const tokens = await issueTokens(c, user);
+    const tokens = await issueTokens(c, user, { remember: !!body.remember });
 
     return c.json(
       {

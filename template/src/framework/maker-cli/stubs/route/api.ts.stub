@@ -1,13 +1,13 @@
 import { createRoute, group, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
 import { requireRole } from "@/middlewares/role-middleware.js";
-import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.controller.js";
+import { destroy, index, show, store, update } from "@/modules/{{module}}/controllers/{{controller}}.controller.js";
 import {
   Create{{ClassName}}Schema,
-  Update{{ClassName}}Schema,
   {{ClassName}}IdParamsSchema,
   {{ClassName}}ListResponseSchema,
   {{ClassName}}MessageSchema,
-  {{ClassName}}ResponseSchema
+  {{ClassName}}ResponseSchema,
+  Update{{ClassName}}Schema
 } from "@/modules/{{module}}/controllers/{{controller}}.schema.js";
 
 const indexRoute = createRoute({
@@ -77,3 +77,4 @@ export default group()
   .api(storeRoute, store)
   .api(updateRoute, update)
   .api(destroyRoute, destroy);
+

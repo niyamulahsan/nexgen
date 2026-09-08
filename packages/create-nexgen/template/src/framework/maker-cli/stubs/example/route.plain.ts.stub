@@ -15,3 +15,4 @@ export default group()
   .get("/download/excel/:token", downloadGeneratedExcel)
   .post("/download/pdf/generate", generatePdfDownload)
   .get("/download/pdf/:requestId", downloadGeneratedPdf);
+

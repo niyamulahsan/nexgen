@@ -178,7 +178,7 @@ Your Machine (host)                Docker Desktop
      │  maker dev                        │
      │  ├─ serve (port 3000) ──┐         │
      │  ├─ queue:work          │         │
-     │  └─ frontend:dev        │         │
+      │  └─ ui:dev        │         │
      │                         │         │
      │  localhost:3306 ────────┼────────>│ mysql-global
      │  localhost:6379 ────────┼────────>│ redis-global
@@ -364,7 +364,7 @@ The workflow config is created automatically by `deploy:init`.
 | `REDIS` | Yes | Enable Redis (true/false) |
 | `REDIS_URL` | Yes | Set to `redis://redis-global:6379` when Redis enabled |
 | `REDIS_PREFIX` | — | Key prefix for Redis (multi-tenant isolation) |
-| `FRONTEND` | Yes | Enable frontend build (true/false, default `true`) |
+| `UI` | Yes | Enable UI build (true/false, default `true`) |
 | `OPEN_API` | Yes | Enable OpenAPI docs at `/api-docs` (true/false) |
 | `SOCKET` | Yes | Enable Socket.IO realtime (true/false) |
 

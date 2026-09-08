@@ -1,6 +1,6 @@
 # Axios
 
-The frontend configures a global axios singleton in `src/resources/src/plugins/axios.ts`. It is imported as a side-effect in `main.ts`:
+The UI configures a global axios singleton in `src/resources/src/plugins/axios.ts`. It is imported as a side-effect in `main.ts`:
 
 ```ts
 import "@/plugins/axios";

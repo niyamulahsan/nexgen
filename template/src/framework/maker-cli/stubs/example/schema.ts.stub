@@ -39,3 +39,4 @@ export const PdfGenerateAcceptedSchema = z.object({
   statusUrl: z.string(),
   downloadUrl: z.string()
 });
+

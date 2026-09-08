@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-
 import { databaseConfig } from "@/config/index.js";
 import * as schema from "@/database/schema.js";
 
@@ -165,9 +164,7 @@ function normalizeExecuteResult(result: unknown): unknown {
     if (result.length === 2 && Array.isArray(result[1])) {
       return { rows: result[0], fields: result[1] };
     }
-    const isRowList =
-      result.length === 0 ||
-      result.every((row) => row != null && typeof row === "object" && !Array.isArray(row));
+    const isRowList = result.length === 0 || result.every((row) => row != null && typeof row === "object" && !Array.isArray(row));
     if (isRowList) {
       return { rows: result };
     }
@@ -188,9 +185,7 @@ export const db = new Proxy(
       const instance = database();
       if (property === "execute") {
         return async (query: unknown, params?: unknown) => {
-          const raw = instance.execute
-            ? await instance.execute(query, params)
-            : await instance.all(query);
+          const raw = instance.execute ? await instance.execute(query, params) : await instance.all(query);
           return normalizeExecuteResult(raw);
         };
       }

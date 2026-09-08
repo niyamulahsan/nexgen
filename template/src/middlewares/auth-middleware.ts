@@ -52,7 +52,7 @@ export async function authMiddleware(c: Context, next: Next) {
     where: eq(refreshTokens.jti, refreshPayload.jti as string)
   });
 
-  if (!storedToken || Boolean(storedToken.revoked)) {
+  if (!storedToken || storedToken.revoked) {
     cookie.deleteAuth(c);
     cookie.deleteRefresh(c);
     return c.json({ message: "Invalid token" }, 401);

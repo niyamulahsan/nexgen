@@ -11,7 +11,7 @@ my-project/
 │   │   └── maker-cli/      # CLI source and stubs
 │   ├── middlewares/        # Auth, role middlewares
 │   ├── modules/            # Application modules
-│   ├── resources/          # Vue 3 frontend app
+│   ├── resources/          # Vue 3 UI app
 │   ├── storage/            # Uploaded and generated files
 │   ├── types/              # TS global support
 │   └── env.ts              # env validation with zod
@@ -24,7 +24,7 @@ my-project/
 
 - **Framework** — Reusable engine (HTTP, database, Redis, cache, session, queue, events, realtime, scheduler, storage). Lives in `src/framework/`.
 - **Modules** — Your application code. Auto-discovered for routes, jobs, console commands, models, seeders.
-- **Resources** — Vue 3 frontend built with Vite.
+- **Resources** — Vue 3 UI built with Vite.
 - **Database** — Drizzle schema and migrations, dialect-aware.
 
 ## Boot Sequence
@@ -57,7 +57,7 @@ server.ts
   │       ├─ bootQueueJobs()                  Register queue job handlers
   │       ├─ registerModuleRoutes(app)        Auto-discover & register module routes
   │       ├─ setupQueueDashboard()                 Setup BullMQ dashboard UI
-  │       └─ Frontend static (if FRONTEND=true & build exists)
+  │       └─ UI static (if UI=true & build exists)
   │
   ├─ 2. serve(app.fetch)                      Start HTTP listener on APP_PORT
   │
@@ -99,7 +99,7 @@ Stack details:
 4. **Queue jobs** — Scans modules and registers `shouldQueue` handlers with BullMQ
 5. **Module routes** — Auto-discovers all route files under `src/modules/*/routes/` and registers them on the app
 6. **BullBoard** — Mounts the BullMQ queue management dashboard
-7. **Frontend** — If `FRONTEND=true` and a production build exists, serves the Vue 3 SPA as static files
+7. **UI** — If `UI=true` and a production build exists, serves the Vue 3 UI as static files
 
 ### Stage 3 — Server (`server.ts`)
 
@@ -109,7 +109,7 @@ The server entrypoint:
 2. **Starts HTTP server** via `@hono/node-server` on the configured `APP_PORT`
 3. **Initializes Socket.IO** — attaches realtime WebSocket to the HTTP server
 4. **Sets up Socket.IO Admin UI** — web dashboard at `admin.socket.io`
-5. **Prints startup info** — API docs URL, Redis status, BullBoard, Socket.IO, frontend status, dev tool URLs
+5. **Prints startup info** — API docs URL, Redis status, BullBoard, Socket.IO, UI status, dev tool URLs
 6. **Registers shutdown handlers** — on SIGINT/SIGTERM, gracefully closes realtime, queues, Redis, and HTTP
 
 ## Runtime Entrypoints
@@ -136,7 +136,7 @@ src/framework/
 │   ├── cors.ts            # CORS middleware
 │   ├── ratelimiter.ts     # Rate limiting middleware
 │   ├── logger.ts          # Request logging, 404, error handler
-│   ├── static.ts          # Frontend & storage static file serving
+│   ├── static.ts          # UI & storage static file serving
 │   └── validation.ts      # Zod validation helper
 ├── cache/                 # Redis/in-memory cache
 ├── database/              # Connection, pagination, schema, seed

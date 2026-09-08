@@ -31,10 +31,11 @@ AUTO_MIGRATE_NORMALIZED=$(echo "$AUTO_MIGRATE_RAW" | tr -d '\r' | tr '[:upper:]'
 case "$AUTO_MIGRATE_NORMALIZED" in
   true|1|yes)
     # AUTO_MIGRATE is on -> run pending migrations, then seed the database.
-    exec "$RUNTIME_EXEC" src/framework/maker-cli/src/index.mjs db:migrate --seed
+    exec "$RUNTIME_EXEC" src/framework/maker-cli/index.mjs db:migrate --seed
     ;;
   *)
     # AUTO_MIGRATE is off -> leave the database untouched.
     echo "Skipping migrations (AUTO_MIGRATE=$AUTO_MIGRATE_RAW)"
     ;;
 esac
+

@@ -43,7 +43,7 @@ body {
 
 ## Theme System
 
-The frontend uses a custom SCSS theme engine with three modes:
+The UI uses a custom SCSS theme engine with three modes:
 
 - **Light** — default
 - **Dark** — inverted color scheme

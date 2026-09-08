@@ -6,3 +6,4 @@ export const {{tableVariable}} = sqliteTable("{{tableName}}", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).notNull()
 });
+

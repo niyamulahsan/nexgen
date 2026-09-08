@@ -6,7 +6,7 @@ import { loggerMiddleware, notFound, onError } from "@/framework/http/logger.js"
 import { configureOpenApi } from "@/framework/http/openapi.js";
 import { rateLimiterMiddleware } from "@/framework/http/ratelimiter.js";
 import { createRouter } from "@/framework/http/router.js";
-import { hasFrontendBuild, storageStaticMiddleware } from "@/framework/http/static.js";
+import { hasUiBuild, storageStaticMiddleware } from "@/framework/http/static.js";
 import { sessionMiddleware } from "@/framework/session/session.js";
 
 /**
@@ -46,7 +46,7 @@ export function createHttpApp() {
   app.use("/storage/*", storageStaticMiddleware);
   app.use(serveEmojiFavicon("🚀"));
 
-  if (!hasFrontendBuild()) {
+  if (!hasUiBuild()) {
     app.get("/", (c: any) => c.json({ name: appConfig.name, ok: true }));
   }
 

@@ -49,7 +49,10 @@ try {
       const table: any = mod.table;
       const entry: SeederEntry = {
         file,
-        name: file.split(/[\\/]/).pop()!.replace(/\.(ts|js)$/, ""),
+        name: file
+          .split(/[\\/]/)
+          .pop()!
+          .replace(/\.(ts|js)$/, ""),
         execute: () => mod.default(),
         dependsOn: table ? getTableDeps(table) : []
       };

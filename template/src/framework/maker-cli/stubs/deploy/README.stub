@@ -56,3 +56,4 @@ Supervisor starts:
 {{REDIS_NOTE}}
 
 This deploy style follows `server-setup` and `statistic_postgre` patterns (external `nginx-proxy` + `infra` networks).
+

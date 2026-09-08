@@ -13,3 +13,4 @@ Example:
 ```bash
 cp deploy/server/nginx-vhost/app.example.com deploy/server/nginx-vhost/api.yourdomain.com
 ```
+

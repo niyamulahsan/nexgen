@@ -210,3 +210,41 @@
   height: 28px;
   width: auto;
 }
+
+/* ─── Nav & menu icons (deskapp-style) ─── */
+
+.vp-nav-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.vp-nav-icon {
+  margin-right: 7px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.vp-nav-icon svg {
+  width: 1.35em;
+  height: 1.35em;
+  display: block;
+}
+
+.VPNavBarMenuLink {
+  line-height: normal !important;
+}
+
+.VPNavBarMenuLink .vp-nav-icon-wrap {
+  height: 100%;
+}
+
+.VPSidebarItem .vp-nav-icon svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.VPSidebar .group .title .vp-nav-icon svg {
+  width: 1.15em;
+  height: 1.15em;
+}

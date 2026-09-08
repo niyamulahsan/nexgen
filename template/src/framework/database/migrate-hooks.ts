@@ -81,10 +81,7 @@ export async function runModelMigrationHooks() {
 
 if (process.argv[1]?.endsWith("migrate-hooks.ts")) {
   runModelMigrationHooks().catch((error) => {
-    console.error(
-      "Failed to run model migration hooks:",
-      error instanceof Error ? error.message : error
-    );
+    console.error("Failed to run model migration hooks:", error instanceof Error ? error.message : error);
     process.exit(1);
   });
 }

@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import axios from "axios";
 import { debounce } from "lodash-es";
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  reactive,
-  ref,
-  useAttrs,
-  watch
-} from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, useAttrs, watch } from "vue";
 import "vue-select/dist/vue-select.css";
 import vSelect from "vue-select";
 import { empty } from "../helpers/utils";

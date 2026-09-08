@@ -1,9 +1,5 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
-import {
-  discoverModuleFiles,
-  importFile,
-  moduleNameFromPath
-} from "@/framework/modules/discover.js";
+import { discoverModuleFiles, importFile, moduleNameFromPath } from "@/framework/modules/discover.js";
 
 /**
  * Why: Auto-registers module route files under `/api/<module>`.

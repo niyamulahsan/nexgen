@@ -173,7 +173,7 @@ This starts:
 | Component                     | Command              | Auto-enabled            |
 | ----------------------------- | -------------------- | ----------------------- |
 | API server                    | `maker serve --src`  | Always                  |
-| Vue 3 frontend (HMR)          | `maker frontend:dev` | Unless `FRONTEND=false` |
+| Vue 3 UI (HMR)          | `maker ui:dev` | Unless `UI=false` |
 | Queue worker (default + mail) | `maker queue:work`   | Unless `REDIS=false`    |
 
 All URLs are printed in the console when the dev server starts:
@@ -181,7 +181,7 @@ All URLs are printed in the console when the dev server starts:
 - `http://localhost:3000` — API server
 - `http://localhost:3000/api-docs` — API documentation (Scalar)
 - `http://localhost:3000/queues` — BullMQ queue dashboard (auto-enabled when Redis is on)
-- `http://localhost:5173` — Vue 3 frontend (hot reload)
+- `http://localhost:5173` — Vue 3 UI (hot reload)
 
 ### Sidecar Tools
 
@@ -229,8 +229,8 @@ npm run maker queue:work -- --queue=default,mail
 # Scheduler (cron jobs)
 npm run maker schedule:work
 
-# Vue frontend only
-npm run maker frontend:dev
+# Vue UI only
+npm run maker ui:dev
 
 # UI tools on demand
 npm run maker maildev:view
@@ -241,7 +241,7 @@ npm run maker redis:view
 pnpm maker serve --src
 pnpm maker queue:work --queue=default,mail
 pnpm maker schedule:work
-pnpm maker frontend:dev
+pnpm maker ui:dev
 pnpm maker maildev:view
 pnpm maker redis:view
 ```
@@ -250,7 +250,7 @@ pnpm maker redis:view
 yarn maker serve --src
 yarn maker queue:work --queue=default,mail
 yarn maker schedule:work
-yarn maker frontend:dev
+yarn maker ui:dev
 yarn maker maildev:view
 yarn maker redis:view
 ```
@@ -259,14 +259,14 @@ yarn maker redis:view
 bun maker serve --src
 bun maker queue:work --queue=default,mail
 bun maker schedule:work
-bun maker frontend:dev
+bun maker ui:dev
 bun maker maildev:view
 bun maker redis:view
 ```
 
 :::
 
-This is useful when you want to run only the API server without the frontend, or run the queue worker on a separate machine, or debug a specific component without the overhead of the full dev stack.
+This is useful when you want to run only the API server without the UI, or run the queue worker on a separate machine, or debug a specific component without the overhead of the full dev stack.
 
 ### Production Mode
 

@@ -21,7 +21,7 @@ stdout_logfile_maxbytes=0
 stderr_logfile_maxbytes=0
 
 [program:api]
-command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/src/index.mjs serve --prod --runtime={{RUNTIME_NAME}}"
+command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/index.mjs serve --prod --runtime={{RUNTIME_NAME}}"
 directory=/app
 autostart=true
 autorestart=true
@@ -37,7 +37,7 @@ stopasgroup=true
 killasgroup=true
 
 [program:scheduler]
-command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/src/index.mjs schedule:work --prod --runtime={{RUNTIME_NAME}}"
+command=/bin/sh -lc "{{RUNTIME_EXEC}} src/framework/maker-cli/index.mjs schedule:work --prod --runtime={{RUNTIME_NAME}}"
 directory=/app
 autostart=true
 autorestart=true
@@ -51,3 +51,4 @@ stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
 stopasgroup=true
 killasgroup=true
+

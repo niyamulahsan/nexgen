@@ -1,6 +1,6 @@
 # Runtime Commands
 
-Start, serve, and manage your application's runtime processes — API server, queue workers, scheduler, frontend, and developer tools.
+Start, serve, and manage your application's runtime processes — API server, queue workers, scheduler, UI, and developer tools.
 
 ::: code-group
 
@@ -26,14 +26,14 @@ bun maker <command> [options]
 
 ### `dev`
 
-Start the full development stack — API server, frontend, queue worker (if Redis enabled), and optional dev tools — all in parallel with a single command.
+Start the full development stack — API server, UI, queue worker (if Redis enabled), and optional dev tools — all in parallel with a single command.
 
 **What starts:**
 
 | Process | Started when | Command |
 |---|---|---|
 | API server | Always | `serve --src` (hot-reload via tsx watch) |
-| Frontend | `FRONTEND != "false"` | Vite dev server on port 5173 |
+| UI | `UI != "false"` | Vite dev server on port 5173 |
 | Queue worker | `REDIS != "false"` | `queue:work --queue=default,mail --src` |
 | Optional tools | `--view` / `--with` flags | MailDev, Redis Commander, Drizzle Studio |
 
@@ -91,26 +91,26 @@ bun maker dev --with-redis-view --with-maildev --with-db-studio
 | MailDev | `maildev` / `--with-maildev` | SMTP server at port 1089 + web UI at port 1080 to view sent emails |
 | Drizzle Studio | `studio` / `--with-db-studio` | Web UI at `local.drizzle.studio` for database browsing |
 
-### `frontend:dev`
+### `ui:dev`
 
-Start only the frontend dev server (alias: `admin:dev`). Useful when you want to run the API separately.
+Start only the UI dev server (alias: `admin:dev`). Useful when you want to run the API separately.
 
 ::: code-group
 
 ```bash [npm]
-npm run maker frontend:dev
+npm run maker ui:dev
 ```
 
 ```bash [pnpm]
-pnpm maker frontend:dev
+pnpm maker ui:dev
 ```
 
 ```bash [yarn]
-yarn maker frontend:dev
+yarn maker ui:dev
 ```
 
 ```bash [bun]
-bun maker frontend:dev
+bun maker ui:dev
 ```
 
 :::
@@ -462,11 +462,11 @@ bun maker vite:cache:clear
 
 | Command | Development | Production |
 |---|---|---|
-| `dev` | Full stack (API + frontend + queue + tools) | — |
+| `dev` | Full stack (API + UI + queue + tools) | — |
 | `serve` | API with watch | API without watch |
 | `queue:work` | Queue worker from source | Queue worker from dist |
 | `schedule:work` | Scheduler from source | Scheduler from dist |
-| `frontend:dev` | Vite dev server | — |
+| `ui:dev` | Vite dev server | — |
 | `test` | Run tests once | — |
 | `test:watch` | Run tests in watch mode | — |
 | `test:coverage` | Run tests with coverage | — |

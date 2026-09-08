@@ -118,7 +118,7 @@ export function useGumRemember<T extends object>(key: string, initial: T) {
 /**
  * Why: provide Inertia-style visit API for requests + navigation.
  * When: pages trigger get/post/put/patch/delete/reload flows.
- * Where: frontend pages/composables that import useGum.
+ * Where: UI pages/composables that import useGum.
  */
 export function useGum() {
   const router = useRouter();
@@ -162,8 +162,7 @@ export function useGum() {
         response = await axios.request({
           method,
           url,
-          params:
-            method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
+          params: method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
           data: method === "get" ? undefined : data,
           onUploadProgress: (event) => onProgress?.(event)
         });
@@ -202,31 +201,17 @@ export function useGum() {
   return {
     processing,
     visit,
-    get: (url: string, options: Omit<GumVisitOptions, "method"> = {}) =>
-      visit(url, { ...options, method: "get" }),
-    post: (
-      url: string,
-      data?: Record<string, unknown> | FormData,
-      options: Omit<GumVisitOptions, "method" | "data"> = {}
-    ) => {
+    get: (url: string, options: Omit<GumVisitOptions, "method"> = {}) => visit(url, { ...options, method: "get" }),
+    post: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
       return visit(url, { ...options, method: "post", data });
     },
-    put: (
-      url: string,
-      data?: Record<string, unknown> | FormData,
-      options: Omit<GumVisitOptions, "method" | "data"> = {}
-    ) => {
+    put: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
       return visit(url, { ...options, method: "put", data });
     },
-    patch: (
-      url: string,
-      data?: Record<string, unknown> | FormData,
-      options: Omit<GumVisitOptions, "method" | "data"> = {}
-    ) => {
+    patch: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
       return visit(url, { ...options, method: "patch", data });
     },
-    delete: (url: string, options: Omit<GumVisitOptions, "method"> = {}) =>
-      visit(url, { ...options, method: "delete" }),
+    delete: (url: string, options: Omit<GumVisitOptions, "method"> = {}) => visit(url, { ...options, method: "delete" }),
     reload: (options: Omit<GumVisitOptions, "method"> = {}) => {
       return visit(route.path, {
         ...options,
@@ -241,7 +226,7 @@ export function useGum() {
 /**
  * Why: centralize form state/errors/progress like Inertia useForm.
  * When: create/update/delete forms submit to backend.
- * Where: frontend forms using useGumForm.
+ * Where: UI forms using useGumForm.
  */
 export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
   const initial = structuredClone(defaults);
@@ -298,12 +283,7 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
    * When: post/put/patch/delete helpers are called.
    * Where: useGumForm internal request executor.
    */
-  async function submit(
-    method: FormMethod,
-    url: string,
-    payload?: Record<string, unknown>,
-    options: FormSubmitOptions = {}
-  ) {
+  async function submit(method: FormMethod, url: string, payload?: Record<string, unknown>, options: FormSubmitOptions = {}) {
     const { onStart, onSuccess, onError, onFinish } = options;
     wasSuccessful.value = false;
     clearErrors();
@@ -358,14 +338,10 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
     clearErrors,
     reset,
     submit,
-    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("post", url, payload, options),
-    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("put", url, payload, options),
-    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("patch", url, payload, options),
-    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) =>
-      submit("delete", url, payload, options)
+    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("post", url, payload, options),
+    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("put", url, payload, options),
+    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("patch", url, payload, options),
+    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("delete", url, payload, options)
   };
 }
 

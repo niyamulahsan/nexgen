@@ -1,6 +1,6 @@
 # Gum
 
-Gum is Nexgen's lightweight Inertia-style frontend helper. It combines axios requests, Vue Router query updates, scroll preservation, form lifecycle state, and remembered UI state.
+Gum is Nexgen's lightweight Inertia-style UI helper. It combines axios requests, Vue Router query updates, scroll preservation, form lifecycle state, and remembered UI state.
 
 Use Gum when a page needs SPA-style visits without replacing the Pinia store pattern.
 
@@ -57,8 +57,8 @@ Options:
 |---|---|---|---|
 | `method` | `get \| post \| put \| patch \| delete` | `get` | HTTP method for `visit()` |
 | `data` | `object \| FormData` | — | Request body for non-GET requests |
-| `query` | `object` | — | Query params sent to the API and written to the frontend URL for GET requests |
-| `routePath` | `string` | current route path | Frontend route path to update after a GET request |
+| `query` | `object` | — | Query params sent to the API and written to the UI URL for GET requests |
+| `routePath` | `string` | current route path | UI route path to update after a GET request |
 | `replace` | `boolean` | `false` | Use `router.replace()` instead of `router.push()` |
 | `preserveState` | `boolean` | `false` for GET, `true` for mutations | Keep `useGumRemember()` state |
 | `preserveScroll` | `boolean` | `false` | Restore scroll after request and router update |
@@ -87,14 +87,14 @@ await gum.get("/api/posts", {
 });
 ```
 
-The first argument is the API endpoint. `routePath` is the Vue frontend route that should receive the query string.
+The first argument is the API endpoint. `routePath` is the Vue UI route that should receive the query string.
 
 ```txt
 API request:  GET /api/posts?page=2&size=10&search=vue
 Browser URL:  /posts?page=2&size=10&search=vue
 ```
 
-This matters when the API path and frontend route are not the same.
+This matters when the API path and UI route are not the same.
 
 ## Listing Page Pattern
 
@@ -282,7 +282,7 @@ await gum.get("/api/posts", {
 
 ## Mutations
 
-Use `post`, `put`, `patch`, and `delete` for mutations. These do not change the frontend route by default.
+Use `post`, `put`, `patch`, and `delete` for mutations. These do not change the UI route by default.
 
 ```ts
 await gum.post("/api/posts", payload, {

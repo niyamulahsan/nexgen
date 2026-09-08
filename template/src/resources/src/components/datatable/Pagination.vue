@@ -58,9 +58,9 @@
 </template>
 
 <script setup lang="ts">
-import Input from "@/components/Input.vue";
 import { computed, reactive, watchEffect } from "vue";
 import { useRoute } from "vue-router";
+import Input from "@/components/Input.vue";
 import { formatCompactNumber } from "@/helpers/nformatter";
 import { useGum } from "@/plugins/gum";
 

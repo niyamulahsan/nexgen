@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { appConfig, redisConfig, sessionConfig } from "@/config/index.js";

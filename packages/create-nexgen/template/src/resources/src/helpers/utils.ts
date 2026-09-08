@@ -17,12 +17,7 @@ export function inArray<T>(needle: T, haystack: T[], strict = false): boolean {
       return true;
     }
 
-    if (
-      typeof value === "number" &&
-      typeof needle === "number" &&
-      Number.isNaN(value) &&
-      Number.isNaN(needle)
-    ) {
+    if (typeof value === "number" && typeof needle === "number" && Number.isNaN(value) && Number.isNaN(needle)) {
       return true;
     }
   }
@@ -45,8 +40,7 @@ export function empty(v: unknown): boolean {
 
 export async function downloadFile(url: string, fileName: string): Promise<void> {
   try {
-    const isDirectUrl =
-      url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://");
+    const isDirectUrl = url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://");
     const targetUrl = isDirectUrl ? url : route(url, { file_name: fileName });
     const res = await axios.get(targetUrl, { responseType: "blob" });
     if (res.data) {

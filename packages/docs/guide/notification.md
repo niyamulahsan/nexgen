@@ -2,7 +2,7 @@
 
 ## Overview
 
-The notification system is a backend module with real-time support via Socket.IO. The CLI generates only the backend (controllers, routes, job). Frontend integration is manual — see the Vue guide below or build your own components for React, Svelte, Solid, Astro, etc.
+The notification system is a backend module with real-time support via Socket.IO. The CLI generates only the backend (controllers, routes, job). UI integration is manual — see the Vue guide below or build your own components for React, Svelte, Solid, Astro, etc.
 
 ## CLI Commands
 
@@ -59,7 +59,7 @@ bun maker module:delete-notification notification --yes
 
 :::
 
-Moves the backend module to `src/storage/trash/modules/`. Frontend files (if any) are user-managed.
+Moves the backend module to `src/storage/trash/modules/`. UI files (if any) are user-managed.
 
 ### API Routes
 

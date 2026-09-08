@@ -29,7 +29,7 @@ type PaginateQueryOptions<T> = {
 
 type PaginateModelOptions<T = any> = {
   table?: any;
-  query?: { findMany: (args: Record<string, any>) => Promise<T[]>; };
+  query?: { findMany: (args: Record<string, any>) => Promise<T[]> };
   where?: SQL<unknown>;
   with?: Record<string, any>;
   columns?: Record<string, any>;
@@ -40,7 +40,7 @@ type PaginateModelOptions<T = any> = {
   maxPerPage?: number;
   path?: string;
   total?: () => Promise<number>;
-  data?: (params: { limit: number; offset: number; }) => Promise<T[]>;
+  data?: (params: { limit: number; offset: number }) => Promise<T[]>;
 };
 
 export type PaginatedResult<T> = {
@@ -50,7 +50,7 @@ export type PaginatedResult<T> = {
   from: number | null;
   last_page: number;
   last_page_url: string | null;
-  links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }>;
+  links: Array<{ url: string | null; label: string; page: number | null; active: boolean }>;
   next_page_url: string | null;
   path: string;
   per_page: number;
@@ -89,9 +89,7 @@ function resolvePath(c: RequestLike, path?: string) {
  * Where: Controllers/services composing complex queries.
  * How: Normalizes page params, computes URLs/meta, and executes callbacks.
  */
-export async function paginateQuery<T = any>(
-  options: PaginateQueryOptions<T>
-): Promise<PaginatedResult<T>> {
+export async function paginateQuery<T = any>(options: PaginateQueryOptions<T>): Promise<PaginatedResult<T>> {
   const maxPerPage = toPositiveInt(options.maxPerPage, 100);
   const perPage = Math.min(toPositiveInt(options.perPage, 15), maxPerPage);
   const page = toPositiveInt(options.page, 1);
@@ -110,15 +108,14 @@ export async function paginateQuery<T = any>(
   const prevPageUrl = currentPage > 1 ? pageUrl(path, currentPage - 1, perPage) : null;
   const nextPageUrl = currentPage < lastPage ? pageUrl(path, currentPage + 1, perPage) : null;
 
-  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean; }> =
-    [
-      {
-        url: prevPageUrl,
-        label: "&laquo; Previous",
-        page: currentPage > 1 ? currentPage - 1 : null,
-        active: false
-      }
-    ];
+  const links: Array<{ url: string | null; label: string; page: number | null; active: boolean }> = [
+    {
+      url: prevPageUrl,
+      label: "&laquo; Previous",
+      page: currentPage > 1 ? currentPage - 1 : null,
+      active: false
+    }
+  ];
 
   for (let p = 1; p <= lastPage; p += 1) {
     links.push({
@@ -163,7 +160,7 @@ export async function paginate<T = any>(
   c: RequestLike,
   query: any,
   perPage = 15,
-  options: { maxPerPage?: number; path?: string; } = {}
+  options: { maxPerPage?: number; path?: string } = {}
 ): Promise<PaginatedResult<T>> {
   const page = Number(c.req.query("page") || 1);
   const size = c.req.query("size");

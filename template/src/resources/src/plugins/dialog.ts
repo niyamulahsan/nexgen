@@ -9,11 +9,7 @@ type PromptOptions = {
 type DialogClient = {
   alert: (text?: string) => void;
   confirm: (text?: string, callback?: (ok: boolean) => void) => void;
-  prompt: (
-    text?: string,
-    options?: PromptOptions,
-    callback?: (result: { ok: boolean; value: string; }) => void
-  ) => void;
+  prompt: (text?: string, options?: PromptOptions, callback?: (result: { ok: boolean; value: string }) => void) => void;
 };
 
 function hostNode() {
@@ -39,24 +35,28 @@ function closeShell(shell: HTMLElement) {
 }
 
 function bindKeys(shell: HTMLElement, onOk: () => void, onCancel: () => void) {
-  shell.addEventListener("keydown", (e) => {
-    if (!shell.isConnected) return;
-    const tag = (e.target as HTMLElement)?.tagName;
-    const isInput = tag === "TEXTAREA" || tag === "INPUT";
+  shell.addEventListener(
+    "keydown",
+    (e) => {
+      if (!shell.isConnected) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      const isInput = tag === "TEXTAREA" || tag === "INPUT";
 
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      onCancel();
-      return;
-    }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onCancel();
+        return;
+      }
 
-    if (e.key === "Enter" && !isInput) {
-      e.preventDefault();
-      e.stopPropagation();
-      onOk();
-    }
-  }, true);
+      if (e.key === "Enter" && !isInput) {
+        e.preventDefault();
+        e.stopPropagation();
+        onOk();
+      }
+    },
+    true
+  );
 }
 
 export const dialog: DialogClient = {
@@ -87,7 +87,11 @@ export const dialog: DialogClient = {
       if (action === "ok" || action === "close") closeShell(shell);
     });
 
-    bindKeys(shell, () => closeShell(shell), () => closeShell(shell));
+    bindKeys(
+      shell,
+      () => closeShell(shell),
+      () => closeShell(shell)
+    );
     hostNode().appendChild(shell);
     (shell.querySelector("[data-dialog='ok']") as HTMLElement)?.focus();
   },
@@ -129,18 +133,20 @@ export const dialog: DialogClient = {
 
     bindKeys(
       shell,
-      () => { closeShell(shell); callback?.(true); },
-      () => { closeShell(shell); callback?.(false); }
+      () => {
+        closeShell(shell);
+        callback?.(true);
+      },
+      () => {
+        closeShell(shell);
+        callback?.(false);
+      }
     );
     hostNode().appendChild(shell);
     (shell.querySelector("[data-dialog='ok']") as HTMLElement)?.focus();
   },
 
-  prompt(
-    text = "",
-    options: PromptOptions = {},
-    callback?: (result: { ok: boolean; value: string; }) => void
-  ) {
+  prompt(text = "", options: PromptOptions = {}, callback?: (result: { ok: boolean; value: string }) => void) {
     const { limit = 0, placeholder = "Remarks...", defaultValue = "" } = options;
 
     const shell = buildShell(`
@@ -164,9 +170,7 @@ export const dialog: DialogClient = {
       </div>
     `);
 
-    const input = shell.querySelector(
-      "textarea[data-dialog='input']"
-    ) as HTMLTextAreaElement | null;
+    const input = shell.querySelector("textarea[data-dialog='input']") as HTMLTextAreaElement | null;
 
     shell.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -185,8 +189,14 @@ export const dialog: DialogClient = {
 
     bindKeys(
       shell,
-      () => { closeShell(shell); callback?.({ ok: true, value: input?.value || "" }); },
-      () => { closeShell(shell); callback?.({ ok: false, value: "" }); }
+      () => {
+        closeShell(shell);
+        callback?.({ ok: true, value: input?.value || "" });
+      },
+      () => {
+        closeShell(shell);
+        callback?.({ ok: false, value: "" });
+      }
     );
     hostNode().appendChild(shell);
     (shell.querySelector("textarea[data-dialog='input']") as HTMLElement)?.focus();

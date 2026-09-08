@@ -163,14 +163,14 @@ if (views.has("redis")) {
   console.log(redisWarnColor ? redisWarnColor(line) : line);
 }
 
-if (appConfig.frontendEnabled) {
+if (appConfig.uiEnabled) {
   if (process.env.NEXGEN_FRONTEND_URL) {
-    console.log(`Frontend UI: ${process.env.NEXGEN_FRONTEND_URL}`);
+    console.log(`UI: ${process.env.NEXGEN_FRONTEND_URL}`);
   } else {
-    console.log("Frontend enabled");
+    console.log("UI enabled");
   }
 } else {
-  console.log(chalk.gray("Frontend disabled (disabled in src/config/app.ts)"));
+  console.log(chalk.gray("UI disabled (disabled in src/config/app.ts)"));
 }
 
 console.log(`${appConfig.name} API running on ${serverUrl(server)}`);

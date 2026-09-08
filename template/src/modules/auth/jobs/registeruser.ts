@@ -15,17 +15,9 @@ shouldQueue("user:signup", "mail", async (job) => {
     `
   });
 
-  await dispatchEvent(
-    "admin.user.registered",
-    { userId, name, email, createdAt: Datetime.now() },
-    { broadcast: { roles: ["admin"] } }
-  );
+  await dispatchEvent("admin.user.registered", { userId, name, email, createdAt: Datetime.now() }, { broadcast: { roles: ["admin"] } });
 
-  await dispatchEvent(
-    "user.registered",
-    { message: "Welcome! Your account has been created." },
-    { broadcast: { users: [userId] } }
-  );
+  await dispatchEvent("user.registered", { message: "Welcome! Your account has been created." }, { broadcast: { users: [userId] } });
 
   return { ok: true, userId };
 });

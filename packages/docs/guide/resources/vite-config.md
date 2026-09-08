@@ -1,6 +1,6 @@
 # Vite Configuration
 
-`src/resources/vite.config.ts` configures the Vite dev server and build for the frontend SPA.
+`src/resources/vite.config.ts` configures the Vite dev server and build for the UI SPA.
 
 ```ts
 import { defineConfig } from "vite";
@@ -46,7 +46,7 @@ export default defineConfig({
 });
 ```
 
-## Swapping the frontend framework
+## Swapping the UI framework
 
 Only the plugin line changes. Everything else (proxy, build output, defines, aliases) stays the same:
 

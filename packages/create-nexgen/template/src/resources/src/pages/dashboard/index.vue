@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import Pagebar from "@/components/Pagebar.vue";
 import { useHead } from "@vueuse/head";
 import { onMounted, onUnmounted } from "vue";
+import Pagebar from "@/components/Pagebar.vue";
 import { useAuth } from "@/composables/useAuth";
 import { pulse } from "@/plugins/pulse";
 

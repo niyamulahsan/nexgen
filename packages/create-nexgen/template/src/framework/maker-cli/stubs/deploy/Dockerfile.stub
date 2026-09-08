@@ -4,8 +4,8 @@ FROM node:${NODE_VERSION}-bookworm-slim AS builder
 WORKDIR /app
 
 ENV APP_URL=http://localhost:3000
-ARG FRONTEND=true
-ENV FRONTEND=${FRONTEND}
+ARG UI=true
+ENV UI=${UI}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -18,7 +18,7 @@ COPY package.json package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps || npm install --legacy-peer-deps; else npm install --legacy-peer-deps; fi
 
 COPY . .
-RUN node src/framework/maker-cli/src/index.mjs db:schema
+RUN node src/framework/maker-cli/index.mjs db:schema
 RUN npm run build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runner
@@ -48,3 +48,4 @@ COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 3000
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+

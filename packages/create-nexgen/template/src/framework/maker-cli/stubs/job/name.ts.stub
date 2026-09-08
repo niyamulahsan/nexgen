@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { shouldQueue, dispatchEvent } from "@/framework/facade.js";
+import { dispatchEvent, shouldQueue } from "@/framework/facade.js";
 
 /**
  * event: Event name this worker listens to.
@@ -22,3 +22,4 @@ shouldQueue("{{module}}.{{name}}", "default", async job => {
 
   return { ok: true, processedAt: DateTime.now().toISO() };
 });
+

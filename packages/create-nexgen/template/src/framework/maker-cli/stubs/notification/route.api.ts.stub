@@ -47,3 +47,4 @@ export default createRouter()
   .api(markReadRoute, markRead)
   .api(markAllReadRoute, markAllRead)
   .api(deleteRoute, remove);
+

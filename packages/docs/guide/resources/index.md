@@ -1,10 +1,10 @@
-# Resources (Frontend)
+# Resources (UI)
 
-The frontend lives under `src/resources/` and is served by the framework's Vite dev server with automatic API, WebSocket, and storage proxy.
+The UI lives under `src/resources/` and is served by the framework's Vite dev server with automatic API, WebSocket, and storage proxy.
 
 ## Framework agnostic
 
-The nexgen backend is **frontend-agnostic**. The default template ships with **Vue 3** + **Pinia** + **Vue Router**, but you can swap it for any Vite-compatible framework:
+The nexgen backend is **UI-agnostic**. The default template ships with **Vue 3** + **Pinia** + **Vue Router**, but you can swap it for any Vite-compatible framework:
 
 | Framework | Plugin | Notes |
 |-----------|--------|-------|
@@ -22,7 +22,7 @@ Only two files are framework-specific:
 1. **`vite.config.ts`** — swap `@vitejs/plugin-vue` for your framework's plugin
 2. **`src/main.ts`** — rewrite the entry point for your framework
 
-Everything else (proxy, build output, aliases, `__SOCKET_ENABLED__` define) stays the same. The API layer, auth, storage, and all backend services are consumed via HTTP — they don't care what frontend framework you use.
+Everything else (proxy, build output, aliases, `__SOCKET_ENABLED__` define) stays the same. The API layer, auth, storage, and all backend services are consumed via HTTP — they don't care what UI framework you use.
 
 ## Project structure
 

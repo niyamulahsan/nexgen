@@ -1,6 +1,6 @@
 # Stores
 
-The frontend uses Pinia for state management. Stores live in `src/resources/src/stores/`.
+The UI uses Pinia for state management. Stores live in `src/resources/src/stores/`.
 
 ## Auth Store
 

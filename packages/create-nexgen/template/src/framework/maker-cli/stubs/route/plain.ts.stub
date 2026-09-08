@@ -8,3 +8,4 @@ export default group()
   .post("/", store)
   .put("/:id", update)
   .delete("/:id", destroy);
+

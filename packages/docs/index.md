@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "nexgen"
   text: "Full-stack TypeScript Framework"
-  tagline: Hono API + Vue 3 frontend + Drizzle ORM + Redis services
+  tagline: Hono API + Vue 3 UI + Drizzle ORM + Redis services
   image:
     src: /nexgen-logo.png
     alt: nexgen
@@ -21,7 +21,7 @@ features:
     title: Hono-first API
     details: Lightweight, fast HTTP framework with Zod OpenAPI validation and middleware support.
   - icon: 🖼️
-    title: Vue 3 Frontend
+    title: Vue 3 UI
     details: Component-based UI with Pinia state management, Vue Router, and Vite.
   - icon: 🗄️
     title: Drizzle ORM

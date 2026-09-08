@@ -1,5 +1,4 @@
 import { createHash, randomBytes } from "node:crypto";
-
 import { eq } from "drizzle-orm";
 import { jwtConfig } from "@/config/index.js";
 import { cookie, db, jwt } from "@/framework/facade.js";

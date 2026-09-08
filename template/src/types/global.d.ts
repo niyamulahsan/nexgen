@@ -7,7 +7,7 @@ declare module "*.vue" {
 
 declare module "bootstrap/js/dist/modal.js" {
   export default class Modal {
-    constructor(element: Element, options?: { backdrop?: boolean | "static"; keyboard?: boolean; });
+    constructor(element: Element, options?: { backdrop?: boolean | "static"; keyboard?: boolean });
     show(): void;
     hide(): void;
     dispose(): void;

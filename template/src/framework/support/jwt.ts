@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import { sign, verify } from "hono/jwt";
 import { jwtConfig } from "@/config/index.js";
 

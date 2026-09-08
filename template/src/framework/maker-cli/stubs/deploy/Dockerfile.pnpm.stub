@@ -2,8 +2,8 @@ ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-bookworm-slim AS builder
 
 ARG PNPM_VERSION=10.33.2
-ARG FRONTEND=true
-ENV FRONTEND=${FRONTEND}
+ARG UI=true
+ENV UI=${UI}
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY package.json pnpm-lock.yaml* ./
 RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
 
 COPY . .
-RUN node src/framework/maker-cli/src/index.mjs db:schema
+RUN node src/framework/maker-cli/index.mjs db:schema
 RUN pnpm run build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runner
@@ -52,3 +52,4 @@ COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 3000
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+

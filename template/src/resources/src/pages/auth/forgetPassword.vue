@@ -43,10 +43,10 @@
 </template>
 
 <script setup lang="ts">
-import Input from "@/components/Input.vue";
-import Button from "@/components/Button.vue";
 import { useHead } from "@vueuse/head";
 import { ref } from "vue";
+import Button from "@/components/Button.vue";
+import Input from "@/components/Input.vue";
 import { useGumForm } from "@/plugins/gum";
 
 useHead({ title: "Forget Password" });

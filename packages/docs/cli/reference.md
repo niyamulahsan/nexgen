@@ -4,7 +4,7 @@ The **`maker`** CLI is the framework's command center — code generation, datab
 
 ## How It Works
 
-The CLI is a Node.js script at `src/framework/maker-cli/src/index.mjs` registered as the `maker` binary in `package.json`. It uses **Commander.js** for argument parsing and **dotenv** for environment loading.
+The CLI is a Node.js script at `src/framework/maker-cli/index.mjs` registered as the `maker` binary in `package.json`. It uses **Commander.js** for argument parsing and **dotenv** for environment loading.
 
 ::: code-group
 
@@ -46,10 +46,10 @@ The CLI auto-detects your package manager from the `npm_config_user_agent` env v
 
 | Category | File | Commands | Purpose |
 |---|---|---|---|
-| [Module](/cli/module) | `level-2/module/` | 16 | Scaffold modules, controllers, models, routes, jobs, seeders, schedules, tests |
-| [Database](/cli/database) | `level-2/db/` | 14 | Schema generation, migrations, seeding, push, studio |
-| [Runtime](/cli/runtime) | `level-2/runtime/` | 14 | Dev server, queue worker, scheduler, frontend, testing, dev tools |
-| [Deploy](/cli/deploy) | `level-2/deploy/` | 6 | Docker scaffolding, local/remote compose, workflows, DB import |
+| [Module](/cli/module) | `module/` | 16 | Scaffold modules, controllers, models, routes, jobs, seeders, schedules, tests |
+| [Database](/cli/database) | `db/` | 14 | Schema generation, migrations, seeding, push, studio |
+| [Runtime](/cli/runtime) | `runtime/` | 14 | Dev server, queue worker, scheduler, UI, testing, dev tools |
+| [Deploy](/cli/deploy) | `deploy/` | 6 | Docker scaffolding, local/remote compose, workflows, DB import |
 
 ## Architecture
 
@@ -62,7 +62,7 @@ index.mjs (entry)
   ├─ registerDbCommands()      → db/index.mjs     → db/core.mjs
   └─ registerRuntimeCommands() → runtime/index.mjs → runtime/core.mjs
 
-Shared utilities (level-1/):
+Shared utilities (utils/):
   ├─ help.mjs     — Package manager prefix detection, help display
   ├─ naming.mjs   — Name validation, PascalCase conversion
   ├─ env-db.mjs   — Dialect detection, URL parsing, feature flags

@@ -1,6 +1,6 @@
 # Validation
 
-The frontend uses the backend's Zod schemas for validation. When a form submission fails, the API returns validation errors that are surfaced automatically in form components.
+The UI uses the backend's Zod schemas for validation. When a form submission fails, the API returns validation errors that are surfaced automatically in form components.
 
 ## Error format
 

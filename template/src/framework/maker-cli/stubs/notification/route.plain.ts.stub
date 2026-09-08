@@ -9,3 +9,4 @@ export default group()
   .patch("/:id/read", markRead)
   .patch("/read-all", markAllRead)
   .delete("/:id", remove);
+

@@ -53,3 +53,4 @@ export const destroy: Handler = async (c: any) => {
 
   return c.json({ message: "{{controller}} deleted successfully" });
 };
+

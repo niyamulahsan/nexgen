@@ -49,7 +49,7 @@ export default {
   url: env.APP_URL, // "http://localhost:3000"
   frontendUrl: env.FRONTEND_URL, // if frontend is not in same server and need cache session realtime etc
   openApiEnabled: env.OPEN_API, // /api-docs endpoint
-  frontendEnabled: env.FRONTEND, // serve Vue SPA
+  uiEnabled: env.UI, // serve Vue SPA
 };
 ```
 

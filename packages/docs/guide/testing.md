@@ -91,7 +91,7 @@ export default defineConfig({
 |---|---|
 | **Globals** | `true` — `describe`, `it`, `expect` available without imports |
 | **Include** | `src/**/*.test.ts`, `src/**/*.spec.ts` |
-| **Exclude** | Frontend resources, storage, node_modules, dist |
+| **Exclude** | UI resources, storage, node_modules, dist |
 | **Environment** | `node` |
 | **Path alias** | `@` → `./src` |
 | **Coverage** | V8 provider, text + JSON + HTML reporters |
@@ -274,4 +274,4 @@ Output includes:
 - **JSON** — machine-readable report at `coverage/coverage-final.json`
 - **HTML** — browsable report at `coverage/index.html`
 
-Coverage includes all `src/**/*.ts` files except frontend resources, storage, maker-cli internals, and test files themselves.
+Coverage includes all `src/**/*.ts` files except UI resources, storage, maker-cli internals, and test files themselves.

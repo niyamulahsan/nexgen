@@ -10,3 +10,4 @@ shouldQueue("{{module}}:mail", "mail", async (job) => {
 
   return { ok: true };
 });
+

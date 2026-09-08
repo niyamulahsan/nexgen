@@ -11,3 +11,4 @@ export const Update{{ClassName}}Schema = z.object({
 export const {{ClassName}}IdParamsSchema = z.object({
   id: z.coerce.number().int().positive()
 });
+

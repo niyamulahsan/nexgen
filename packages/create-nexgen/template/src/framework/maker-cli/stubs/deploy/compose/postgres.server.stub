@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       args:
-        FRONTEND: ${FRONTEND}
+        UI: ${UI}
     container_name: ${APP_NAME:-nexgen}-app
     restart: unless-stopped
     working_dir: /app
@@ -42,3 +42,4 @@ networks:
   nginx-proxy:
     external: true
     name: nginx-proxy
+

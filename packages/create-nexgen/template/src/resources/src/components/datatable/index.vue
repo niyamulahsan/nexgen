@@ -69,15 +69,15 @@
 </template>
 
 <script setup lang="ts">
-import SelectOption from "./SelectOpption.vue";
-import Button from "@/components/Button.vue";
-import Input from "@/components/Input.vue";
-import Checkbox from "@/components/Checkbox.vue";
-import Pagination from "./Pagination.vue";
 import { debounce } from "lodash-es";
 import { computed, reactive, ref, useSlots, watchEffect } from "vue";
 import { useRoute } from "vue-router";
+import Button from "@/components/Button.vue";
+import Checkbox from "@/components/Checkbox.vue";
+import Input from "@/components/Input.vue";
 import { useGum } from "@/plugins/gum";
+import Pagination from "./Pagination.vue";
+import SelectOption from "./SelectOpption.vue";
 
 interface DataRow {
   id: string | number;
@@ -133,7 +133,7 @@ const checkAll = () => {
     checked.checkcolumn = [];
   }
 };
-const updateChecked = () => checked.checkcolumn.length === props.data.data.length ? (checked.check = true) : (checked.check = false);
+const updateChecked = () => (checked.checkcolumn.length === props.data.data.length ? (checked.check = true) : (checked.check = false));
 
 // remove from parent
 const remove = () => {

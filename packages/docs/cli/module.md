@@ -62,7 +62,7 @@ Generate a notification backend module with controller, routes, and job. Default
 | `jobs/notification.ts` | Queue handler for email delivery |
 
 ::: tip
-Frontend integration is manual — see [Notification Guide](/guide/notification) for Vue copy-paste components and setup instructions.
+UI integration is manual — see [Notification Guide](/guide/notification) for Vue copy-paste components and setup instructions.
 :::
 
 ### `module:example [name]`
@@ -305,7 +305,7 @@ bun maker module:delete posts --dry-run
 
 ### `module:delete-notification [name]`
 
-Remove the notification backend module (moves to trash). Frontend files are user-managed.
+Remove the notification backend module (moves to trash). UI files are user-managed.
 
 ::: code-group
 

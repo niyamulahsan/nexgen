@@ -72,3 +72,4 @@ shouldQueue("{{module}}.pdf.generate", "default", async (job) => {
     return { ok: false, mode: "pdf-queue" };
   }
 });
+

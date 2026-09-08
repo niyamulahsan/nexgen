@@ -2,7 +2,7 @@
 
 ## What is nexgen?
 
-nexgen is a full-stack TypeScript framework that combines a **Hono** API server, a **Vite** frontend (Vue 3 by default, swappable for React/Svelte/Solid/etc.), **Drizzle ORM** for the database, and **Redis** for caching, sessions, queues, and realtime — all wired together with a single CLI.
+nexgen is a full-stack TypeScript framework that combines a **Hono** API server, a **Vite** UI (Vue 3 by default, swappable for React/Svelte/Solid/etc.), **Drizzle ORM** for the database, and **Redis** for caching, sessions, queues, and realtime — all wired together with a single CLI.
 
 Here is a minimal example (with `OPEN_API=true`):
 
@@ -43,7 +43,7 @@ nexgen is built for developers who want to ship full-stack TypeScript applicatio
 
 - **Solo developers** building SaaS products, internal tools, or client projects who want a batteries-included stack that works out of the box.
 - **Small teams** that need a consistent project structure everyone can follow without spending weeks on architecture decisions.
-- **Backend developers** moving into full-stack who want a familiar server setup (Hono + Drizzle + Redis) with a frontend that just works.
+- **Backend developers** moving into full-stack who want a familiar server setup (Hono + Drizzle + Redis) with a UI that just works.
 - **Startup founders** who need to move fast — scaffold a project, run `dev`, and start building features immediately.
 - **Laravel / Rails / Django developers** looking for a TypeScript equivalent that covers routing, ORM, queue, cache, auth, realtime, and deployment in one package.
 
@@ -51,18 +51,18 @@ nexgen may **not** be the best choice if you need fine-grained control over ever
 
 ## API-Only Mode
 
-You don't have to use the built-in frontend. Set `FRONTEND=false` in `.env` and nexgen becomes a pure API server — perfect if you already have a React, Next.js, Flutter, or mobile app that needs a backend.
+You don't have to use the built-in UI. Set `UI=false` in `.env` and nexgen becomes a pure API server — perfect if you already have a React, Next.js, Flutter, or mobile app that needs a backend.
 
 ```bash
 # .env
-FRONTEND=false
+UI=false
 ```
 
-The API runs standalone at `http://localhost:3000` with OpenAPI docs at `/api-docs`. Your separate frontend connects via HTTP, WebSocket, or both.
+The API runs standalone at `http://localhost:3000` with OpenAPI docs at `/api-docs`. Your separate UI connects via HTTP, WebSocket, or both.
 
-## Separate Frontend
+## Separate UI
 
-If your frontend lives in a different repo or uses a different framework, nexgen still gives you everything you need out of the box:
+If your UI lives in a different repo or uses a different framework, nexgen still gives you everything you need out of the box:
 
 - **Cache** — avoid hitting the database on every request
 - **Session** — server-side sessions with cross-origin cookie support
@@ -71,7 +71,7 @@ If your frontend lives in a different repo or uses a different framework, nexgen
 - **Scheduler** — cron jobs with distributed locking
 
 ```ts
-// Your separate frontend connects to the API
+// Your separate UI connects to the API
 const res = await fetch("http://localhost:3000/api/posts");
 ```
 
@@ -97,7 +97,7 @@ await cache.forget("config:sitemap");
 
 ## Session
 
-Server-side sessions stored in Redis with automatic cookie management. Supports cross-origin setups where your API and frontend run on different domains.
+Server-side sessions stored in Redis with automatic cookie management. Supports cross-origin setups where your API and UI run on different domains.
 
 ```ts
 import { session } from "@/framework/facade.js";
@@ -200,7 +200,7 @@ broadcast("notification", { message: "You have a new order" }, { users: ["user-1
 broadcast("announcement", { text: "System maintenance" }, { roles: ["admin"] });
 ```
 
-On the frontend, the Socket.IO client automatically connects and authenticates using the session cookie.
+On the UI side, the Socket.IO client automatically connects and authenticates using the session cookie.
 
 ## Notifications
 
@@ -439,7 +439,7 @@ bun maker dev
 | API server           | `http://localhost:3000`          |
 | API docs (Scalar)    | `http://localhost:3000/api-docs` |
 | Queue dashboard      | `http://localhost:3000/queues`   |
-| Vue 3 frontend (HMR) | `http://localhost:5173`          |
+| Vue 3 UI (HMR) | `http://localhost:5173`          |
 
 ## Pick Your Learning Path
 

@@ -10,7 +10,7 @@ const envSchema = z
     APP_ENV: z.enum(["development", "production", "test"]).default("development"),
     APP_PORT: z.coerce.number().default(3000),
     APP_URL: z.string().trim().min(1, "APP_URL is required in .env"),
-    FRONTEND: z
+    UI: z
       .string()
       .default("true")
       .transform((value) => value.trim().toLowerCase() !== "false" && value.trim() !== "0"),

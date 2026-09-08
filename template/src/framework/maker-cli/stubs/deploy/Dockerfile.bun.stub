@@ -1,11 +1,11 @@
-ARG BUN_VERSION=1.3.4
+ARG BUN_VERSION=1.4.0
 FROM oven/bun:${BUN_VERSION}-slim AS builder
 
 WORKDIR /app
 
 ENV APP_URL=http://localhost:3000
-ARG FRONTEND=true
-ENV FRONTEND=${FRONTEND}
+ARG UI=true
+ENV UI=${UI}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -19,7 +19,7 @@ RUN bun install --frozen-lockfile
 
 COPY . .
 RUN cp deploy/.env .env || true
-RUN bun src/framework/maker-cli/src/index.mjs db:schema
+RUN bun src/framework/maker-cli/index.mjs db:schema
 RUN bun run build
 
 FROM oven/bun:${BUN_VERSION}-slim AS runner
@@ -49,3 +49,4 @@ COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 3000
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+

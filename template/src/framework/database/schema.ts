@@ -11,13 +11,7 @@ export function normalizeSchemaExports(source: Record<string, any>) {
   const out: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(source)) {
-    if (
-      value &&
-      typeof value === "object" &&
-      "sqlite" in value &&
-      "mysql" in value &&
-      "postgresql" in value
-    ) {
+    if (value && typeof value === "object" && "sqlite" in value && "mysql" in value && "postgresql" in value) {
       out[key] = value[dialect];
     }
   }

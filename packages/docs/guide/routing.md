@@ -149,6 +149,6 @@ export const store: Handler = async (c) => {
 };
 ```
 
-## Frontend Routes
+## UI Routes
 
-Frontend routing uses Vue Router and is defined in `src/resources/src/router/`. See [Frontend > Router](/guide/resources/router) for details.
+UI routing uses Vue Router and is defined in `src/resources/src/router/`. See [UI > Router](/guide/resources/router) for details.

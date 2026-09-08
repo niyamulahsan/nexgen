@@ -22,12 +22,12 @@
 </template>
 
 <script setup lang="ts">
-import Sidebar from "@/layouts/Layout/Sidebar.vue";
-import Header from "@/layouts/Layout/Header.vue";
-import Footer from "@/layouts/Layout/Footer.vue";
 import { storeToRefs } from "pinia";
 import { onBeforeUnmount, onMounted, provide, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import Footer from "@/layouts/Layout/Footer.vue";
+import Header from "@/layouts/Layout/Header.vue";
+import Sidebar from "@/layouts/Layout/Sidebar.vue";
 import { useAdminUiStore } from "@/stores/admin-ui";
 import { useAuthStore } from "@/stores/auth";
 

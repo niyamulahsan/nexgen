@@ -1,7 +1,7 @@
 import { appConfig } from "@/config/index.js";
 import { initDatabase } from "@/framework/database/connection.js";
 import { createHttpApp } from "@/framework/http/app.js";
-import { ensurePublicDir, frontendIndexMiddleware, frontendStaticMiddleware, hasFrontendBuild } from "@/framework/http/static.js";
+import { ensurePublicDir, uiIndexMiddleware, uiStaticMiddleware, hasUiBuild } from "@/framework/http/static.js";
 import { registerModuleRoutes } from "@/framework/modules/routes.js";
 import { bootQueueJobs } from "@/framework/queue/queue.js";
 import { setupQueueDashboard } from "@/framework/queue/ui.js";
@@ -12,7 +12,7 @@ import { storage } from "@/framework/storage/storage.js";
  * Why: Assembles app kernel and boots all framework dependencies.
  * When: HTTP server startup.
  * Where: Called by server runtime entrypoint.
- * How: Initializes storage/db/redis/queues/events/routes and optional frontend.
+ * How: Initializes storage/db/redis/queues/events/routes and optional UI.
  */
 export async function createKernel() {
   await storage.init();
@@ -32,13 +32,13 @@ export async function createKernel() {
     app.route(queueDashboard.basePath, queueDashboard.route);
   }
 
-  if (appConfig.frontendEnabled) {
+  if (appConfig.uiEnabled) {
     ensurePublicDir();
   }
 
-  if (appConfig.frontendEnabled && hasFrontendBuild()) {
-    app.use("/*", frontendStaticMiddleware);
-    app.get("/*", frontendIndexMiddleware);
+  if (appConfig.uiEnabled && hasUiBuild()) {
+    app.use("/*", uiStaticMiddleware);
+    app.get("/*", uiIndexMiddleware);
   }
 
   return { app, bullBoard: queueDashboard };

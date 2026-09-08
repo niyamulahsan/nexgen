@@ -2,7 +2,7 @@
 
 ## `main.ts`
 
-`src/resources/src/main.ts` bootstraps the frontend application:
+`src/resources/src/main.ts` bootstraps the UI application:
 
 ```ts
 import "@/plugins/axios";

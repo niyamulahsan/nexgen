@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import { redisConfig } from "@/config/index.js";
 import { databaseDialect, databasePool } from "@/framework/database/connection.js";
 import { redis, redisReady } from "@/framework/redis/client.js";

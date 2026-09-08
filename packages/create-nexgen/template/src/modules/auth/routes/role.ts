@@ -10,10 +10,7 @@ const indexRoute = createRoute({
   tags: ["Role"],
   description: "List all roles",
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(
-      z.object({ message: z.string(), data: z.array(RoleSchema) }),
-      "Role list"
-    )
+    [HttpStatusCodes.OK]: jsonContent(z.object({ message: z.string(), data: z.array(RoleSchema) }), "Role list")
   }
 });
 
@@ -26,10 +23,7 @@ const showRoute = createRoute({
     params: IdParamsSchema
   },
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(
-      z.object({ message: z.string(), data: RoleSchema.nullable() }),
-      "Role item"
-    )
+    [HttpStatusCodes.OK]: jsonContent(z.object({ message: z.string(), data: RoleSchema.nullable() }), "Role item")
   }
 });
 

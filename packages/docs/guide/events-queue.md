@@ -470,7 +470,7 @@ shouldQueue("post.publish", "default", async (job) => {
 
 ### 4. Client-Side
 
-The frontend uses the **Pulse** plugin (a wrapper around `socket.io-client`) to listen for broadcast events:
+The UI uses the **Pulse** plugin (a wrapper around `socket.io-client`) to listen for broadcast events:
 
 ```ts
 import { pulse } from "@/plugins/pulse";

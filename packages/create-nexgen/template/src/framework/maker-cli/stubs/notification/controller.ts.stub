@@ -83,3 +83,4 @@ function normalize(row: typeof notifications.$inferSelect) {
     createdAt: row.createdAt.toISOString(),
   };
 }
+

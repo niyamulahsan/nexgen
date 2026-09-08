@@ -142,7 +142,7 @@ Without Redis, broadcasting works only within a single process.
 
 ## Client-Side Integration
 
-The frontend uses the **Pulse** plugin (a wrapper around `socket.io-client`) to connect and listen for events:
+The UI uses the **Pulse** plugin (a wrapper around `socket.io-client`) to connect and listen for events:
 
 ```ts
 import { pulse } from "@/plugins/pulse";

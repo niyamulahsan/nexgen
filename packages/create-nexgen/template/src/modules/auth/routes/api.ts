@@ -56,10 +56,7 @@ const meRoute = createRoute({
   tags: ["Auth"],
   description: "Get authenticated user",
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(
-      z.object({ message: z.string(), data: UserSchema }),
-      "Authenticated user"
-    )
+    [HttpStatusCodes.OK]: jsonContent(z.object({ message: z.string(), data: UserSchema }), "Authenticated user")
   }
 });
 

@@ -63,10 +63,7 @@ async function sendMailChannel(
   notification: { id: number; title: string; body: string | null },
   options: NotificationOptions
 ) {
-  const [user] = await db
-    .select({ email: users.email, name: users.name })
-    .from(users)
-    .where(eq(users.id, userId));
+  const [user] = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.id, userId));
 
   if (!user?.email) return;
 

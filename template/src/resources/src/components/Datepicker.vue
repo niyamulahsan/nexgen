@@ -32,8 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
 import { VueDatePicker } from "@vuepic/vue-datepicker";
+import { computed, useAttrs } from "vue";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { browserDetect } from "@/plugins/browserDetect";
 
@@ -77,9 +77,9 @@ const onNativeInput = (e: Event) => {
 const parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
 const inputLabel = computed(() => ($attrs.label as string | undefined) || "");
 
-const hoodHtml = computed(() => props.hood === false || props.hood == null ? "" : String(props.hood));
+const hoodHtml = computed(() => (props.hood === false || props.hood == null ? "" : String(props.hood)));
 
-const timeConfig = computed(() => props.mode === "datetime" ? { is24: false } : undefined);
+const timeConfig = computed(() => (props.mode === "datetime" ? { is24: false } : undefined));
 
 const formats = computed(() => {
   switch (props.mode) {
@@ -93,7 +93,6 @@ const formats = computed(() => {
       return { input: "dd/MM/yyyy" };
   }
 });
-
 </script>
 
 <style lang="scss" scoped>

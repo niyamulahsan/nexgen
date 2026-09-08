@@ -1,5 +1,32 @@
 # Changelog
 
+## [3.1.0] — 2026-09-09
+
+### Added
+
+- **API docs split into per-function pages** — the deskapp-style API reference now has one page for every facade export (32 functions) with a Function | Purpose | Guide overview table, replacing the bundled pages (`http`, `events`, `queue`, `paginate`, `support`, `realtime`→`broadcast`, `scheduler`→`defineSchedule`).
+- **Documentation site header** — deskapp-style top nav (`Home`, `Quick Start`, `Guide`, `API`, `CLI`, `Deploy`) with inline SVG icons on every nav and sidebar entry.
+
+### Changed
+
+- **`FRONTEND` env renamed to `UI`** — `frontendEnabled` config key renamed to `uiEnabled` (`template/src/config/app.ts`). No change in behavior; the old `FRONTEND` value is no longer read.
+- **Documentation site header** — deskapp-style top nav with inline SVG icons on every nav and sidebar entry.
+- **maker-cli restructured** — flattened `src/levels/` layout into `db/`, `deploy/`, `module/`, `runtime/`, `utils/` directories with `index.mjs` at the root. Command surface unchanged (52 commands).
+
+### Fixed
+
+- **`db:module:seed <module>`** — seeds now target the given module argument (`secondArg || firstArg`) instead of the first argument.
+- **`deploy:workflow:remote --dry-run`** — dry-run no longer proceeds with the remote workflow half-run.
+- **`deploy:db:import:remote --dry-run`** — removed dry-run guard so remote DB import correctly skips execution.
+- **`--force` / `--dry-run` on module make commands** — flag parsing refactored across all 7 module make commands (`rawArgs.slice(name ? 3 : 2)`).
+- **`SOCKET` env in deploy generation** — deploy env templates fall back to `"false"` when `SOCKET` is not set.
+
+### Documentation
+
+- **sarra removed from API docs** — project-specific examples replaced with generic framework guidance.
+
+---
+
 ## [3.0.8] — 2026-08-21
 
 ### Added
@@ -18,6 +45,7 @@
 - **Realtime docs** — added `broadcast()` direct usage alongside `dispatchEvent()`.
 - **Scheduler docs** — added `queue`, `job`, `data`, `immediately` options.
 - **New: `guide/openapi.md`** — full OpenAPI setup page (Scalar, metadata, auth, custom theme).
+- **API reference "Real world" sections** — authentic examples from the sarra app (auth router, event/queue flows, pagination, storage exports, cookie/jwt/password) added across the API pages.
 
 ---
 

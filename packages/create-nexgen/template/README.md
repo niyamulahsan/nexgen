@@ -1,9 +1,9 @@
 # nexgen
 
-**nexgen** is a full-stack TypeScript framework for building modern web applications. It combines a modular backend architecture with a Vue 3 single-page application frontend, providing everything you need out of the box:
+**nexgen** is a full-stack TypeScript framework for building modern web applications. It combines a modular backend architecture with a Vue 3 single-page application UI, providing everything you need out of the box:
 
 - **API** — [Hono](https://hono.dev) HTTP server with Zod validation and OpenAPI docs
-- **Frontend** — [Vue 3](https://vuejs.org) SPA with Pinia, Vue Router, and real-time Pulse integration
+- **UI** — [Vue 3](https://vuejs.org) SPA with Pinia, Vue Router, and real-time Pulse integration
 - **Database** — [Drizzle ORM](https://orm.drizzle.team) with SQLite, MySQL, and PostgreSQL support
 - **Queue** — [BullMQ](https://docs.bullmq.io) for background job processing
 - **Realtime** — [Socket.IO](https://socket.io) for bidirectional event broadcasting
@@ -36,7 +36,7 @@ npm run maker db:seed
 npm run maker dev
 ```
 
-This starts the API server, Vue 3 frontend, and queue worker (if Redis enabled) in parallel.
+This starts the API server, Vue 3 UI, and queue worker (if Redis enabled) in parallel.
 
 ### Package Manager
 
@@ -73,7 +73,7 @@ src/
 │   └── maker-cli/      # CLI source and stubs
 ├── modules/            # Application modules (auto-discovered)
 ├── middlewares/        # Auth, role middlewares
-├── resources/          # Vue 3 frontend app
+├── resources/          # Vue 3 UI app
 └── storage/            # Uploaded and generated files
 ```
 
@@ -94,7 +94,7 @@ server.ts
        ├─ bootQueueJobs()   → Register queue handlers
        ├─ registerModuleRoutes() → Auto-discover routes
        ├─ setupBullBoard()  → Queue management UI
-       └─ Frontend static   → Serve SPA if build exists
+       └─ UI static   → Serve SPA if build exists
   └─ serve()               → Start HTTP listener
   └─ initRealtime()        → Attach Socket.IO
   └─ registerShutdownSignals() → Graceful cleanup
@@ -329,7 +329,7 @@ await dispatchEvent(
 
 ### Client-side
 
-The frontend uses the Pulse plugin for real-time channels:
+The UI uses the Pulse plugin for real-time channels:
 
 ```ts
 import { pulse } from "@/plugins/pulse";
@@ -415,14 +415,14 @@ bun maker serve [--prod]                    # Start API server
 bun maker queue:work [--queue=default]      # Start queue worker
 bun maker queue:clear                       # Clear queue keys
 bun maker schedule:work                     # Start scheduler
-bun maker frontend:dev                      # Frontend dev server
+bun maker UI:dev                      # UI dev server
 bun maker maildev:view                      # MailDev web UI
 bun maker redis:view                        # Redis Commander UI
 bun maker vite:cache:clear                  # Clear Vite cache
 ```
 
 `bun maker dev` (and `npm run dev`) now also starts the scheduler process
-(`schedule:work`) alongside the API, frontend, and queue worker when Redis is
+(`schedule:work`) alongside the API, UI, and queue worker when Redis is
 enabled. Set `LOG_HTTP=false` in `.env` to skip per-request HTTP logs from the
 dev console.
 
@@ -497,3 +497,4 @@ npx playwright install chromium
 ## Full Documentation
 
 Complete documentation is available at **[https://niyamulahsan.github.io/nexgen](https://niyamulahsan.github.io/nexgen)**
+

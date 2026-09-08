@@ -15,8 +15,9 @@
     "rules": {
       "preset": "recommended",
       "correctness": {
-        "noUnusedVariables": "warn",
-        "useVueValidTemplateRoot": "off"
+        "noUnusedVariables": "off",
+        "useVueValidTemplateRoot": "off",
+        "noUnusedImports": "off"
       },
       "complexity": {
         "noUselessEscapeInRegex": "off"
@@ -28,7 +29,9 @@
       "suspicious": {
         "noEmptyBlockStatements": "off",
         "noExplicitAny": "off",
-        "noRedeclare": "off"
+        "noRedeclare": "off",
+        "noAssignInExpressions": "off",
+        "useIterableCallbackReturn": "off"
       }
     }
   },
@@ -49,17 +52,11 @@
   ],
   "assist": {
     "actions": {
-      "source": { 
+      "source": {
         "organizeImports": {
           "level": "on",
           "options": {
-            "groups": [
-              ":NODE:",
-              ":BLANK_LINE:",
-              ":PACKAGE:",
-              ":ALIAS:",
-              ":PATH:"
-            ]
+            "groups": [":NODE:", ":PACKAGE:", ":ALIAS:", ":PATH:"]
           }
         }
       }

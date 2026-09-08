@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Writable } from "node:stream";
-
 import pino from "pino";
 import { appConfig, loggingConfig } from "@/config/index.js";
 

@@ -14,9 +14,9 @@ cp .env.example .env
 | `APP_ENV`      | `development`         | Runtime environment: `development`, `production`, or `test`                                          |
 | `APP_PORT`     | `3000`                | HTTP server port                                                                                     |
 | `APP_URL`      | `http://localhost:3000` | Public-facing URL of the application (required)                                                      |
-| `FRONTEND`     | `true`                | Set `false` for API-only mode (no frontend build/serve)                                              |
-| `FRONTEND_URL` | —                     | Separate frontend URL when frontend is on a different domain. Leave empty when served from `APP_URL` |
-| `SOCKET`       | `false`               | Enable/disable Socket.IO on both backend and frontend                                                |
+| `UI`          | `true`               | Set `false` for API-only mode (no UI build/serve)                                                |
+| `FRONTEND_URL` | —                     | Separate frontend URL when UI is on a different domain. Leave empty when served from `APP_URL` |
+| `SOCKET`       | `false`               | Enable/disable Socket.IO on both backend and UI                                                |
 
 ## Database
 
@@ -78,28 +78,28 @@ Controls all Redis-backed subsystems. When `false`, the framework skips Redis en
 - **Type:** boolean (`true` / `false`)
 - **Default:** `true`
 
-Controls Socket.IO on both backend and frontend:
+Controls Socket.IO on both backend and UI:
 
 | `SOCKET=true` | `SOCKET=false` |
 |---|---|
 | Socket.IO server starts | No Socket.IO instance created |
-| Frontend Pulse client active | Frontend Pulse client is a silent no-op |
+| UI Pulse client active | UI Pulse client is a silent no-op |
 | `dispatchEvent()` with `broadcast` fans out via WebSocket | `broadcast` option is silently ignored |
 
-### `FRONTEND`
+### `UI`
 
 - **Type:** boolean (`true` / `false`)
 - **Default:** `true`
 
-Controls whether the frontend is served from the same API server.
+Controls whether the UI (Vue SPA) is served from the same API server.
 
-| `FRONTEND=true`                        | `FRONTEND=false`       |
-| -------------------------------------- | ---------------------- |
+| `UI=true`                          | `UI=false`            |
+| ---------------------------------- | --------------------- |
 | Built Vue assets served from `public/` | Not served             |
 | SPA fallback for unmatched routes      | Returns `404`          |
 | Dev stack starts Vite on port 5173     | Only API server starts |
 
-Use `FRONTEND=false` for API-only mode (separate frontend, mobile app, third-party consumer).
+Use `UI=false` for API-only mode (separate UI, mobile app, third-party consumer).
 
 ### `OPEN_API`
 
@@ -123,8 +123,8 @@ SOCKET=true
  └── REDIS=true  → multi-instance realtime
  └── REDIS=false → single-instance realtime
 
-FRONTEND=true  → API + SPA monolith (no CORS issues)
-FRONTEND=false → API-only (set FRONTEND_URL for CORS)
+UI=true  → API + SPA monolith (no CORS issues)
+UI=false → API-only (set FRONTEND_URL for CORS)
 
 OPEN_API=true  → /api-docs + /doc
 OPEN_API=false → bare API, no docs endpoints

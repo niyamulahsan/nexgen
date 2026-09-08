@@ -40,11 +40,11 @@ export const openApiConfig = {
     /** Default HTTP client shown in code examples */
     defaultHttpClient: {
       targetKey: "js" as const,
-      clientKey: "fetch" as const,
+      clientKey: "fetch" as const
     },
 
     /** Expand all tags on load */
-    defaultOpenAllTags: true,
+    defaultOpenAllTags: true
   }
 } as const;
 

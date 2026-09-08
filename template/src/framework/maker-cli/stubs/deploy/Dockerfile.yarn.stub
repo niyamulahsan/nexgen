@@ -2,8 +2,8 @@ ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-bookworm-slim AS builder
 
 ARG YARN_VERSION=1.22.22
-ARG FRONTEND=true
-ENV FRONTEND=${FRONTEND}
+ARG UI=true
+ENV UI=${UI}
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY package.json yarn.lock* ./
 RUN yarn install --immutable
 
 COPY . .
-RUN node src/framework/maker-cli/src/index.mjs db:schema
+RUN node src/framework/maker-cli/index.mjs db:schema
 RUN yarn build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runner
@@ -52,3 +52,4 @@ COPY deploy/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 3000
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+

@@ -146,8 +146,8 @@ ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-bookworm-slim AS builder
 WORKDIR /app
 
-ARG FRONTEND=true
-ENV FRONTEND=${FRONTEND}
+ARG UI=true
+ENV UI=${UI}
 
 # Install native deps (python3, make, g++ for node-gyp)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -188,7 +188,7 @@ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 The builder stage installs deps, generates schemas, and builds. The runner stage is minimal — only runtime deps, compiled output, and supervisor. The `deploy/.env` is copied into the image at build time so secrets are baked in (not passed at runtime).
 
 ::: warning
-For the **bun** runtime, `deploy/.env` is copied directly into the image during the build stage instead of at runtime. The `FRONTEND` build arg controls whether the frontend is built and included.
+For the **bun** runtime, `deploy/.env` is copied directly into the image during the build stage instead of at runtime. The `UI` build arg controls whether the UI build is built and included.
 :::
 
 ## Container Internals
