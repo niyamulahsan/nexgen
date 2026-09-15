@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://niyamulahsan.github.io/nexgen"><img src="https://img.shields.io/badge/docs-nexgen.dev-3b8eed" alt="Documentation"></a>
   <a href="https://www.npmjs.com/package/create-nexgen"><img src="https://img.shields.io/npm/v/create-nexgen" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/create-nexgen"><img src="https://img.shields.io/npm/dt/create-nexgen" alt="npm downloads"></a>
   <a href="https://github.com/niyamulahsan/nexgen/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
   <a href="https://github.com/niyamulahsan/nexgen"><img src="https://img.shields.io/github/stars/niyamulahsan/nexgen?style=social" alt="GitHub Stars"></a>
 </p>
