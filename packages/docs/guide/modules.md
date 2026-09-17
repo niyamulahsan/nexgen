@@ -320,6 +320,101 @@ Or set it in your `.env` to persist the choice. The CLI will print which mode it
 
 > Example and notification stubs also respect the `OPEN_API` flag — they generate OpenAPI or plain routes/schemas just like regular module stubs.
 
+## Sharing Logic Between Modules
+
+Modules are self-contained, but sometimes a set of functions is needed in **most** modules — for example auth context helpers like `getCurrentUser()` or `hasRole()`. There are two acceptable places for such shared logic:
+
+### 1. The auth module (auth-flavored context)
+
+Every module already depends on the auth module (its middleware, `users` model, `jwt`, cookies), so having modules import auth context adds no new coupling. Put auth-owned helpers in one canonical file, e.g. `src/modules/auth/auth.helpers.ts`:
+
+```ts
+// src/modules/auth/auth.helpers.ts
+import { eq } from "drizzle-orm";
+import { db } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+export function hasRole(auth: any, rolesToMatch: string[]) {
+  const role = String(auth?.role || "").toLowerCase();
+  return rolesToMatch.includes(role);
+}
+
+export async function getCurrentUser(auth: any) {
+  if (!auth?.id) return null;
+  return db.query.users.findFirst({
+    where: eq(users.id, Number(auth.id)),
+    with: { role: true },
+    columns: { password: false }
+  });
+}
+```
+
+Then any controller in any module imports from this single source:
+
+```ts
+import { getCurrentUser, hasRole } from "@/modules/auth/auth.helpers.js";
+```
+
+> **Note:** `requireRole()` guards a route as middleware (before the controller runs), while `hasRole()` / `getCurrentUser()` are used *inside* controllers for logic. Keep them separate — a middleware can't replace in-controller checks.
+
+### 2. A `shared/` module (generic multi-module logic)
+
+For logic that is **not auth-flavored** but is consumed by two or more modules, create `src/modules/shared/` as neutral ground:
+
+```
+src/modules/shared/
+├── strings.ts
+├── paginate.ts
+└── ...
+```
+
+**Critical rule — the only thing that prevents circular imports:** `shared/` may never import from another module. It may import only from `@/framework/` and database models, so it forms a dead-end leaf:
+
+```
+posts ──▶ shared ──▶ framework
+orders ─▶ shared ──▶ framework
+auth ───▶ shared ──▶ framework
+```
+
+### What NOT to do — module-to-module imports
+
+Do **not** let a module import from another module's helpers directly. If `blog` imports from `membership` and `membership` imports from `blog`, you get a **circular import** — an import cycle that can cause `undefined` bindings, abrupt failures, and subtle "works sometimes" bugs that are hard to trace.
+
+**Circular import example (bad):**
+
+```ts
+// src/modules/posts/controllers/post.controller.ts
+import { sendNotification } from "@/modules/notifications/notifications.helpers.js"; // ❌
+
+// src/modules/notifications/.../notifications.helpers.ts
+import { postService } from "@/modules/posts/services/post.service.js"; // ❌
+```
+
+`posts` needs `notifications`, and `notifications` needs `posts` — the two modules now import each other, forming a cycle.
+
+**The fix (good):** promote the shared piece to `src/modules/shared/` (or the auth module if it's auth-flavored), so the dependency arrow always points "downward" to a leaf that never imports a module:
+
+```ts
+// src/modules/shared/notifications.ts   ← imports only @/framework/ + db models
+export async function sendNotification(payload: { userId: number; text: string }) { /* ... */ }
+
+// src/modules/posts/controllers/post.controller.ts   ✅
+import { sendNotification } from "@/modules/shared/notifications.js";
+
+// src/modules/posts/services/post.service.ts   ✅  (no postService import in notifications anymore)
+```
+
+### Decision guide
+
+| Where does the logic live?                    | Where does it go?                     |
+| --------------------------------------------- | ------------------------------------- |
+| Auth-flavored, needed by most modules         | `src/modules/auth/auth.helpers.ts`    |
+| Generic, needed by 2+ modules                 | `src/modules/shared/`                 |
+| Only used inside one module                   | that module's `helpers.ts`            |
+| Framework-stable, every app needs (e.g. `db`, `jwt`, `password`) | the facade (`@/framework/facade.js`) |
+
+> If a module is the foundation every other module already depends on (like `auth`), other modules may import from it. For **any other** module, cross-module imports are a smell — extract instead.
+
 ## Auto-Discovery
 
 **nexgen** automatically discovers and registers:

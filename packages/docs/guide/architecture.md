@@ -27,6 +27,17 @@ my-project/
 - **Resources** — Vue 3 UI built with Vite.
 - **Database** — Drizzle schema and migrations, dialect-aware.
 
+## Sharing Logic Across Modules
+
+Modules are self-contained, but auth context helpers (`getCurrentUser`, `hasRole`) and other multi-module utilities cross module boundaries. **Never import another module's internals directly** — that leads to circular imports. Instead:
+
+- **Auth-flavored helpers** → `src/modules/auth/auth.helpers.ts` (every module already depends on auth)
+- **Generic multi-module logic** → `src/modules/shared/` (imports only the framework + DB models, never another module)
+- **Single-module logic** → that module's own `helpers.ts`
+- **Framework-stable utilities** → the facade (`@/framework/facade.js`)
+
+For the full pattern, circular-import example, and the dependency rule, see [Modules → Sharing Logic Between Modules](./modules#sharing-logic-between-modules).
+
 ## Boot Sequence
 
 The application boots in three stages: **HTTP app setup** → **Kernel assembly** → **Server start**.
