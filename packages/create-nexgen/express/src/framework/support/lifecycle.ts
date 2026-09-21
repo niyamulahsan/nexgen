@@ -1,5 +1,4 @@
 const shutdownSignals = ["SIGINT", "SIGTERM"] as const;
-
 export type ShutdownSignal = (typeof shutdownSignals)[number];
 
 type ShutdownHandler = (signal: ShutdownSignal) => Promise<void>;
