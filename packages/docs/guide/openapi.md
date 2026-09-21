@@ -1,6 +1,6 @@
 # OpenAPI
 
-nexgen has built-in OpenAPI 3.0 support powered by `@hono/zod-openapi` and `stoker`. When enabled, your routes automatically generate an interactive API documentation UI at `/api-docs` using Scalar.
+nexgen has built-in OpenAPI 3.0 support so your routes automatically generate an interactive API documentation UI at `/api-docs` using Scalar. The engine underneath depends on your HTTP engine: the **Hono** engine uses `@hono/zod-openapi` + `stoker`, the **Express** engine uses `@asteasolutions/zod-to-openapi` + `@scalar/express-api-reference`. Either way, you write routes with the same facade helpers (`createRoute`, `z`, `jsonContent`) and get the docs for free.
 
 ## Enable / Disable
 
@@ -15,18 +15,25 @@ Routes still work when disabled — only the documentation endpoints are removed
 
 ## Endpoints
 
-| Endpoint | Description |
-|---|---|
+| Endpoint    | Description                                 |
+| ----------- | ------------------------------------------- |
 | `/api-docs` | Scalar interactive API docs UI (moon theme) |
-| `/doc` | OpenAPI 3.0.0 JSON spec |
+| `/doc`      | OpenAPI 3.0.0 JSON spec                     |
 
 ## How It Works
 
-When `OPEN_API=true`, the framework creates an `OpenAPIHono` router instead of a plain Hono router. Every route registered via `.api()` is documented automatically:
+When `OPEN_API=true` and a route is registered via `.api()`, the framework collects its path/method/schemas into an OpenAPI document. On **Hono** it builds an `OpenAPIHono` router; on **Express** it registers the path in a `zod-to-openapi` registry. Both serve the spec at `/doc` and the Scalar UI at `/api-docs`:
 
-```ts
-import { createRoute, z } from "@hono/zod-openapi";
-import { HttpStatusCodes, jsonContent, group } from "@/framework/facade.js";
+::: code-group
+
+```ts [Hono]
+import {
+  createRoute,
+  z,
+  HttpStatusCodes,
+  jsonContent,
+  group,
+} from "@/framework/facade.js";
 
 const listRoute = createRoute({
   path: "/",
@@ -43,6 +50,34 @@ export default group().api(listRoute, async (c) => {
   return c.json(posts);
 });
 ```
+
+```ts [Express]
+import {
+  createRoute,
+  z,
+  HttpStatusCodes,
+  jsonContent,
+  group,
+} from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+const listRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["Posts"],
+  summary: "List all posts",
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list of posts"),
+  },
+});
+
+export default group().api(listRoute, async (_req: Request, res: Response) => {
+  const posts = await db.query.posts.findMany();
+  res.json(posts);
+});
+```
+
+:::
 
 This route appears in the Scalar UI at `/api-docs` with full request/response schemas.
 
@@ -68,14 +103,16 @@ No documentation is generated, but the routes still work exactly the same way.
 Schemas are Zod objects with `.openapi()` metadata for docs:
 
 ```ts
-import { z } from "@hono/zod-openapi";
+import { z } from "@/framework/facade.js"; // extended with .openapi() on both engines
 
-export const PostSchema = z.object({
-  id: z.number().openapi({ example: 1 }),
-  title: z.string().min(1).openapi({ example: "Hello World" }),
-  body: z.string().optional(),
-  createdAt: z.string().openapi({ example: "2024-01-15T08:30:00.000Z" }),
-}).openapi("Post");
+export const PostSchema = z
+  .object({
+    id: z.number().openapi({ example: 1 }),
+    title: z.string().min(1).openapi({ example: "Hello World" }),
+    body: z.string().optional(),
+    createdAt: z.string().openapi({ example: "2024-01-15T08:30:00.000Z" }),
+  })
+  .openapi("Post");
 
 export const CreatePostSchema = z.object({
   title: z.string().min(1).openapi({ example: "New Post" }),
@@ -88,7 +125,7 @@ export const CreatePostSchema = z.object({
 Each route specifies path, method, tags, request schemas, and response schemas:
 
 ```ts
-import { createRoute, z } from "@hono/zod-openapi";
+import { createRoute, z } from "@/framework/facade.js";
 import { HttpStatusCodes, jsonContent } from "@/framework/facade.js";
 
 // List route
@@ -172,7 +209,13 @@ export default group(authMiddleware)
 Use `group()` to create a router with shared middleware, then chain `.api()` calls for multiple routes. This keeps related routes together with the same auth/access rules:
 
 ```ts
-import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+import {
+  createRoute,
+  createRouter,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+} from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import { requireRole } from "@/middlewares/role-middleware.js";
 
@@ -212,7 +255,12 @@ export default createRouter()
 Split routes into separate groups with different middleware:
 
 ```ts
-import { createRouter, createRoute, HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import {
+  createRouter,
+  createRoute,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
 import { loginLimiter } from "@/framework/http/ratelimiter.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
@@ -243,9 +291,7 @@ const publicRoutes = createRouter()
   .api(registerRoute, register);
 
 // Protected routes: require authentication
-const protectedRoutes = createRouter()
-  .group(authMiddleware)
-  .api(meRoute, me);
+const protectedRoutes = createRouter().group(authMiddleware).api(meRoute, me);
 
 // Combine both groups under the same prefix
 export default createRouter()
@@ -255,9 +301,9 @@ export default createRouter()
 
 ### `group()` vs `createRouter().group()`
 
-| Pattern | Use case |
-|---|---|
-| `group(middleware)` | Simple single-group export, no sub-grouping needed |
+| Pattern                            | Use case                                                           |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `group(middleware)`                | Simple single-group export, no sub-grouping needed                 |
 | `createRouter().group(middleware)` | Multiple independent groups in the same file (public vs protected) |
 
 Both return the same router type — the difference is whether you need one group or multiple groups to compose together.
@@ -266,22 +312,47 @@ Both return the same router type — the difference is whether you need one grou
 
 With OpenAPI enabled, request validation is automatic. The handler receives typed, validated data:
 
-```ts
+::: code-group
+
+```ts [Hono]
 export const store = async (c) => {
   const body = c.req.valid("json"); // validated against CreatePostSchema
   // body is typed — no manual validation needed
 };
 ```
 
+```ts [Express]
+import type { Request, Response } from "express";
+
+export const store = (req: Request, res: Response) => {
+  const body = req.body; // validated against CreatePostSchema
+  // body is typed — no manual validation needed
+};
+```
+
+:::
+
 Without OpenAPI, use the `validate()` helper manually:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { validate } from "@/framework/facade.js";
 
 export const store = async (c) => {
   const body = await validate(CreatePostSchema, await c.req.json());
 };
 ```
+
+```ts [Express]
+import { validate } from "@/framework/facade.js";
+
+export const store = async (req: Request, res: Response) => {
+  const body = await validate(CreatePostSchema, req.body);
+};
+```
+
+:::
 
 ## Health Endpoint
 
@@ -307,9 +378,9 @@ export const openApiConfig = {
 
   scalar: {
     specUrl: "/doc",
-    docsPath: "/api-docs",  // change this to rename the docs URL
-    layout: "classic",   // "classic" or "modern"
-    theme: "moon",       // "default" | "moon" | "purple" | "solarized" | "bluePlanet" | "fastify" | "kepler" | "mars" | "nebula" | "none"
+    docsPath: "/api-docs", // change this to rename the docs URL
+    layout: "classic", // "classic" or "modern"
+    theme: "moon", // "default" | "moon" | "purple" | "solarized" | "bluePlanet" | "fastify" | "kepler" | "mars" | "nebula" | "none"
     pageTitle: "My API Documentation",
     defaultHttpClient: {
       targetKey: "js",

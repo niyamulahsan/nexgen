@@ -2,7 +2,7 @@
 
 Imported from the facade: `import { session } from "@/framework/facade.js"`.
 
-Redis-backed server-side session documents with an automatic httpOnly cookie. Distinct from auth — works for guests and logged-in users. `sessionMiddleware` attaches `sessionId` to every request (`c.get("sessionId")`). See [Session](./../guide/session).
+Redis-backed server-side session documents with an automatic httpOnly cookie. Distinct from auth — works for guests and logged-in users. `sessionMiddleware` attaches `sessionId` to every request (`c.get("sessionId")` on Hono, `res.locals.sessionId` on Express). See [Session](./../guide/session).
 
 ## Functions
 
@@ -20,9 +20,17 @@ Redis-backed server-side session documents with an automatic httpOnly cookie. Di
 
 ### Read the request session id
 
-```ts
+::: code-group
+
+```ts [Hono]
 const sessionId = c.get("sessionId"); // set by sessionMiddleware
 ```
+
+```ts [Express]
+const sessionId = res.locals.sessionId; // set by sessionMiddleware
+```
+
+:::
 
 ### Store and retrieve data
 
@@ -49,7 +57,7 @@ const data = await session.all(sessionId);
 const newId = await session.start({ source: "webhook", ref: "abc" });
 ```
 
-### Destroy on logout
+### Destroy session
 
 ```ts
 await session.destroy(sessionId);
@@ -67,6 +75,6 @@ if (session.isAvailable()) {
 ## Notes
 
 - A cookie-based auth flow uses `cookie` tokens (`cookie.setAuth`/`setRefresh`, see [cookie](./cookie)) rather than server-side sessions. Prefer `session` when you need state that survives across devices for guests or logged-in users — e.g. multi-step wizards, carts, and partial forms.
-- Keys are namespaced as `{REDIS_PREFIX}:session:{id}`; the default TTL is `ttlSeconds` (`config/session.ts`, default 7200s) and is refreshed on every request.
+- Keys are namespaced as `{REDIS_PREFIX}:session:{id}`; the default TTL is `ttlSeconds` (default 7200s, configured in `config/session.ts`) and is refreshed on every request.
 - When Redis is unavailable, mutators return `false`, readers return `null`/`undefined`, and `start` returns `""` — no crashes.
 - `destroy` only removes the Redis document — the httpOnly cookie persists and creates a new empty session on the next request.

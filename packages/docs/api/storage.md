@@ -26,13 +26,13 @@ Top-level methods operate on the **default disk**; `disk()` targets a specific d
 | `storage.move` | `(from, to) => Promise<string>` | Rename or relocate |
 | `storage.exists` / `missing` | `(file) => Promise<boolean>` | Presence check (and its inverse) |
 | `storage.files` / `directories` | `(directory?) => Promise<string[]>` | List files / subdirectories |
-| `storage.makeDirectory` / `deleteDirectory` | `(directory) => Promise<*>` | Create / remove a directory tree |
+| `storage.makeDirectory` / `deleteDirectory` | `(directory) => Promise<boolean>` | Create / remove a directory tree |
 | `storage.size` / `mimeType` / `lastModified` | `(file) => Promise<number|string>` | Metadata |
-| `storage.readStream` / `writeStream` | `(file[, stream]) => Promise<*>` | Stream a file in/out |
+| `storage.readStream` / `writeStream` | `(file[, stream]) => Promise<Readable>` | Stream a file in/out |
 | `storage.url` | `(file) => string` | Public URL |
 | `storage.temporaryUrl` | `(file, ttl?) => Promise<string>` | Signed URL (S3) or local proxy URL |
 | `storage.path` | `(file) => string` | Absolute local path (local driver only) |
-| `storage.setVisibility` / `getVisibility` | `(file, visibility?) => Promise<*>` | Toggle / read `"public"` \| `"private"` ACL |
+| `storage.setVisibility` / `getVisibility` | `(file, visibility?) => Promise<boolean>` | Toggle / read `"public"` \| `"private"` ACL |
 | `storage.disk` | `(disk) => DiskAPI` | Disk-scoped API with every method above |
 | `storage.download` | `(c, file, filename?) => Promise<Response>` | Attachment download response for controllers |
 | `storage.generateForDownload` | `({ prefix, extension, data }) => Promise<string>` | Write a temp file for deferred download |
@@ -62,7 +62,11 @@ if (await disk.exists("invoices/42.pdf")) {
 
 ### Multipart upload
 
-```ts
+The request-parsing step is the only engine difference — the `storage` calls are identical:
+
+::: code-group
+
+```ts [Hono]
 export const upload: Handler = async (c) => {
   const body = await c.req.parseBody();
   const file = body.file;
@@ -73,6 +77,25 @@ export const upload: Handler = async (c) => {
 };
 ```
 
+```ts [Express]
+import { upload } from "@/framework/facade.js";
+
+export default group().api(
+  uploadRoute,
+  [upload({ field: "file" })],              // multer wrapper → in-memory buffer
+  async (req: Request, res: Response) => {
+    if (!req.file) return res.status(422).json({ message: "File is required" });
+
+    const path = await storage.disk("public").putFile("uploads", req.file);
+    return res.json({ message: "File uploaded successfully", path, url: storage.disk("public").url(path) });
+  },
+);
+```
+
+:::
+
+> Express: `req.file` is an `Express.Multer.File` with a `buffer`. Hono: files arrive as web `File` instances via `c.req.parseBody()`. See [Upload](./upload) and [Storage guide > Multipart](./../guide/storage).
+
 ### One-time generated download
 
 ```ts
@@ -81,14 +104,17 @@ const token = await storage.generateForDownload({ prefix: "report", extension: "
 
 // Serve once — read then delete
 const file = await storage.consumeGenerated(token);
-return new Response(file, { headers: { "content-type": "text/csv" } });
+return new Response(file, { headers: { "content-type": "text/csv" } }); // Hono
+// Express: res.set("content-type", "text/csv").send(file)
 ```
 
 ### Real world — file upload with rollback
 
 Upload writes to storage first, then the DB row; if the insert fails the stored file is rolled back so nothing is orphaned:
 
-```ts
+::: code-group
+
+```ts [Hono]
 // modules/report/controllers/files.controller.ts (condensed)
 const body = await c.req.parseBody();
 const file = body?.file as File | undefined;
@@ -109,11 +135,39 @@ try {
 }
 ```
 
-Downloads stream the stored file straight back as an attachment:
+```ts [Express]
+// modules/report/controllers/files.controller.ts (condensed)
+import { upload } from "@/framework/facade.js";
+
+export default group().api(
+  uploadRoute,
+  [upload({ field: "file", maxSize: 2 * 1024 * 1024, allowedExtensions: [".xlsx", ".xlsb"] })],
+  async (req: Request, res: Response) => {
+    if (!req.file) return res.status(HttpStatusCodes.UNPROCESSABLE_ENTITY).json({ message: "File required" });
+
+    const buffer = req.file.buffer;
+    const path = `uploads/${Date.now()}-${req.file.originalname}`;
+    await storage.put(path, buffer);
+
+    try {
+      await db.insert(reports).values({ name: req.file.originalname, path, size: formatSize(req.file.size) });
+    } catch (error) {
+      await storage.delete(path).catch(() => {});
+      throw error;
+    }
+
+    return res.json({ message: "File uploaded successfully", path });
+  },
+);
+```
+
+:::
+
+Downloads stream the stored file straight back as an attachment — identical signature on both engines:
 
 ```ts
 const file = await db.query.reports.findFirst({ where: eq(reports.id, id) });
-return storage.download(c, file.path, file.name);
+return storage.download(c, file.path, file.name); // Hono — Express: storage.download(req, file.path, file.name)
 ```
 
 ### Real world — deferred export download
@@ -137,11 +191,24 @@ export const download: Handler = async (c: any) => {
 };
 ```
 
+```ts
+// Express engine version of the same controller
+export const download = async (req: Request, res: Response) => {
+  const token = req.params.token;                             // validated in place
+  const buffer = await storage.consumeGenerated(token);       // read and delete — one-time link
+  return res
+    .status(200)
+    .set("Content-Type", "application/octet-stream")
+    .send(buffer);
+};
+```
+
 ### Stream a file
 
 ```ts
 const stream = await storage.disk("public").readStream("videos/tutorial.mp4");
-return new Response(stream as any, { headers: { "content-type": "video/mp4" } });
+return new Response(stream as any, { headers: { "content-type": "video/mp4" } }); // Hono
+// Express: res.set("content-type", "video/mp4"); stream.pipe(res);
 ```
 
 ### Move / copy across disks

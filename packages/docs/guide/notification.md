@@ -155,7 +155,9 @@ notify(userId, { broadcast: true, mail: { ... } })
 
 ## Usage Example: Controller
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { notify } from "@/framework/facade.js";
 
 export const createComment: Handler = async (c: any) => {
@@ -174,6 +176,29 @@ export const createComment: Handler = async (c: any) => {
   return c.json({ message: "Comment created" });
 };
 ```
+
+```ts [Express]
+import { notify } from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+export const createComment = async (req: Request, res: Response) => {
+  const { postId, content } = req.body;
+  const post = await getPost(postId);
+
+  // Notify the post author
+  await notify(post.authorId, {
+    type: "info",
+    title: "New Comment",
+    body: `${res.locals.auth.name} commented on your post.`,
+    link: `/posts/${postId}`,
+    broadcast: true,
+  });
+
+  res.json({ message: "Comment created" });
+};
+```
+
+:::
 
 ## `dispatchEvent` vs. `notify`
 

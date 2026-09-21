@@ -1,3 +1,4 @@
 # This file prevents npm from falling back to .gitignore for file exclusion.
-# Without it, npm would use template/.gitignore patterns (like "public/*")
-# which would exclude template files from the published package.
+# Without it, npm would use hono/.gitignore patterns (like "public/*")
+# which would exclude engine template files from the published package.
+

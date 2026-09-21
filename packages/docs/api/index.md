@@ -9,7 +9,7 @@ import {
   group,          // middleware grouping shorthand
   z,              // Zod + .openapi() schemas
   jsonContent,    // JSON media-type wrapper
-  HttpStatusCodes,// status constants
+  HttpStatusCodes, // status constants
   validate,       // schema validation outside routes
   database,       // init/access the Drizzle instance
   db,             // global query proxy
@@ -39,13 +39,15 @@ import {
 } from "@/framework/facade.js";
 ```
 
+> **Express engine** additionally exports `upload` and `fields` — multipart parsing middleware built on `multer`. See [Upload](./upload) and the [Upload guide](./../guide/support/upload). The Hono engine parses multipart natively via `c.req.parseBody()`.
+
 ## Function reference
 
 Each facade function has its own page. Every export below is a documented part of the public API.
 
 | Function | Purpose | Guide |
 | --- | --- | --- |
-| [`createRouter`](./createRouter) | Hono router with group/route/api helpers | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
+| [`createRouter`](./createRouter) | Router with group/route/api helpers | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
 | [`createRoute`](./createRoute) | Declare a documented OpenAPI route | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
 | [`group`](./group) | `createRouter().group()` shorthand + role middleware | [Routing](./../guide/routing) |
 | [`z`](./z) | Extended Zod with `.openapi()` | [OpenAPI](./../guide/openapi) |
@@ -76,6 +78,7 @@ Each facade function has its own page. Every export below is a documented part o
 | [`mail`](./mail) | SMTP `sendMail` transport | [Mail](./../guide/support/mail) |
 | [`logger`](./logger) | Leveled structured logging + rotating files | [Logger](./../guide/support/logger) |
 | [`urls`](./urls) | Absolute URL building from `APP_URL` | [URL](./../guide/support/url) |
+| [`upload`](./upload) | File upload middleware (Express only, `multer`) | [Upload](./../guide/support/upload) |
 | [`lodash`](./lodash) | Full Lodash re-export | [libraries](./../guide/others/string) |
 
 ## When do I use which?
@@ -140,10 +143,23 @@ const listRoute = createRoute({
   },
 });
 
+::: code-group
+
+```ts [Hono]
 export default createRouter().group().api(listRoute, async (c) => {
   const query = db.select().from(posts).orderBy(desc(posts.id));
   return c.json(await paginate(c, query, 15));
 });
+```
+
+```ts [Express]
+export default createRouter().group().api(listRoute, async (req: Request, res: Response) => {
+  const query = db.select().from(posts).orderBy(desc(posts.id));
+  return res.json(await paginate(req, query, 15));
+});
+```
+
+:::
 ```
 
 ### Throttle background work and broadcast the result

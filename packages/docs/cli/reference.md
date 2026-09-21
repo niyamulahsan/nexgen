@@ -47,7 +47,8 @@ The CLI auto-detects your package manager from the `npm_config_user_agent` env v
 | Category | File | Commands | Purpose |
 |---|---|---|---|
 | [Module](/cli/module) | `module/` | 16 | Scaffold modules, controllers, models, routes, jobs, seeders, schedules, tests |
-| [Database](/cli/database) | `db/` | 14 | Schema generation, migrations, seeding, push, studio |
+| [Middleware](/cli/middleware) | `middleware/` | 1 | Generate middleware files in `src/middlewares` |
+| [Database](/cli/database) | `database/` | 14 | Schema generation, migrations, seeding, push, studio |
 | [Runtime](/cli/runtime) | `runtime/` | 14 | Dev server, queue worker, scheduler, UI, testing, dev tools |
 | [Deploy](/cli/deploy) | `deploy/` | 6 | Docker scaffolding, local/remote compose, workflows, DB import |
 
@@ -57,6 +58,7 @@ The CLI auto-detects your package manager from the `npm_config_user_agent` env v
 index.mjs (entry)
   ├─ dotenv (load .env, skipped for deploy commands)
   ├─ Commander program
+  ├─ registerMiddlewareCommands() → middleware/index.mjs → middleware/core.mjs
   ├─ registerModuleCommands()  → module/index.mjs → module/core.mjs
   ├─ registerDeployCommands()  → deploy/index.mjs → deploy/core.mjs
   ├─ registerDbCommands()      → db/index.mjs     → db/core.mjs
@@ -67,6 +69,6 @@ Shared utilities (utils/):
   ├─ naming.mjs   — Name validation, PascalCase conversion
   ├─ env-db.mjs   — Dialect detection, URL parsing, feature flags
   ├─ flags.mjs    — Flag/option parsing helpers
-  ├─ file-ops.mjs — File write strategies (skip, overwrite, bulk)
+  ├─ file-ops.mjs — File write strategies (skip, overwrite, batch)
   └─ process.mjs  — Child process spawn, local binary resolution
 ```

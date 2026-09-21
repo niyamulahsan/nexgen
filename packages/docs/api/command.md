@@ -22,7 +22,7 @@ command("calculate-tax", async (payload) => {
 });
 ```
 
-### Note: dispatch
+### Dispatch
 
 Run it with `dispatchCommand("calculate-tax", ...)` — synchronously by default, or in the background with `{ async: true, queue: "default" }`. See [dispatchCommand](./dispatchCommand).
 

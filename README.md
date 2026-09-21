@@ -16,12 +16,24 @@
 
 ---
 
-nexgen is a batteries-included TypeScript framework that combines a modular backend (Hono, Drizzle ORM, BullMQ, Socket.IO) with a Vue 3 SPA frontend — all scaffolded with a single command and deployed with Docker Compose.
+nexgen is a batteries-included TypeScript framework that combines modular backends (Hono, Express) with Drizzle ORM, BullMQ, Socket.IO, Redis, and a Vue 3 SPA frontend — all scaffolded with a single command and deployed with Docker Compose.
 
 ## Quick Start
 
+### Hono (default)
+
 ```bash
 npm create nexgen@latest my-app
+cd my-app
+npm install
+npm run maker db:migrate --seed
+npm run maker dev
+```
+
+### Express
+
+```bash
+npm create nexgen@latest my-app -- --engine=express
 cd my-app
 npm install
 npm run maker db:migrate --seed
@@ -66,6 +78,8 @@ nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 | **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)           |
 | **Notifications**   | Database-persisted notifications with broadcast + mail delivery                |
 | **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin       |
+| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment |
+| **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation |
 | **CLI**             | `maker` command for code generation, migrations, runtime, and deploy           |
 | **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                   |
 

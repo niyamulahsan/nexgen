@@ -2,7 +2,7 @@
 
 Imported from the facade: `import { lodash } from "@/framework/facade.js"`.
 
-The full Lodash bundle is re-exported for convenience. Guides live under [Others > lodash](./../guide/others/string).
+The full Lodash bundle is re-exported for convenience. Guides live under [Others > String](./../guide/others/string).
 
 ## Signature
 

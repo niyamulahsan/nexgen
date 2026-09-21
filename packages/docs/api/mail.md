@@ -37,8 +37,8 @@ await mail.sendMail({
 ```ts
 await mail.sendMail({
   to: job.data.email,
-  subject: "Forget password",
-  html: `Your password is ${job.data.forgetPassword}`,
+  subject: "Forgot password",
+  html: `Click here to reset your password: ${job.data.resetToken}`,
 });
 ```
 

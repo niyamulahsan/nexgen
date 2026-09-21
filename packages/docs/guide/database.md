@@ -1,13 +1,13 @@
-# Database
+﻿# Database
 
 ## How It Works
 
 The database pipeline is fully automated. You never write schema files or migration SQL by hand.
 
-1. **Define models** — Create Drizzle model files under `modules/<module>/database/models/`
-2. **Run `db:migrate --seed`** — The CLI auto-generates the schema barrel file, creates migration SQL via Drizzle Kit, applies them, and optionally seeds
+1. **Define models** â€” Create Drizzle model files under `modules/<module>/database/models/`
+2. **Run `db:migrate --seed`** â€” The CLI auto-generates the schema barrel file, creates migration SQL via Drizzle Kit, applies them, and optionally seeds
 
-The schema file at `src/database/schema.ts` is **auto-generated** — it scans all `modules/**/database/models/*.ts` and re-exports them. You never edit it manually.
+The schema file at `src/database/schema.ts` is **auto-generated** â€” it scans all `modules/**/database/models/*.ts` and re-exports them. You never edit it manually.
 
 ## Typical Workflow
 
@@ -37,11 +37,11 @@ bun maker db:migrate --seed
 
 :::
 
-The first migration uses `--name init`. Subsequent migrations are named incrementally by Drizzle Kit. The schema is regenerated automatically before every migration — no manual `db:schema` needed.
+The first migration uses `--name init`. Subsequent migrations are named incrementally by Drizzle Kit. The schema is regenerated automatically before every migration â€” no manual `db:schema` needed.
 
 ## Commands
 
-### `db:migrate` — Full Pipeline (recommended)
+### `db:migrate` â€” Full Pipeline (recommended)
 
 ::: code-group
 
@@ -78,7 +78,7 @@ Initial migration was generated, but the database already contains tables.
 Use 'npm run|pnpm|yarn|bun maker db:fresh --seed' to rebuild locally.
 ```
 
-### `db:generate` — Migration Files Only
+### `db:generate` â€” Migration Files Only
 
 ::: code-group
 
@@ -102,7 +102,7 @@ bun maker db:generate
 
 Generates schema and migration SQL without applying them. Useful for code review before running.
 
-### `db:migrate:run` — Apply Only
+### `db:migrate:run` â€” Apply Only
 
 ::: code-group
 
@@ -128,7 +128,7 @@ Applies existing migration files without regenerating schema or migrations. Used
 
 After migrations are applied, this command also executes model migration hooks.
 
-### `db:fresh` — Full Rebuild
+### `db:fresh` â€” Full Rebuild
 
 ::: code-group
 
@@ -166,7 +166,7 @@ Use this when:
 - The migration journal is out of sync with table state
 - You want to reset the database to a clean state during development
 
-### `db:reset` / `db:wipe` — Wipe Only
+### `db:reset` / `db:wipe` â€” Wipe Only
 
 ::: code-group
 
@@ -194,7 +194,7 @@ bun maker db:wipe
 
 Drops and recreates the database. No migrations, no seeds. Use this to quickly clear all data without rebuilding schema (e.g., before importing a production dump into a clean database).
 
-### `db:schema` — Regenerate Schema Only
+### `db:schema` â€” Regenerate Schema Only
 
 ::: code-group
 
@@ -216,9 +216,9 @@ bun maker db:schema
 
 :::
 
-Regenerates `src/database/schema.ts` from model files. Normally unnecessary — `migrate`, `generate`, and `fresh` all call this automatically. Only needed if you want to inspect the barrel file.
+Regenerates `src/database/schema.ts` from model files. Normally unnecessary â€” `migrate`, `generate`, and `fresh` all call this automatically. Only needed if you want to inspect the barrel file.
 
-### `db:seed` — Seed Only
+### `db:seed` â€” Seed Only
 
 ::: code-group
 
@@ -246,7 +246,7 @@ bun maker db:module:seed welcome  # seed a specific module
 
 Runs the seeder files for all modules (or a specific one). Useful after a `db:reset` to repopulate test data.
 
-### `db:push` — Direct Schema Push (no migration files)
+### `db:push` â€” Direct Schema Push (no migration files)
 
 ::: code-group
 
@@ -270,7 +270,7 @@ bun maker db:push
 
 Pushes schema directly to the database via Drizzle Kit push. Generates schema first.
 
-### `db:studio` — Drizzle Studio
+### `db:studio` â€” Drizzle Studio
 
 ::: code-group
 
@@ -441,9 +441,9 @@ export default async function PostSeeder() {
 }
 ```
 
-The first time a seeder is generated, it's created **commented out** — uncomment and fill in your data before running `--seed`.
+The first time a seeder is generated, it's created **commented out** â€” uncomment and fill in your data before running `--seed`.
 
-### Real Example — User Seeder
+### Real Example â€” User Seeder
 
 For a complete example, see `modules/auth/database/seeders/user.ts`:
 
@@ -495,9 +495,9 @@ This shows common patterns: looking up related records, hashing passwords, and s
 
 The framework adapts to your `DATABASE_URL`:
 
-- `mysql://` → MySQL dialect
-- `postgres://` → PostgreSQL dialect
-- `sqlite:` → SQLite dialect
+- `mysql://` â†’ MySQL dialect
+- `postgres://` â†’ PostgreSQL dialect
+- `sqlite:` â†’ SQLite dialect
 
 Drizzle model stubs use the correct types per dialect. Migration files are stored in `src/database/migrations/<dialect>/`. The CLI detects dialect changes and resets migration files automatically.
 
@@ -509,18 +509,20 @@ Drizzle ORM does not include a built-in pagination helper. **nexgen** provides p
 
 ### Which one to use?
 
-| Function          | When to use                                                                                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `paginate()`      | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
-| `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
-| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                        |
-| `paginateQuery()` | **Count and data queries are structurally different** — e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
+| Function          | When to use                                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `paginate()`      | **Default choice** â€” route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
+| `paginateModel()` | **Relational eager loading** â€” uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
+| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                          |
+| `paginateQuery()` | **Count and data queries are structurally different** â€” e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
 
-### `paginate(c, query, perPage)` — From Request (recommended)
+### `paginate(context, query, perPage)` â€” From Request (recommended)
 
-For route handlers. Reads `page`, `per_page`, and `size` from the request query string. Handles joins, GROUP BY, HAVING, DISTINCT correctly:
+For route handlers. Reads `page`, `per_page`, and `size` from the request query string. Handles joins, GROUP BY, HAVING, DISTINCT correctly. `context` is the request-like object â€” `c` on Hono, `req` on Express:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { desc } from "drizzle-orm";
 import { db, paginate } from "@/framework/facade.js";
 import { posts } from "@/modules/blog/database/models/post.js";
@@ -529,11 +531,24 @@ const query = db.select().from(posts).orderBy(desc(posts.id));
 const result = await paginate(c, query, 15);
 ```
 
+```ts [Express]
+import { desc } from "drizzle-orm";
+import { db, paginate } from "@/framework/facade.js";
+import { posts } from "@/modules/blog/database/models/post.js";
+
+const query = db.select().from(posts).orderBy(desc(posts.id));
+const result = await paginate(req, query, 15);
+```
+
+:::
+
 Request example: `GET /posts?page=2&per_page=20`
 
 With joins:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { desc, eq } from "drizzle-orm";
 import { db, paginate } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
@@ -553,11 +568,35 @@ const query = db
 const result = await paginate(c, query, 15);
 ```
 
-### `paginateModel(c, options)` — Relational Eager Loading
+```ts [Express]
+import { desc, eq } from "drizzle-orm";
+import { db, paginate } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { posts } from "@/modules/blog/database/models/post.js";
 
-Use `paginateModel` when you want Drizzle relational eager loading with `db.query.<table>.findMany({ with })`.
+const query = db
+  .select({
+    id: posts.id,
+    title: posts.title,
+    authorName: users.name,
+  })
+  .from(posts)
+  .leftJoin(users, eq(posts.authorId, users.id))
+  .where(eq(posts.published, true))
+  .orderBy(desc(posts.id));
 
-```ts
+const result = await paginate(req, query, 15);
+```
+
+:::
+
+### `paginateModel(c, options)` â€” Relational Eager Loading
+
+Use `paginateModel` when you want Drizzle relational eager loading with `db.query.<table>.findMany({ with })`:
+
+::: code-group
+
+```ts [Hono]
 import { desc, eq } from "drizzle-orm";
 import { db, paginateModel } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
@@ -576,11 +615,34 @@ const result = await paginateModel(c, {
 });
 ```
 
+```ts [Express]
+import { desc, eq } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+const result = await paginateModel(req, {
+  table: users,
+  query: db.query.users,
+  where: eq(users.status, "1"),
+  with: {
+    role: true,
+    profile: true,
+  },
+  orderBy: desc(users.id),
+  perPage: 10,
+  path: req.path,
+});
+```
+
+:::
+
 Internally, `paginateModel` runs a count query against the base table, then runs `findMany` with `limit`, `offset`, and your eager-loaded relations.
 
 Nested eager loading:
 
-```ts
+::: code-group
+
+```ts [Hono]
 const result = await paginateModel(c, {
   table: users,
   query: db.query.users,
@@ -604,9 +666,37 @@ const result = await paginateModel(c, {
 });
 ```
 
-For relation filters, build the SQL condition first, then pass it to `paginateModel`. Use subqueries for relation checks so the final condition still belongs to the base query and count stays automatic.
+```ts [Express]
+const result = await paginateModel(req, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: {
+    role: true,
+    userarea: {
+      with: {
+        area: {
+          with: {
+            commissionerate: true,
+            division: true,
+            circle: true,
+            sector: true,
+          },
+        },
+      },
+    },
+  },
+  orderBy: desc(users.id),
+});
+```
 
-```ts
+:::
+
+For relation filters, build the SQL condition first, then pass it to `paginateModel`. Use subqueries for relation checks so the final condition still belongs to the base query and count stays automatic:
+
+::: code-group
+
+```ts [Hono]
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, paginateModel } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
@@ -629,11 +719,39 @@ const result = await paginateModel(c, {
 });
 ```
 
+```ts [Express]
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { roles } from "@/modules/auth/database/models/role.js";
+
+const where = and(
+  eq(users.status, "1"),
+  inArray(
+    users.roleId,
+    db.select({ id: roles.id }).from(roles).where(eq(roles.name, "admin")),
+  ),
+);
+
+const result = await paginateModel(req, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: { role: true },
+  orderBy: desc(users.id),
+});
+```
+
+:::
+
 If a query needs special count or data behavior, provide callbacks:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { count, desc } from "drizzle-orm";
 
+// c on Hono, req on Express
 const result = await paginateModel(c, {
   total: async () => {
     const [row] = await db.select({ total: count() }).from(users).where(where);
@@ -651,7 +769,30 @@ const result = await paginateModel(c, {
 });
 ```
 
-### `paginateTable(db, table, options)` — Direct Table
+```ts [Express]
+import { count, desc } from "drizzle-orm";
+
+// c on Hono, req on Express
+const result = await paginateModel(req, {
+  total: async () => {
+    const [row] = await db.select({ total: count() }).from(users).where(where);
+    return Number(row?.total ?? 0);
+  },
+  data: async ({ limit, offset }) => {
+    return db.query.users.findMany({
+      where,
+      with: { role: true },
+      limit,
+      offset,
+      orderBy: desc(users.id),
+    });
+  },
+});
+```
+
+:::
+
+### `paginateTable(db, table, options)` â€” Direct Table
 
 For simple single-table queries with optional filters and sorting. No joins, no GROUP BY:
 
@@ -668,7 +809,7 @@ const result = await paginateTable(db, posts, {
 });
 ```
 
-### `paginateQuery(options)` — Custom Callbacks
+### `paginateQuery(options)` â€” Custom Callbacks
 
 For complex queries where **the count must be different from the data query**:
 

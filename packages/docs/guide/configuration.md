@@ -19,8 +19,10 @@ src/config/
 ├── rateLimit.ts      # Window, max requests, login limit
 ├── realtime.ts       # Socket.IO enabled flag and path
 ├── redis.ts          # Redis URL, prefix, feature toggle
+├── security.ts       # Security headers (CSP, HSTS, X-Frame)
 ├── session.ts        # Session cookie name, TTL
-└── storage.ts        # Storage driver, S3 settings
+├── storage.ts        # Storage driver, S3 settings
+└── validate.ts       # Cross-config validation at startup
 ```
 
 ## Usage
@@ -47,7 +49,7 @@ export default {
   environment: env.APP_ENV, // "development" | "production" | "test"
   port: env.APP_PORT, // 3000
   url: env.APP_URL, // "http://localhost:3000"
-  frontendUrl: env.FRONTEND_URL, // if frontend is not in same server and need cache session realtime etc
+  frontendUrl: env.FRONTEND_URL, // URL of the frontend app (for cookie/Session/realtime cross-origin setups)
   openApiEnabled: env.OPEN_API, // /api-docs endpoint
   uiEnabled: env.UI, // serve Vue SPA
 };
@@ -60,7 +62,7 @@ export default {
 export default {
   version: "3.0.0",
   title: "nexgen API",
-  apiVersion: "0.1.0",
+  apiVersion: "1.0.0",
   description: "",
 
   scalar: {
@@ -162,7 +164,7 @@ export default {
   prefix: `${redisConfig.prefix}:queue`, // "nexgen:queue"
   durablePrefix: `${redisConfig.prefix}:durable`, // "nexgen:durable"
   queueUi: "/queues", // queue dashboard
-  allowedEmails: "", // if multiple comma-separated emails for dashboard access
+  allowedEmails: "", // comma-separated emails allowed to access the queue dashboard
 };
 ```
 
@@ -185,7 +187,7 @@ export default {
 import { env } from "@/env.js";
 
 export default {
-  enabled: env.SOCKET, // if true dispatchEvent work else not
+  enabled: env.SOCKET, // enable Socket.IO realtime events (dispatchEvent)
   path: "/socket.io",
 };
 ```
@@ -239,6 +241,8 @@ export default {
 
 ## CORS
 
+Controls which origins can access the API. Default is `"*"` (open to all) — tighten this to specific origins in production, especially when using credentialed requests (cookies, auth headers). Change `origin` to your frontend URL(s) before deploying.
+
 ```ts
 // src/config/cors.ts
 export default {
@@ -252,19 +256,49 @@ export default {
 // src/config/logging.ts
 export default {
   level: "info", // "fatal"|"error"|"warn"|"info"|"debug"|"trace"
-  httpRequests: true, // if false not store level
+  httpRequests: true, // log per-request HTTP access lines
 };
 ```
+
+## Security
+
+Controls security headers applied to all responses. Enabled by default in production via `SECURITY_HEADERS`:
+
+```ts
+// src/config/security.ts
+export const securityConfig = {
+  enabled: env.SECURITY_HEADERS,
+  csp: "default-src 'self'",
+  hsts: env.APP_ENV === "production",
+  hstsMaxAge: "max-age=31536000; includeSubDomains",
+  xFrame: "DENY",
+};
+```
+
+- **CSP** (`csp`): Content Security Policy. Default restricts to same-origin only. Tighten further for production.
+- **HSTS** (`hsts`): HTTP Strict Transport Security. Enabled automatically in production; disables in development.
+- **X-Frame** (`xFrame`): Clickjacking protection. `DENY` prevents embedding in iframes.
+
+Access via `securityConfig` from the facade or `config.security`.
+
+## Validate
+
+`validateConfig()` in `src/config/validate.ts` runs at startup (before `storage.init()` and `initRedis()`) and checks that resolved configs are internally consistent. It throws clear errors for:
+
+- `DATABASE_URL` missing or empty
+- S3 `bucket`, `accessKeyId`, `secretAccessKey` required when driver is `s3`
+- `REDIS_URL` must include host and port when Redis is enabled
+- `MAIL_USERNAME` required when `MAIL_FAIL_SILENT` is `false`
 
 ## Redis Key Namespace
 
 All Redis keys are prefixed with `REDIS_PREFIX` (default `nexgen`):
 
-| Service       | Key Pattern        | Config         |
-| ------------- | ------------------ | -------------- |
-| Cache         | `nexgen:cache:*`   | `cache.ts`     |
-| Session       | `nexgen:session:*` | `session.ts`   |
-| Queue         | `nexgen:queue:*`   | `queue.ts`     |
-| Durable Queue | `nexgen:durable:*` | `queue.ts`     |
-| Rate Limit    | `nexgen:rl:*`      | `rateLimit.ts` |
-| Broadcast     | `nexgen:broadcast` | `server.ts`    |
+| Service       | Key Pattern        | Config              |
+| ------------- | ------------------ | ------------------- |
+| Cache         | `nexgen:cache:*`   | `cache.ts`          |
+| Session       | `nexgen:session:*` | `session.ts`        |
+| Queue         | `nexgen:queue:*`   | `queue.ts`          |
+| Durable Queue | `nexgen:durable:*` | `queue.ts`          |
+| Rate Limit    | `nexgen:rl:*`      | `rateLimit.ts`      |
+| Broadcast     | `nexgen:broadcast` | `redis.ts` (prefix) |

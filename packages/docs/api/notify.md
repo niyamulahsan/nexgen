@@ -64,7 +64,9 @@ await notify(userId, {
 
 ### Inside a controller
 
-```ts
+::: code-group
+
+```ts [Hono]
 export const createComment: Handler = async (c: any) => {
   const { postId, content } = c.req.valid("json");
   await notify(post.authorId, {
@@ -77,6 +79,22 @@ export const createComment: Handler = async (c: any) => {
   return c.json({ message: "Comment created" });
 };
 ```
+
+```ts [Express]
+export const createComment = async (req: Request, res: Response) => {
+  const { postId, content } = req.body;
+  await notify(post.authorId, {
+    type: "info",
+    title: "New Comment",
+    body: `${res.locals.auth.name} commented on your post.`,
+    link: `/posts/${postId}`,
+    broadcast: true,
+  });
+  return res.json({ message: "Comment created" });
+};
+```
+
+:::
 
 ### Client-side pickup
 
@@ -109,7 +127,7 @@ notify(userId, { broadcast: true, mail: { ... } })
 | **Persistence** | No — fire-and-forget signal | Yes — inserts a row, returns the normalized notification |
 | **Broadcast scope** | Flexible (`all`, `auth`, `roles`, `users`, `rooms`) | Always to a single user (`users: [userId]`) |
 | **Email delivery** | No | Yes — via `mail: { subject, html }` |
-| **Queue option** | Yes | Uses `dispatchEvent` internally for email |
+| **Queue option** | Yes | Yes — internally calls `dispatchEvent` with `{ queue: "mail" }` for email |
 
 ## Notes
 

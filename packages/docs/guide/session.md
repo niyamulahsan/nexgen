@@ -4,7 +4,7 @@
 
 The session system provides **Redis-backed server-side session state** with an automatic httpOnly cookie. It is distinct from auth — it works for both guests and logged-in users.
 
-A `sessionId` is automatically attached to every request via `sessionMiddleware`. You can read it with `c.get("sessionId")` and then use the `session` utility to store/retrieve temporary data such as shopping carts, wizard progress, or UI preferences.
+A `sessionId` is automatically attached to every request via `sessionMiddleware`. You can read it from the request context — `c.get("sessionId")` on Hono, `res.locals.sessionId` on Express — and then use the `session` utility to store/retrieve temporary data such as shopping carts, wizard progress, or UI preferences.
 
 ## Middleware
 
@@ -12,7 +12,7 @@ The `sessionMiddleware` runs on every request and is applied globally in `app.ts
 
 1. Checks for an existing `nexgen_session` cookie (configured in `src/config/session.ts`)
 2. If absent — generates a new `randomUUID()`, sets an httpOnly cookie with the configured TTL
-3. Stores `sessionId` in the Hono context (`c.set("sessionId", ...)`)
+3. Stores `sessionId` on the request context (`c.set`) Hono / `res.locals`) Express
 4. Refreshes the session TTL on every request
 
 No manual setup is needed. The middleware is already wired in the framework boot sequence.
@@ -39,9 +39,17 @@ import { session } from "@/framework/facade.js";
 
 ### Read the session ID
 
-```ts
+::: code-group
+
+```ts [Hono]
 const sessionId = c.get("sessionId");
 ```
+
+```ts [Express]
+const sessionId = res.locals.sessionId;
+```
+
+:::
 
 ### Store and retrieve data
 
@@ -105,7 +113,8 @@ Client                          Server
   │                                │  sessionMiddleware:
   │                                │    no cookie → generate UUID
   │                                │    set-cookie: nexgen_session=<uuid>
-  │                                │    c.set("sessionId", <uuid>)
+  │                                │    sessionId → c.set() (Hono)
+  │                                │               → res.locals (Express)
   │                                │    session.refresh(<uuid>)
   │ <───────────────────────────   │
   │  Set-Cookie: nexgen_session=…  │

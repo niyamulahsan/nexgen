@@ -1,0 +1,14 @@
+import type { Context, Next } from "hono";
+import { db } from "@/framework/facade.js";
+
+/**
+ * Why: Runs before route handlers to enforce cross-cutting rules for {{name}}.
+ * When: Attach to a route group or a specific route.
+ * Where: Add it to a group: group({{camel}}Middleware), or per route:
+ *        .api(route, [{{camel}}Middleware], handler)
+ * How: c.get("auth") is populated when authMiddleware ran first; db gives
+ *      typed access to your module models. Await next() to continue.
+ */
+export async function {{camel}}Middleware(c: Context, next: Next) {
+  return await next();
+}

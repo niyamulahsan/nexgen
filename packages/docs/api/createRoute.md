@@ -27,7 +27,17 @@ const listRoute = createRoute({
   },
 });
 
+::: code-group
+
+```ts [Hono]
 export default group().api(listRoute, async (c) => c.json(await listPosts()));
+```
+
+```ts [Express]
+export default group().api(listRoute, async (_req, res) => res.json(await listPosts()));
+```
+
+:::
 ```
 
 ### Request bodies & params
@@ -68,6 +78,6 @@ const loginRoute = createRoute({
 
 ## Notes
 
-- `createRoute` is re-exported from `@hono/zod-openapi` and pairs with the facade's `z` (see [z](./z) for `.openapi()`).
+- `createRoute` is exported from the facade on both engines (from `@hono/zod-openapi` on Hono; a passthrough over `ExpressRouteConfig` from `@asteasolutions/zod-to-openapi` on Express). It pairs with the facade's `z` — see [z](./z) for `.openapi()`.
 - Requires `OPEN_API=true` to drive the Scalar UI at `/api-docs`.
 - Mount it with `createRouter().api(route, handler)` or `group().api(route, handler)` — see [createRouter](./createRouter).

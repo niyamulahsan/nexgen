@@ -81,9 +81,9 @@ bun maker module:make-console blog cleanup
 
 The generated controller, route, and schema files adapt to your `OPEN_API` environment variable. The CLI reads `process.env.OPEN_API` at scaffold time (`env-db.mjs:openApiEnabled()`) and selects the appropriate stub templates.
 
-| Aspect                    | `OPEN_API=true`                                                                                                                    | `OPEN_API=false` (default)                                                          |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| **Controller validation** | `c.req.valid("param")` / `c.req.valid("json")` — Hono's built-in validation driven by route schema                                 | `await validate(Schema, data)` — manual validation call via `@/framework/facade.js` |
+| Aspect                    | `OPEN_API=true`                                                                                                                                              | `OPEN_API=false` (default)                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| **Controller validation** | `c.req.valid("param")` / `c.req.valid("json")` (Hono) or `req.body` / validated route parts (Express) — driven by the route schema                          | `await validate(Schema, data)` — manual validation call via `@/framework/facade.js` |
 | **Schema file**           | Full set: `ItemSchema`, `CreateSchema`, `UpdateSchema`, `IdParamsSchema`, response schemas (`ListResponse`, `Response`, `Message`) | Minimal: only `CreateSchema`, `UpdateSchema`, `IdParamsSchema` (input-only)         |
 | **Route file**            | Uses `createRoute()` with `.api()` — each route has metadata (path, method, tags, request params/body, response codes)             | Uses direct verb methods `.get("/:id", handler)` — no metadata, no response schemas |
 | **Controller imports**    | No validation import needed                                                                                                        | `import { validate } from "@/framework/facade.js"`                                  |
@@ -93,7 +93,9 @@ The generated controller, route, and schema files adapt to your `OPEN_API` envir
 
 **Controller** (`controller/openapi.ts.stub`):
 
-```ts
+::: code-group
+
+```ts [Hono]
 import type { Handler } from "hono";
 
 export const show: Handler = async (c: any) => {
@@ -105,7 +107,21 @@ export const show: Handler = async (c: any) => {
 };
 ```
 
-Validation comes from the route definition — the controller simply accesses validated data via `c.req.valid()`.
+```ts [Express]
+import type { Request, Response } from "express";
+
+export const show = (req: Request, res: Response) => {
+  const id = req.params.id; // validated by route schema
+  return res.json({
+    message: "Post fetched successfully",
+    data: { id, name: "" },
+  });
+};
+```
+
+:::
+
+Validation comes from the route definition — the controller simply accesses validated data.
 
 **Route** (`route/api.ts.stub`):
 
@@ -145,7 +161,9 @@ export const PostResponseSchema = z.object({
 
 **Controller** (`controller/plain.ts.stub`):
 
-```ts
+::: code-group
+
+```ts [Hono]
 import type { Handler } from "hono";
 import { validate } from "@/framework/facade.js";
 import {
@@ -162,6 +180,26 @@ export const show: Handler = async (c: any) => {
   });
 };
 ```
+
+```ts [Express]
+import type { Request, Response } from "express";
+import { validate } from "@/framework/facade.js";
+import {
+  CreatePostSchema,
+  UpdatePostSchema,
+  PostIdParamsSchema,
+} from "./post.schema.js";
+
+export const show = async (req: Request, res: Response) => {
+  const params = await validate(PostIdParamsSchema, req.params);
+  return res.json({
+    message: "Post fetched successfully",
+    data: { id: params.id, name: "" },
+  });
+};
+```
+
+:::
 
 Validation is explicit — the controller calls `validate()` directly on the raw input.
 

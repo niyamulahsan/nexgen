@@ -206,7 +206,9 @@ When disabled:
 
 ## Complete Controller Example
 
-```ts
+::: code-group
+
+```ts [Hono]
 // src/modules/posts/controllers/post.controller.ts
 import type { Handler } from "hono";
 import { dispatchEvent } from "@/framework/facade.js";
@@ -221,6 +223,24 @@ export const publishPost: Handler = async (c: any) => {
   return c.json({ message: "Post queued for publishing" });
 };
 ```
+
+```ts [Express]
+// src/modules/posts/controllers/post.controller.ts
+import type { Request, Response } from "express";
+import { dispatchEvent } from "@/framework/facade.js";
+
+export const publishPost = (req: Request, res: Response) => {
+  const { id, title } = req.body;
+
+  // Queue the heavy work (image processing, notifications)
+  void dispatchEvent("post.publish", { postId: id }, { queue: "default" });
+
+  // Immediately confirm to the author
+  res.json({ message: "Post queued for publishing" });
+};
+```
+
+:::
 
 ```ts
 // src/modules/posts/jobs/publish-post.ts

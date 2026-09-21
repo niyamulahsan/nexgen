@@ -1,12 +1,112 @@
 # Introduction
 
-## What is nexgen?
+nexgen is a full-stack TypeScript framework that combines a Hono (default) or Express API server, a Vite UI (Vue 3 by default, swappable for React/Svelte/Solid/etc.), Drizzle ORM for the database, and Redis for caching, sessions, queues, and realtime — all wired together with a single CLI.
 
-nexgen is a full-stack TypeScript framework that combines a **Hono** API server, a **Vite** UI (Vue 3 by default, swappable for React/Svelte/Solid/etc.), **Drizzle ORM** for the database, and **Redis** for caching, sessions, queues, and realtime — all wired together with a single CLI.
+## Why nexgen?
+
+Full-stack TypeScript today means choosing ten libraries and gluing them together by hand. Every choice locks you in. Every glue point is somewhere things break.
+
+nexgen makes those choices for you, and lets you override the ones that matter.
+
+- HTTP engine — Hono (default) or Express. Pick at scaffold time. Same module code either way.
+- UI framework — Vue 3 by default, swappable for React/Svelte/Solid.
+- Database — Drizzle ORM with SQLite, MySQL, or PostgreSQL. Dialect auto-detected from DATABASE_URL.
+- Redis — one client, one config, powering sessions, cache, queues, rate limiting, and pub/sub.
+- Realtime — Socket.IO with automatic auth, room assignment, and broadcasts.
+- Deploy — one command to any Linux VPS. SSH + Docker. No CI/CD platform required.
+
+You write modules. The framework wires them.
+
+## A real example
+
+Three files. No manual registration.
+
+```ts
+// src/modules/posts/database/models/post.ts
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+
+export const posts = pgTable("posts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+```
+
+```ts
+// src/modules/posts/routes/api.ts
+import { db, group, paginateModel } from "@/framework/facade.js";
+import { posts } from "../database/models/post.js";
+
+export default group()
+  .get("/", (c) => paginateModel(c, posts))
+  .post("/", async (c) => {
+    const body = await c.req.json();
+    const [post] = await db.insert(posts).values(body).returning();
+    return c.json(post, 201);
+  });
+```
+
+```bash
+# Migrate and seed — both auto-discovered
+bun maker db:migrate --seed
+```
+
+The route file is picked up automatically. The model is used by the migration system. The seeder (if you add one) is sorted by foreign key dependencies. No index.ts to update.
+
+## Who nexgen is for
+
+- Solo developers building SaaS, internal tools, or client projects who want a batteries-included stack without weeks of architecture decisions.
+- Growing teams that need consistent conventions and clear module boundaries — so a codebase can expand without becoming a pile of glue code.
+- Backend developers moving into full-stack who want a familiar server setup (Hono/Express + Drizzle + Redis) with a UI that just works.
+- Startup founders who need to move fast — scaffold, run dev, ship features.
+- Laravel / Rails / Django developers looking for a TypeScript equivalent with routing, ORM, queues, cache, auth, realtime, and deployment in one package.
+- Teams scaling past their first architecture who want module isolation, engine choice, and one-command deployment without adopting a heavyweight DI framework.
+
+## Who nexgen is not for
+
+- Projects that need fine-grained control over every dependency.
+- Teams already committed to a meta-framework like Next.js or Nuxt.
+- Static sites or purely serverless functions with no database.
+
+## Everything in One Import
+
+All features are accessible from a single facade:
+
+```ts
+import {
+  db,
+  cache,
+  session,
+  queue,
+  queueJob,
+  shouldQueue,
+  defineSchedule,
+  broadcast,
+  notify,
+  storage,
+  jwt,
+  cookie,
+  mail,
+  password,
+  logger,
+  urls,
+  paginate,
+  validate,
+  createRouter,
+  group,
+  createRoute,
+  z,
+} from "@/framework/facade.js";
+```
+
+## Minimal example
 
 Here is a minimal example (with `OPEN_API=true`):
 
-```ts
+::: code-group
+
+```ts [Hono]
 // src/modules/posts/routes/api.ts
 import {
   createRoute,
@@ -27,27 +127,52 @@ export default group().api(listRoute, (c) =>
 );
 ```
 
+```ts [Express]
+// src/modules/posts/routes/api.ts
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+const listRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["Posts"],
+  responses: { [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list") },
+});
+
+export default group().api(listRoute, (_req: Request, res: Response) =>
+  res.json([{ id: 1, title: "Hello" }]),
+);
+```
+
+:::
+
 With `OPEN_API=false`, the same route looks like:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { group } from "@/framework/facade.js";
 
 export default group().get("/", (c) => c.json([{ id: 1, title: "Hello" }]));
 ```
 
+```ts [Express]
+import { group } from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+export default group().get("/", (_req: Request, res: Response) =>
+  res.json([{ id: 1, title: "Hello" }]),
+);
+```
+
+:::
+
 The above example auto-registers the route — no manual wiring needed. Create a file, export a group, and it works.
-
-## Who is nexgen for?
-
-nexgen is built for developers who want to ship full-stack TypeScript applications without gluing together dozens of separate libraries and configs. It is a good fit if you:
-
-- **Solo developers** building SaaS products, internal tools, or client projects who want a batteries-included stack that works out of the box.
-- **Small teams** that need a consistent project structure everyone can follow without spending weeks on architecture decisions.
-- **Backend developers** moving into full-stack who want a familiar server setup (Hono + Drizzle + Redis) with a UI that just works.
-- **Startup founders** who need to move fast — scaffold a project, run `dev`, and start building features immediately.
-- **Laravel / Rails / Django developers** looking for a TypeScript equivalent that covers routing, ORM, queue, cache, auth, realtime, and deployment in one package.
-
-nexgen may **not** be the best choice if you need fine-grained control over every dependency, prefer a meta-framework like Next.js or Nuxt, or are building something that only needs a static site.
 
 ## API-Only Mode
 
@@ -117,20 +242,38 @@ BullMQ-powered background processing with a web dashboard. Jobs can be durable �
 import { queueJob, shouldQueue } from "@/framework/facade.js";
 
 // Register a durable handler (survives crashes)
-shouldQueue("send-email", "mail", async (job, ctx) => {
-  await ctx.step("validate", async () => {
-    validateEmailData(job.data);
-  });
-  await ctx.step("send", async () => {
-    await mail.sendMail({ to: job.data.to, subject: job.data.subject, html: job.data.body });
-  });
-}, { durable: true });
+shouldQueue(
+  "send-email",
+  "mail",
+  async (job, ctx) => {
+    await ctx.step("validate", async () => {
+      validateEmailData(job.data);
+    });
+    await ctx.step("send", async () => {
+      await mail.sendMail({
+        to: job.data.to,
+        subject: job.data.subject,
+        html: job.data.body,
+      });
+    });
+  },
+  { durable: true },
+);
 
 // Enqueue a job
-await queueJob("send-email", { to: "user@example.com", subject: "Welcome!", body: "<h1>Welcome</h1>" }, { queue: "mail" });
+await queueJob(
+  "send-email",
+  { to: "user@example.com", subject: "Welcome!", body: "<h1>Welcome</h1>" },
+  { queue: "mail" },
+);
 
 // With delay (seconds), priority, and retry
-await queueJob("send-email", data, { queue: "mail", delay: 5, priority: 1, attempts: 3 });
+await queueJob("send-email", data, {
+  queue: "mail",
+  delay: 5,
+  priority: 1,
+  attempts: 3,
+});
 ```
 
 The queue dashboard is available at `/queues` with email-based access control.
@@ -194,7 +337,11 @@ import { broadcast } from "@/framework/facade.js";
 broadcast("post.created", { id: 1, title: "New Post" }, { all: true });
 
 // Send to specific users
-broadcast("notification", { message: "You have a new order" }, { users: ["user-123"] });
+broadcast(
+  "notification",
+  { message: "You have a new order" },
+  { users: ["user-123"] },
+);
 
 // Send to a role
 broadcast("announcement", { text: "System maintenance" }, { roles: ["admin"] });
@@ -232,16 +379,33 @@ await notify(userId, {
 
 Drizzle ORM with support for **SQLite**, **MySQL**, and **PostgreSQL** — just change `DATABASE_URL` and it auto-detects the dialect. Includes pagination, topological seeding, and migration hooks.
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { db, paginateModel } from "@/framework/facade.js";
 
 // Query
 const posts = await db.query.posts.findMany({ with: { author: true } });
-
-// Paginated list (reads page/per_page from query string)
-const result = await paginateModel(c, { findMany: (opts) => db.query.posts.findMany(opts), with: { author: true } });
 // Returns: { current_page, data, total, links, ... }
+const result = await paginateModel(c, {
+  findMany: (opts) => db.query.posts.findMany(opts),
+  with: { author: true },
+});
 ```
+
+```ts [Express]
+import { db, paginateModel } from "@/framework/facade.js";
+
+// Query
+const posts = await db.query.posts.findMany({ with: { author: true } });
+// Returns: { current_page, data, total, links, ... }
+const result = await paginateModel(req, {
+  findMany: (opts) => db.query.posts.findMany(opts),
+  with: { author: true },
+});
+```
+
+:::
 
 Seeders are auto-discovered and sorted by foreign key dependencies — no manual ordering needed.
 
@@ -249,7 +413,9 @@ Seeders are auto-discovered and sorted by foreign key dependencies — no manual
 
 JWT-based auth with signed HTTP-only cookies. Separate tokens for access and refresh, with automatic cross-origin cookie handling.
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { jwt, cookie, password } from "@/framework/facade.js";
 
 // Hash a password
@@ -263,9 +429,31 @@ const access = await jwt.generateToken({ userId: 1 }, "access", 3600);
 const refresh = await jwt.generateToken({ userId: 1 }, "refresh", 604800);
 
 // Set cookies (handles SameSite automatically for cross-origin)
+
 cookie.setAuth(c, access.token);
 cookie.setRefresh(c, refresh.token);
 ```
+
+```ts [Express]
+import { jwt, cookie, password } from "@/framework/facade.js";
+
+// Hash a password
+const hash = await password.hashPassword("user-password");
+
+// Verify
+const valid = await password.verifyPassword("user-password", hash);
+
+// Generate tokens
+const access = await jwt.generateToken({ userId: 1 }, "access", 3600);
+const refresh = await jwt.generateToken({ userId: 1 }, "refresh", 604800);
+
+// Set cookies (handles SameSite automatically for cross-origin)
+
+cookie.setAuth(res, access.token);
+cookie.setRefresh(res, refresh.token);
+```
+
+:::
 
 ## Rate Limiting
 
@@ -310,14 +498,14 @@ That single command uploads your project via rsync, creates Docker networks, sta
 
 What you get on the remote server:
 
-| Component | What it does |
-|---|---|
-| **nginx-proxy** | Reverse proxy with auto Let's Encrypt SSL |
-| **mysql / postgres** | Database server (shared across apps) |
-| **redis** | Cache, queue, session, realtime backend |
-| **pgAdmin / phpMyAdmin** | Database admin UIs |
-| **app container** | Your app with supervisor managing API + queue worker + scheduler |
-| **auto-migrate** | Runs `db:migrate --seed` on first deploy (one-shot) |
+| Component                | What it does                                                     |
+| ------------------------ | ---------------------------------------------------------------- |
+| **nginx-proxy**          | Reverse proxy with auto Let's Encrypt SSL                        |
+| **mysql / postgres**     | Database server (shared across apps)                             |
+| **redis**                | Cache, queue, session, realtime backend                          |
+| **pgAdmin / phpMyAdmin** | Database admin UIs                                               |
+| **app container**        | Your app with supervisor managing API + queue worker + scheduler |
+| **auto-migrate**         | Runs `db:migrate --seed` on first deploy (one-shot)              |
 
 ```bash
 # Promote: test locally first, then deploy remote
@@ -328,37 +516,6 @@ npm run maker deploy:db:import:remote -- --file=deploy/nexgen.sql
 ```
 
 The system auto-detects your database dialect, package manager, and runtime — the generated Dockerfile works with npm, pnpm, yarn, and Bun. See [Deploy Overview](/deploy/overview) for the full architecture.
-
-## Everything in One Import
-
-All features are accessible from a single facade:
-
-```ts
-import {
-  db,
-  cache,
-  session,
-  queue,
-  queueJob,
-  shouldQueue,
-  defineSchedule,
-  broadcast,
-  notify,
-  storage,
-  jwt,
-  cookie,
-  mail,
-  password,
-  logger,
-  urls,
-  paginate,
-  validate,
-  createRouter,
-  group,
-  createRoute,
-  z,
-} from "@/framework/facade.js";
-```
 
 ## Module System
 
@@ -434,12 +591,12 @@ bun maker dev
 
 :::
 
-| Component            | URL                              |
-| -------------------- | -------------------------------- |
-| API server           | `http://localhost:3000`          |
-| API docs (Scalar)    | `http://localhost:3000/api-docs` |
-| Queue dashboard      | `http://localhost:3000/queues`   |
-| Vue 3 UI (HMR) | `http://localhost:5173`          |
+| Component         | URL                              |
+| ----------------- | -------------------------------- |
+| API server        | `http://localhost:3000`          |
+| API docs (Scalar) | `http://localhost:3000/api-docs` |
+| Queue dashboard   | `http://localhost:3000/queues`   |
+| Vue 3 UI (HMR)    | `http://localhost:5173`          |
 
 ## Pick Your Learning Path
 

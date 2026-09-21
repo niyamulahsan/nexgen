@@ -12,7 +12,7 @@ import { mail } from "@/framework/facade.js";
 
 | Method | Purpose |
 |---|---|
-| `mail.sendMail(payload)` | Sends an email with `to`, `subject`, and optional `html`/`text`. Returns the send result or `null` on failure (when `failSilent: true`). |
+| `mail.sendMail(payload)` | Sends an email. `payload`: `{ to, subject, html?, text?, from?, cc?, bcc? }`. Returns the send result or `null` on failure (when `failSilent: true`). |
 
 ## Usage
 
@@ -44,3 +44,8 @@ Mail settings are in `src/config/mail.ts`. Username/password stay in `.env`; the
 |---|---|---|
 | `MAIL_USERNAME` | `""` | SMTP username (empty = no auth) |
 | `MAIL_PASSWORD` | `""` | SMTP password |
+
+## Notes
+
+- The `from` field in the payload overrides the `fromAddress` config setting when provided.
+- With `failSilent`, send errors return `null` instead of throwing.

@@ -34,6 +34,32 @@ bun create nexgen@latest my-project
 `npx nexgen@latest my-project` also works for npm users without the `create` prefix.
 :::
 
+### Choosing an HTTP engine
+
+By default the project uses the **Hono** engine. To start with **Express** instead, pass `--engine=express`:
+
+::: code-group
+
+```bash [npm]
+npm create nexgen@latest my-project -- --engine=express
+```
+
+```bash [pnpm]
+pnpm create nexgen@latest my-project --engine=express
+```
+
+```bash [yarn]
+yarn create nexgen@latest my-project --engine=express
+```
+
+```bash [bun]
+bun create nexgen@latest my-project --engine=express
+```
+
+:::
+
+See [Routing: Hono vs Express](/guide/routing) for how the two engines differ.
+
 ## Setup
 
 ::: code-group

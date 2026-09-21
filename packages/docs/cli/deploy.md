@@ -2,7 +2,7 @@
 
 Docker-based deployment commands for local and remote environments. See the [Deploy guide](/deploy/overview) for architecture details.
 
-> Deploy commands skip `.env` loading because they need to generate `.env` files first. All detection (database dialect, Redis) reads `.env` directly.
+> Deploy commands skip `.env` loading via dotenv (they need to generate `.env` files first), but read `.env` directly via `fs` for dialect and feature-flag detection.
 
 ::: code-group
 

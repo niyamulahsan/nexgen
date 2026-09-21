@@ -93,7 +93,10 @@ The `deploy:init` command already created `deploy/workflow.remote.json`. Edit it
   },
   "preDeployCommands": [
     "docker rm -f old-app 2>/dev/null || true"
-  ]
+  ],
+  "rsyncPath": "rsync",
+  "rsyncSshPath": "ssh",
+  "rsyncSshOptions": ["-o", "StrictHostKeyChecking=no"]
 }
 ```
 
@@ -112,29 +115,27 @@ The `deploy:init` command already created `deploy/workflow.remote.json`. Edit it
 | `databaseImport.container` | Docker container name (`mysql-global` or `postgres-global`) |
 | `databaseImport.user` | Database user (`root` / `postgres`) |
 | `preDeployCommands` | Commands run on the remote host before starting the app |
-
-### rsync options
-
-By default the CLI uses `scp` to upload files. To use `rsync` instead (faster incremental sync), add these fields to the config:
-
-| Field | Purpose |
-|---|---|
-| `rsyncPath` | Path to the rsync binary on the remote host (e.g. `"rsync"`) |
+| `rsyncPath` | Path to the rsync binary (e.g. `"rsync"`). When set, rsync is used instead of scp |
 | `rsyncSshPath` | Path to the SSH binary used by rsync (e.g. `"ssh"`) |
-| `rsyncSshOptions` | Extra SSH options passed to rsync (e.g. `["-o", "StrictHostKeyChecking=no"]`) |
+| `rsyncSshOptions` | Extra SSH flags passed to rsync (e.g. `["-o", "StrictHostKeyChecking=no"]`) |
 
-Example with rsync enabled:
+### rsync Version Requirement
 
-```json
-{
-  "remote": { ... },
-  "rsyncPath": "rsync",
-  "rsyncSshPath": "ssh",
-  "rsyncSshOptions": ["-o", "StrictHostKeyChecking=no"]
-}
+rsync version compatibility matters — using a very different version (e.g. major version mismatch) between local and remote can cause protocol handshake failures. Check both versions before deploying:
+
+Check both versions before deploying:
+```bash
+rsync --version      # local
+ssh user@host "rsync --version"   # remote
 ```
 
-When `rsyncPath` is not set, the CLI falls back to `scp`. Both approaches exclude `node_modules`, `.git`, `dist`, and `.env*` from the upload.
+If versions differ, you have two options:
+1. **Match the versions** — install the same rsync build on both sides (e.g. `choco install rsync` on Windows, `sudo apt install rsync` on the remote)
+2. **Fall back to scp** — remove `rsyncPath` from `workflow.remote.json` (or set it to `""`). The deploy system will automatically use `scp` instead of `rsync`
+
+::: tip
+scp works as a reliable fallback when rsync versions can't be matched. It uploads files but doesn't support incremental sync or `--delete`. Remove `rsyncPath` to enable scp mode.
+:::
 
 ## Step 3 — Deploy
 
@@ -299,4 +300,4 @@ Remote Server
 - Change default MySQL/Postgres passwords in `deploy/server/.env` before production.
 - Generate strong secrets for `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `COOKIE_SECRET`.
 - The app container does not expose ports directly — all traffic goes through nginx-proxy.
-- Set `AUTO_MIGRATE=false` in production if you prefer to run migrations manually.
+- Set `AUTO_MIGRATE=false` in production to disable automatic migrations and run them manually instead.

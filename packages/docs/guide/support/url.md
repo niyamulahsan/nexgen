@@ -30,6 +30,10 @@ urls.url("api/health");
 // "https://example.com/api/health"
 ```
 
+## Notes
+
+- If `APP_URL` is missing, `urls.appUrl()` and `urls.url()` return `null` rather than throwing. Set `APP_URL` in `.env` to a valid absolute URL (e.g., `https://example.com`) for correct behavior.
+
 ## Environment Variables
 
 | Variable | Default | Description |

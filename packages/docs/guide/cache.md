@@ -63,12 +63,20 @@ if (!stats) {
 
 ## Environment Variables
 
-| Variable       | Default                           | Description                       |
-| -------------- | --------------------------------- | --------------------------------- |
-| `ttlSeconds`   | `3600 (config/cache.ts)` (1 hour) | Default TTL for cached values     |
-| `REDIS`        | `false`                           | Enable Redis (required for cache) |
-| `REDIS_URL`    | `redis://127.0.0.1:6379`          | Redis connection string           |
-| `REDIS_PREFIX` | `nexgen`                          | Key prefix for namespacing        |
+| Variable       | Default                  | Description                          |
+| -------------- | ------------------------ | ------------------------------------ |
+| `REDIS`        | `false`                  | Enable Redis (required for cache)    |
+| `REDIS_URL`    | `redis://127.0.0.1:6379` | Redis connection string              |
+| `REDIS_PREFIX` | `nexgen`                 | Key prefix for namespacing           |
+
+## Cache Configuration
+
+Default TTL and other settings live in `src/config/cache.ts`:
+
+| Setting      | Default           | Description                          |
+| ------------ | ----------------- | ------------------------------------ |
+| `ttlSeconds` | `3600` (1 hour) | Default TTL for cached values      |
+| `keyPrefix`  | `nexgen:cache`    | Redis key prefix for cache keys    |
 
 ## How It Works
 

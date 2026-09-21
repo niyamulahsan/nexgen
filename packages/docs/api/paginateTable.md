@@ -40,7 +40,9 @@ const result = await paginateTable(db, posts, {
 
 The common "index with optional search" handler reads `search` from the query, builds Drizzle clauses with `ilike`, and pages the single table:
 
-```ts
+::: code-group
+
+```ts [Hono]
 // modules/report/controllers/files.controller.ts
 import { desc, ilike, or } from "drizzle-orm";
 import { db, HttpStatusCodes, paginateTable } from "@/framework/facade.js";
@@ -63,6 +65,34 @@ export const index: Handler = async (c: any) => {
   return c.json({ message: "Files fetched successfully", data: result }, HttpStatusCodes.OK);
 };
 ```
+
+```ts [Express]
+// modules/report/controllers/files.controller.ts
+import { desc, ilike, or } from "drizzle-orm";
+import { db, HttpStatusCodes, paginateTable } from "@/framework/facade.js";
+
+export const index = async (req: Request, res: Response) => {
+  const query = req.query; // validated in place
+  const search = String(query.search || "").trim();
+
+  const clauses: any[] = [];
+  if (search) clauses.push(ilike(reports.name, `%${search}%`));
+
+  const result = await paginateTable(db, reports, {
+    page: Number(query.page || 1),
+    perPage: Number(query.size || 10),
+    where: clauses.length ? or(...clauses) : undefined,
+    orderBy: [desc(reports.id)],
+    path: req.path,
+  });
+
+  return res
+    .status(HttpStatusCodes.OK)
+    .json({ message: "Files fetched successfully", data: result });
+};
+```
+
+:::
 
 ## Notes
 

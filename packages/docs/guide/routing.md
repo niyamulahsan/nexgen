@@ -1,6 +1,18 @@
 # Routing
 
-nexgen uses **Hono** for API routing with automatic route discovery. Routes are defined per module and auto-registered at startup.
+nexgen uses one of two HTTP engines for routing: **Hono** (default) or **Express**. Both are available from `create-nexgen` via `--engine=hono` or `--engine=express`. Routes are defined per module and auto-registered at startup.
+
+The framework exposes the same facade (`createRoute`, `group`, `HttpStatusCodes`, `jsonContent`, ...) on both engines — only the request handler signature differs:
+
+| Concern             | Hono                                   | Express                             |
+| ------------------- | -------------------------------------- | ----------------------------------- |
+| Handler signature   | `(c: Context)`                         | `(req: Request, res: Response)`     |
+| Validated body      | `c.req.valid("json")`                  | `req.body`                          |
+| Path param          | `c.req.param("id")`                    | `req.params.id`                     |
+| Query param         | `c.req.query("page")`                  | `req.query.page`                    |
+| JSON response       | `c.json(data, status)`                 | `res.status(status).json(data)`     |
+| Middleware context  | `c.set("key", value)` / `c.get("key")` | `res.locals.key`                    |
+| Types imported from | `"hono"` (`Handler`, `Context`)        | `"express"` (`Request`, `Response`) |
 
 ## Basic Route
 
@@ -23,15 +35,31 @@ const listRoute = createRoute({
     [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list"),
   },
 });
+```
 
+The route definition is identical on both engines — only the handler changes:
+
+::: code-group
+
+```ts [Hono]
 export default group().api(listRoute, (c) =>
   c.json([{ id: 1, title: "Hello" }]),
 );
 ```
 
+```ts [Express]
+import type { Request, Response } from "express";
+
+export default group().api(listRoute, (_req: Request, res: Response) =>
+  res.json([{ id: 1, title: "Hello" }]),
+);
+```
+
+:::
+
 ## Route Groups
 
-Use `group()` to organize routes into logical groups with shared middleware:
+Use `group()` to organize routes into logical groups with shared middleware — identical on both engines:
 
 ```ts
 import { group } from "@/framework/facade.js";
@@ -45,9 +73,39 @@ const protectedGroup = group(authMiddleware)
   .api(showRoute, show);
 ```
 
+## Handlers
+
+A handler receives the request and must return/send a response. Read the input, then respond:
+
+::: code-group
+
+```ts [Hono]
+import type { Handler } from "hono";
+
+export const show: Handler = async (c) => {
+  const id = c.req.param("id"); // path param
+  const page = c.req.query("page"); // query param
+  const data = { id, page }; // ... your logic
+  return c.json(data, 200);
+};
+```
+
+```ts [Express]
+import type { Request, Response } from "express";
+
+export const show = (req: Request, res: Response) => {
+  const id = req.params.id; // path param
+  const page = req.query.page; // query param
+  const data = { id, page }; // ... your logic
+  res.status(200).json(data);
+};
+```
+
+:::
+
 ## OpenAPI Mode
 
-When `OPEN_API=true`, routes use `createRoute()` with `.api()` for full OpenAPI documentation at `/api-docs`:
+When `OPEN_API=true`, routes use `createRoute()` with `.api()` for full OpenAPI documentation at `/api-docs` — shared by both engines:
 
 ```ts
 const showRoute = createRoute({
@@ -63,7 +121,7 @@ const showRoute = createRoute({
 export default group().api(showRoute, show);
 ```
 
-When `OPEN_API=false`, routes use plain verb methods without metadata:
+When `OPEN_API=false`, routes use plain verb methods without metadata — identical on both engines:
 
 ```ts
 export default group()
@@ -104,7 +162,7 @@ This creates `src/modules/blog/routes/post.ts` and auto-links it to the most rec
 
 ## Middleware
 
-Apply middleware per-route or per-group:
+Apply middleware per-route or per-group (API identical on both engines):
 
 ```ts
 import { group } from "@/framework/facade.js";
@@ -116,38 +174,160 @@ export default group(authMiddleware) // all routes require auth
   .api(showRoute, [requireRole("admin")], show); // only admin role
 ```
 
+To create your own middleware, use the `middleware:make` CLI command and fill in the engine-specific signature — see [Middleware Commands](../cli/middleware):
+
+### Generating Middleware
+
+::: code-group
+
+```bash [npm]
+npm run maker middleware:make ratelimit
+```
+
+```bash [pnpm]
+pnpm maker middleware:make ratelimit
+```
+
+```bash [yarn]
+yarn maker middleware:make ratelimit
+```
+
+```bash [bun]
+bun maker middleware:make ratelimit
+```
+
+:::
+
+This creates `src/middlewares/ratelimit-middleware.ts` into middlewares folder.
+
+::: code-group
+
+```ts [Hono]
+// src/middlewares/rate-limit-middleware.ts
+import type { Context, Next } from "hono";
+import { db } from "@/framework/facade.js";
+
+export async function ratelimitMiddleware(c: Context, next: Next) {
+  c.set("note", "checked"); // share data with handlers via c.get()
+  return await next();
+}
+```
+
+```ts [Express]
+// src/middlewares/rate-limit-middleware.ts
+import type { NextFunction, Request, Response } from "express";
+import { db } from "@/framework/facade.js";
+
+export function ratelimitMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  res.locals.note = "checked"; // share data with handlers via res.locals
+  return next();
+}
+```
+
+:::
+
 ## Built-in Middleware
 
 The framework applies these globally in `src/framework/http/app.ts`:
 
-| Middleware              | Purpose                                  |
-| ----------------------- | ---------------------------------------- |
-| `corsMiddleware`        | CORS headers                             |
-| `sessionMiddleware`     | Session cookie + ID                      |
-| `rateLimiterMiddleware` | Global rate limiting                     |
+| Middleware              | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `corsMiddleware`        | CORS headers                                                                       |
+| `sessionMiddleware`     | Session cookie + ID                                                                |
+| `rateLimiterMiddleware` | Global rate limiting                                                               |
 | `loggerMiddleware`      | Request logging (when `loggingConfig.httpRequests` is true in `config/logging.ts`) |
 
 ## Request Validation
 
 With OpenAPI enabled, validation is automatic via route schemas:
 
-```ts
+::: code-group
+
+```ts [Hono]
 // Controller receives validated data
+import type { Handler } from "hono";
+
 export const store: Handler = async (c) => {
   const body = c.req.valid("json"); // validated against CreateSchema
   // body is typed — no manual validation needed
 };
 ```
 
-Without OpenAPI, use the `validate()` helper:
+```ts [Express]
+// Controller receives validated data
+import type { Request, Response } from "express";
 
-```ts
+export const store = (req: Request, res: Response) => {
+  const body = req.body; // validated against CreateSchema
+  // body is typed — no manual validation needed
+};
+```
+
+:::
+
+Without OpenAPI, use the `validate()` helper (identical on both engines):
+
+::: code-group
+
+```ts [Hono]
 import { validate } from "@/framework/facade.js";
 
 export const store: Handler = async (c) => {
   const body = await validate(CreatePostSchema, await c.req.json());
 };
 ```
+
+```ts [Express]
+import { validate } from "@/framework/facade.js";
+
+export const store = async (req: Request, res: Response) => {
+  const body = await validate(CreatePostSchema, req.body);
+};
+```
+
+:::
+
+## File Uploads
+
+Multipart parsing is engine-specific:
+
+- **Hono** — `await c.req.parseBody()` returns the raw body; files arrive as `File` instances.
+- **Express** — attach the `upload({ field })` / `fields()` facade middlewares to the route; files arrive as in-memory buffers on `req.file` / `req.files`.
+
+```ts
+// Hono controller file
+export const upload: Handler = async (c) => {
+  const body = await c.req.parseBody();
+  const file = body.file;
+  if (!(file instanceof File))
+    return c.json({ message: "File is required" }, 422);
+
+  const path = await storage.disk("public").putFile("uploads", file);
+  return c.json({ path, url: storage.disk("public").url(path) });
+};
+```
+
+```ts
+// Express api file
+import { upload } from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+export default group().api(
+  uploadRoute,
+  [upload({ field: "file", maxSize: 2 * 1024 * 1024 })],
+  async (req: Request, res: Response) => {
+    const file = req.file!; // in-memory buffer
+    const path = await storage.disk("public").putFile("uploads", file);
+    res.json({ path, url: storage.disk("public").url(path) });
+  },
+);
+```
+
+See [Upload — Express only](/guide/support/upload) and [Storage: Multipart File Upload](/guide/storage#multipart-file-upload) for the full detail.
 
 ## UI Routes
 

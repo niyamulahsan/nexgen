@@ -45,8 +45,14 @@ function octalToInt(str) {
   return parseInt(str.replace(/\0.*$/, "").trim(), 8) || 0;
 }
 
-function extractTarGz(tgzBuffer, destDir) {
+const ENGINE_PREFIXES = {
+  hono: "package/hono/",
+  express: "package/express/"
+};
+
+function extractTarGz(tgzBuffer, destDir, engine) {
   const buf = gunzipSync(tgzBuffer);
+  const prefix = ENGINE_PREFIXES[engine] || ENGINE_PREFIXES.hono;
   let offset = 0;
 
   while (offset < buf.length - 512) {
@@ -59,8 +65,8 @@ function extractTarGz(tgzBuffer, destDir) {
 
     offset += 512;
 
-    if (name && name.startsWith("package/template/")) {
-      const relativePath = name.slice("package/template/".length);
+    if (name && name.startsWith(prefix)) {
+      const relativePath = name.slice(prefix.length);
       if (relativePath) {
         const fullPath = join(destDir, relativePath);
         if (type === 48 || type === 0) {
@@ -103,14 +109,26 @@ async function main() {
   const args = process.argv.slice(2);
   let projectName = args.find((a) => !a.startsWith("--"));
 
+  const engineArg = args.find((a) => a.startsWith("--engine="));
+  let engine = engineArg ? engineArg.split("=")[1] : "hono";
+
+  if (!ENGINE_PREFIXES[engine]) {
+    console.error(`Error: Unknown engine "${engine}". Supported engines: hono, express.`);
+    process.exit(1);
+  }
+
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`create-nexgen v${version}`);
     console.log();
     console.log("Usage:");
-    console.log("  npm create nexgen@latest <project-name>");
-    console.log("  pnpm create nexgen@latest <project-name>");
-    console.log("  bun create nexgen@latest <project-name>");
+    console.log("  npm create nexgen@latest <project-name> [--engine=<hono|express>]");
+    console.log("  pnpm create nexgen@latest <project-name> [--engine=<hono|express>]");
+    console.log("  bun create nexgen@latest <project-name> [--engine=<hono|express>]");
     console.log("  npx nexgen@latest <project-name>");
+    console.log();
+    console.log("Engines:");
+    console.log("  hono     (default) Hono-based HTTP layer and OpenAPI");
+    console.log("  express  Express-based HTTP layer and OpenAPI");
     process.exit(0);
   }
 
@@ -125,14 +143,14 @@ async function main() {
 
   const targetDir = resolveTargetDir(projectName);
 
-  console.log(`\nCreating project "${projectName}"...\n`);
+  console.log(`\nCreating project "${projectName}" (engine: ${engine})...\n`);
 
   mkdirSync(targetDir, { recursive: true });
 
   try {
     console.log("  Downloading template from npm...");
     const tgz = await fetchTarball("create-nexgen", version);
-    extractTarGz(tgz, targetDir);
+    extractTarGz(tgz, targetDir, engine);
   } catch (err) {
     console.error("Error: Failed to download template from npm registry.");
     console.error("  " + err.message);
@@ -154,7 +172,7 @@ async function main() {
 
   const pm = detectPackageManager();
 
-  console.log(`Done! Created "${projectName}" at ${targetDir}`);
+  console.log(`Done! Created "${projectName}" (engine: ${engine}) at ${targetDir}`);
   console.log();
   console.log("  cd " + projectName);
   console.log("  " + pm + " install");

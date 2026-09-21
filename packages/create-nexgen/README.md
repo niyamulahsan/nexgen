@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://nexgen.dev">
-    <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="280">
+    <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
   </a>
 </p>
 
@@ -14,26 +14,37 @@
 
 ---
 
-## Install
+nexgen is a batteries-included TypeScript framework that combines modular backends (Hono, Express) with Drizzle ORM, BullMQ, Socket.IO, Redis, and a Vue 3 SPA frontend — all scaffolded with a single command and deployed with Docker Compose.
+
+## Quick Start
+
+### Hono (default)
 
 ```bash
 npm create nexgen@latest my-app
 cd my-app
 npm install
-```
-
-Requires **Node.js >= 24** or **Bun >= 1.3**.
-
-## Quick Start
-
-```bash
 npm run maker db:migrate --seed
 npm run maker dev
 ```
 
-Open `http://localhost:3000/api-docs` for API docs or `http://localhost:5173` for the Vue frontend.
+### Express
+
+```bash
+npm create nexgen@latest my-app -- --engine=express
+cd my-app
+npm install
+npm run maker db:migrate --seed
+npm run maker dev
+```
+
+Your API is live at `http://localhost:3000`, Scalar docs at `/api-docs`, and the Vue frontend at `http://localhost:5173`.
+
+Requires **Node.js >= 24** or **Bun >= 1.3**.
 
 ### Package Manager
+
+All examples use `npm` as the default. nexgen works with any major package manager:
 
 | Manager  | Create project              | Run commands          |
 | -------- | --------------------------- | --------------------- |
@@ -44,38 +55,92 @@ Open `http://localhost:3000/api-docs` for API docs or `http://localhost:5173` fo
 
 ### Runtime
 
-nexgen runs on **Node.js** or **Bun**. Pass `--runtime=bun` to `deploy:init` for Bun-based Docker images.
+nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 
-## What You Get
-
-```
-my-app/
-├── src/
-│   ├── env.ts              # Zod-validated environment config
-│   ├── framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
-│   ├── modules/            # Application modules (auto-discovered)
-│   │   └── auth/           # Auth controllers, routes, models, jobs
-│   ├── middlewares/        # Auth & role guards
-│   ├── resources/          # Vue 3 SPA frontend
-│   └── storage/            # Uploaded files & logs
-├── deploy/                 # Docker Compose files
-└── .env.example
-```
+| Runtime     | Minimum version | Notes                                                                 |
+| ----------- | --------------- | --------------------------------------------------------------------- |
+| **Node.js** | `>= 24`         | Default. Uses `node` in Dockerfile.                                   |
+| **Bun**     | `>= 1.3`        | Pass `--runtime=bun` to `deploy:init`. Uses `oven/bun` in Dockerfile. |
 
 ## Features
 
-- **Modular architecture** — Self-contained modules with auto-discovered routes, jobs, models, and seeders
-- **Type-safe API** — Hono + Zod + OpenAPI with auto-generated Scalar docs
-- **Database** — Drizzle ORM with SQLite, MySQL, or PostgreSQL
-- **Queue & Scheduler** — BullMQ background jobs with cron scheduling
-- **Realtime** — Socket.IO with auto room joining and broadcast events
-- **Cache & Session** — Redis-backed with graceful fallback
-- **JWT Auth** — Access + refresh token rotation with signed httpOnly cookies
-- **Vue 3 Frontend** — Vite + Pinia + Vue Router with real-time Pulse integration
-- **Maker CLI** — Code generation, migrations, runtime management, and deploy orchestration
-- **Docker Deploy** — Two-layer Compose with nginx-proxy, auto SSL, and supervisor
+| Category            | What you get                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting         |
+| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
+| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware          |
+| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard           |
+| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events               |
+| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                             |
+| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                                 |
+| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)                   |
+| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                        |
+| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin               |
+| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment          |
+| **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation |
+| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy                   |
+| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                           |
 
-## CLI Commands
+## Architecture
+
+```
+src/
+├── env.ts              # Zod-validated environment config
+├── database/           # Drizzle schema, migrations, seeders
+├── framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
+├── modules/            # Application modules (auto-discovered)
+├── middlewares/        # Auth & role guards
+├── resources/          # Vue 3 SPA frontend
+└── storage/            # Uploaded files & logs
+```
+
+### Modules
+
+Every feature is a self-contained module under `src/modules/<name>/`:
+
+```
+src/modules/posts/
+├── console/           # CLI commands & scheduled tasks
+├── controllers/       # Request handlers + Zod schemas
+├── database/
+│   ├── models/        # Drizzle table definitions
+│   └── seeders/       # Test data generators
+├── jobs/              # BullMQ queue handlers
+├── routes/            # HTTP route definitions (auto-discovered)
+└── __test__/          # Unit test
+```
+
+Modules are **auto-discovered** — no manual registration. Create one with:
+
+```bash
+npm run maker module:make blog
+npm run maker module:make-controller blog post
+npm run maker module:make-route blog post
+npm run maker module:make-model blog post
+```
+
+### Framework Facade
+
+Access all subsystems through a single import:
+
+```ts
+import {
+  db,
+  cache,
+  session,
+  queue,
+  dispatchEvent,
+  notify,
+  storage,
+  jwt,
+  mail,
+  password,
+  urls,
+  logger,
+} from "@/framework/facade.js";
+```
+
+## CLI Reference
 
 | Command                        | Description                                    |
 | ------------------------------ | ---------------------------------------------- |
@@ -90,10 +155,64 @@ my-app/
 | `maker deploy:workflow`        | Local deploy (Docker Desktop)                  |
 | `maker deploy:workflow:remote` | Remote deploy via SSH + rsync                  |
 
+## Deployment
+
+nexgen includes a complete Docker deployment system out of the box.
+
+### Local (Docker Desktop)
+
+```bash
+npm run maker deploy:init        # Generate deploy files (one-time)
+npm run maker deploy:workflow    # Build and start everything
+```
+
+### Remote (VPS / Cloud)
+
+```bash
+npm run maker deploy:init                      # Generate files
+# Edit deploy/workflow.remote.json with your SSH details
+npm run maker deploy:workflow:remote           # Deploy to server
+```
+
+The deploy system provisions:
+
+- **Multi-stage Dockerfile** — builder (install + build) → runner (minimal production image)
+- **Shared infrastructure** — nginx-proxy, MySQL/PostgreSQL, Redis, phpMyAdmin, pgAdmin
+- **Auto SSL** — Let's Encrypt via nginx-proxy companion
+- **Process supervisor** — API server, queue worker, cron scheduler, auto-migration
+- **Two-layer architecture** — server infra runs once per host, app stack rebuilds per deploy
+
+See the [deploy documentation](https://niyamulahsan.github.io/nexgen/deploy/overview) for full details.
+
 ## Documentation
 
-Full documentation at **[nexgen.dev](https://niyamulahsan.github.io/nexgen)**
+Complete documentation is available at **[nexgen.dev](https://niyamulahsan.github.io/nexgen)**
+
+## Contributing
+
+Contributions are welcome. Open an issue or pull request on [GitHub](https://github.com/niyamulahsan/nexgen).
+
+## Donate
+
+If nexgen helps you build faster, consider supporting the project:
+
+<p>
+  <a href="https://www.supportkori.com/niyam" target="_blank">
+    <img src="https://img.shields.io/badge/Support-Kori-ff6f00?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Kori">
+  </a>
+  <a href="https://github.com/sponsors/niyamulahsan">
+    <img src="https://img.shields.io/badge/GitHub-Sponsors-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors">
+  </a>
+</p>
+
+## Security Vulnerabilities
+
+We take framework security seriously. If you discover a security vulnerability, please **do not open a public issue**. Email the maintainer directly at `niyamulahsan@gmail.com` — all security vulnerabilities will be addressed promptly and credited responsibly once disclosed.
+
+## Code of Conduct
+
+Please note that nexus is part of the broader open-source community. All contributors and participants are expected to follow the [Nexus Code of Conduct](https://niyamulahsan.github.io/nexgen/code-of-conduct) to keep collaboration welcoming, inclusive, and respectful. Reported violations are handled in accordance with that policy.
 
 ## License
 
-MIT
+nexgen is open-sourced software licensed under the [MIT license](LICENSE).

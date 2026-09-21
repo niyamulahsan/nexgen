@@ -27,12 +27,23 @@ if (ok) { /* grant access */ }
 
 ### Real world — login
 
-```ts
+::: code-group
+
+```ts [Hono]
 const user = await db.query.users.findFirst({ where: eq(users.email, body.email) });
 if (!user || !(await password.verifyPassword(body.password, user.password))) {
   return c.json({ message: "Invalid credentials" }, HttpStatusCodes.UNAUTHORIZED);
 }
 ```
+
+```ts [Express]
+const user = await db.query.users.findFirst({ where: eq(users.email, body.email) });
+if (!user || !(await password.verifyPassword(body.password, user.password))) {
+  return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid credentials" });
+}
+```
+
+:::
 
 ## Notes
 

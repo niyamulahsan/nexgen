@@ -31,8 +31,20 @@ The framework **gracefully degrades** — if Redis is unavailable, `queueJob()` 
 | `REDIS`         | `false`                     | Master toggle for all Redis-backed features          |
 | `REDIS_URL`     | `redis://127.0.0.1:6379`    | Redis connection string                              |
 | `REDIS_PREFIX`  | `nexgen`                    | Key prefix for BullMQ queues in Redis                |
-| `queueUi`       | `/queues (config/queue.ts)` | Key prefix for BullMQ queues in Redis                |
-| `allowedEmails` | `"" (config/queue.ts)`      | Comma-separated email whitelist for BullBoard access |
+
+## Queue Configuration
+
+Queue settings live in `src/config/queue.ts`:
+
+| Setting          | Default                                  | Description                                    |
+| ---------------- | ---------------------------------------- | ---------------------------------------------- |
+| `queues`         | `["default", "mail", "maintenance"]`     | Queue names                                    |
+| `concurrency`    | `10`                                     | Worker concurrency per queue                   |
+| `autoPruneQueues`| `true`                                   | Auto-remove stale key values                   |
+| `prefix`         | `{redisConfig.prefix}:queue`             | Redis key prefix for queues                    |
+| `durablePrefix`  | `{redisConfig.prefix}:durable`           | Redis key prefix for durable queues            |
+| `queueUi`        | `/queues`                                | BullBoard dashboard URL                        |
+| `allowedEmails`  | `""`                                     | Comma-separated emails for dashboard access    |
 
 Set `REDIS=true` in `.env` to enable queues, caching, sessions, and the Socket.IO Redis adapter.
 
@@ -308,10 +320,10 @@ A complete flow: route → controller → queue → handler → broadcast.
 
 ### 1. Schema & Controller
 
-When `OPEN_API=true`, schemas use `@hono/zod-openapi` with `.openapi()` metadata:
+When `OPEN_API=true`, schemas use the extended Zod (with `.openapi()` metadata) from the facade:
 
 ```ts
-import { z } from "@hono/zod-openapi";
+import { z } from "@/framework/facade.js";
 
 export const PublishPostSchema = z.object({
   title: z.string().min(1).openapi({ example: "Hello World" }),
@@ -332,7 +344,9 @@ export const PublishPostSchema = z.object({
 });
 ```
 
-```ts
+::: code-group
+
+```ts [Hono]
 import type { Handler } from "hono";
 import { dispatchEvent } from "@/framework/facade.js";
 
@@ -371,6 +385,48 @@ export const notifyUser: Handler = async (c: any) => {
   return c.json({ message: "Notification sent" });
 };
 ```
+
+```ts [Express]
+import type { Request, Response } from "express";
+import { dispatchEvent } from "@/framework/facade.js";
+
+export const publishPost = (req: Request, res: Response) => {
+  const body = req.body;
+
+  // Queue the heavy work — response is instant
+  void dispatchEvent("post.publish", body, { queue: "default" });
+
+  res.status(202).json({ message: "Post queued for publishing" });
+};
+
+export const broadcastStatus = (req: Request, res: Response) => {
+  const body = req.body;
+
+  // Broadcast directly to Socket.IO clients
+  void dispatchEvent("system.status", body, {
+    broadcast: { roles: ["admin"] },
+  });
+
+  res.json({ message: "Status broadcast to admins" });
+};
+
+export const notifyUser = (req: Request, res: Response) => {
+  const { userId, message } = req.body;
+
+  // Notify a specific user via socket
+  void dispatchEvent(
+    "user.notification",
+    { message },
+    {
+      broadcast: { users: [userId] },
+    },
+  );
+
+  res.json({ message: "Notification sent" });
+};
+```
+
+:::
 
 ### 2. Route
 

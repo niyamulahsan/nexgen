@@ -116,17 +116,22 @@ await disk.exists("invoices/42.pdf");
 | Method                                             | Description                                                     |
 | -------------------------------------------------- | --------------------------------------------------------------- |
 | `download(c, file, filename?)`                     | Returns a `Response` with attachment headers for controller use |
-| `generateForDownload({ prefix, extension, data })` | Writes a temp file and returns its path for deferred download   |
+| `generateForDownload({ prefix, extension, data })` | Writes a temp file (full Buffer) and returns its path for **buffered** download        |
+| `generateForDownloadStream({ prefix, extension, stream })` | Pipes an inbound `Readable` to a temp file - **O(1) memory**, for very large exports |
 | `consumeGenerated(file)`                           | Reads and **deletes** a temp file — one-time download           |
 
 ## Examples
 
+> **Engine note:** the storage calls below are identical on both engines. Handlers are shown with Hono's `(c)` signature; on Express write `(req: Request, res: Response)` and use `req.body` / `req.params.id` / `res.status(n).json(...)` instead of `c.req.valid(...)` / `c.req.param(...)` / `c.json(...)`. Only multipart parsing differs — see the tabs below (Hono `parseBody` vs Express `upload()`).
+>
 > **Excel** examples use [`exceljs`](https://www.npmjs.com/package/exceljs) — install with `npm run|pnpm|yarn|bun add exceljs`.  
 > **PDF** examples use [`playwright`](https://www.npmjs.com/package/playwright) — install with `npm run|pnpm|yarn|bun add playwright && npm run|pnpm|yarn|bun playwright install chromium`.
 
 ### Multipart File Upload
 
-```ts
+::: code-group
+
+```ts [Hono]
 export const upload: Handler = async (c) => {
   const body = await c.req.parseBody();
   const file = body.file;
@@ -145,9 +150,36 @@ export const upload: Handler = async (c) => {
 };
 ```
 
+```ts [Express]
+import { upload } from "@/framework/facade.js";
+import type { Request, Response } from "express";
+
+export default group().api(
+  uploadRoute,
+  [upload({ field: "file", maxSize: 2 * 1024 * 1024, allowedExtensions: [".jpg", ".png"] })],
+  async (req: Request, res: Response) => {
+    const file = req.file; // in-memory buffer provided by multer
+
+    const path = await storage.disk("public").putFile("uploads", file);
+
+    res.json({
+      message: "File uploaded successfully",
+      path,
+      url: storage.disk("public").url(path),
+    });
+  },
+);
+```
+
+:::
+
+> The Express engine exposes the `upload()` / `fields()` middleware factories for multipart parsing (built on `multer`). See [Upload — Express only](./support/upload).
+
 ### Import Excel (parse uploaded .xlsx)
 
-```ts
+::: code-group
+
+```ts [Hono]
 export const importExcel: Handler = async (c) => {
   const ExcelJS = (await import("exceljs")).default;
 
@@ -184,9 +216,47 @@ export const importExcel: Handler = async (c) => {
 };
 ```
 
+```ts [Express]
+export const importExcel = async (req: Request, res: Response) => {
+  const ExcelJS = (await import("exceljs")).default;
+
+  const buffer = req.file.buffer; // in-memory buffer from upload({ field: "file" })
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const sheet = workbook.worksheets[0];
+  const headers = sheet
+    .getRow(1)
+    .values.slice(1)
+    .map((v: unknown) => String(v || "").trim());
+
+  const rows: Record<string, any>[] = [];
+  sheet.eachRow((row: any, rowNumber: number) => {
+    if (rowNumber === 1) return;
+    const record: Record<string, any> = {};
+    headers.forEach((key, i) => {
+      record[key] = row.values[i + 1];
+    });
+    rows.push(record);
+  });
+
+  res.json({
+    message: "Excel imported",
+    totalRows: rows.length,
+    preview: rows.slice(0, 20),
+  });
+};
+```
+
+:::
+
+> Express: read the uploaded bytes directly from `req.file.buffer` (in-memory) and process. `req.file` is `Express.Multer.File` in memory storage.
+
 ### Generate CSV with One-Time Download
 
-```ts
+::: code-group
+
+```ts [Hono]
 // POST /generate — create temp file
 export const generateCsv: Handler = async () => {
   const csv = ["id,title", "1,nexgen report", "2,temporary file"].join("\n");
@@ -217,6 +287,40 @@ export const downloadCsv: Handler = async (c) => {
   }
 };
 ```
+
+```ts [Express]
+// POST /generate — create temp file
+export const generateCsv = async (req: Request, res: Response) => {
+  const csv = ["id,title", "1,nexgen report", "2,temporary file"].join("\n");
+  const token = await storage.generateForDownload({
+    prefix: "report",
+    extension: "csv",
+    data: csv,
+  });
+  res.json({
+    token,
+    downloadUrl: `/download/${encodeURIComponent(token)}`,
+  });
+};
+
+// GET /download/:token — serve once and delete
+export const downloadCsv = async (req: Request, res: Response) => {
+  const token = decodeURIComponent(req.params.token);
+  try {
+    const file = await storage.consumeGenerated(token);
+    res
+      .set("content-type", "text/csv; charset=utf-8")
+      .set("content-disposition", "attachment; filename=report.csv")
+      .send(file);
+  } catch {
+    res.status(404).json({ message: "Download token expired or invalid" });
+  }
+};
+```
+
+:::
+
+> `storage.consumeGenerated()` returns a `Buffer` in both engines. Hono sends it via `new Response(file, ...)`; Express sends it with `res.send(file)` after setting the content headers.
 
 ### Generate Styled Excel
 
@@ -273,6 +377,74 @@ export const generateExcel: Handler = async (c: any) => {
   });
 };
 ```
+
+### Stream Excel for Very Large Data (`generateForDownloadStream`)
+
+> **Why this exists:** `generateForDownload({ data })` and `workbook.xlsx.writeBuffer()` hold the **entire workbook in RAM**. For very large exports that memory spike can OOM the process. `generateForDownloadStream` pipes an inbound `Readable` to a temp file with backpressure — memory stays bounded regardless of data size.
+
+> **exceljs API note:** exceljs exposes `write(target)` (pipes the workbook into a `Writable`), `writeBuffer()` (returns the whole `Buffer` — RAM heavy) and `writeFile(path)` — but **`workbook.xlsx.writeStream()` does NOT exist**. Do not emit `workbook.xlsx.writeStream()`; use the `PassThrough` bridge below instead.
+>
+> The bridge pattern: `workbook.xlsx.write(pass)` writes into the **Writable** side of a `PassThrough`, while `generateForDownloadStream` consumes the **Readable** side. Backpressure flows through the bridge, so memory between exceljs and disk is capped at ~16KB.
+
+::: code-group
+
+```ts [Hono]
+import { storage } from "@/framework/facade.js";
+import { PassThrough } from "node:stream";
+import ExcelJS from "exceljs";
+
+// POST /report/sectorwise/export - streaming Excel for very large data
+export const exportSectorwise: Handler = async (c: any) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Sectorwise");
+
+  // ...fill the sheet row by row...
+
+  const bridge = new PassThrough();
+  const pendingToken = storage.generateForDownloadStream({
+    prefix: `sectorwise_${authId}`,
+    extension: "xlsx",
+    stream: bridge,
+  });
+
+  await workbook.xlsx.write(bridge);
+  const token = await pendingToken;
+
+  return c.json({ token, downloadUrl: `/download/excel/${encodeURIComponent(token)}` });
+};
+```
+
+```ts [Express]
+import { storage } from "@/framework/facade.js";
+import { PassThrough } from "node:stream";
+import ExcelJS from "exceljs";
+
+// POST /report/sectorwise/export - streaming Excel for very large data
+export const exportSectorwise = async (req: Request, res: Response) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Sectorwise");
+
+  // ...fill the sheet row by row...
+
+  const bridge = new PassThrough();
+  const pendingToken = storage.generateForDownloadStream({
+    prefix: `sectorwise_${authId}`,
+    extension: "xlsx",
+    stream: bridge,
+  });
+
+  await workbook.xlsx.write(bridge);
+  const token = await pendingToken;
+
+  res.json({ token, downloadUrl: `/download/excel/${encodeURIComponent(token)}` });
+};
+```
+
+:::
+
+> Both engines resolve `pendingToken` only after the piped stream reaches `close` (file fully written). Keep the token pending **before** writing into the bridge — iterating rows first, then `await workbook.xlsx.write(bridge)` inflates the workbook fully in memory instead of streaming.
+>
+> Use `generateForDownloadStream` whenever the data size is unknown / very large (100 MB+). Use `generateForDownload({ data })` only when you already hold a small `Buffer` in hand.
 
 ### Generate PDF with Playwright (HTML → PDF)
 

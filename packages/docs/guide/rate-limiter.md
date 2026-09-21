@@ -2,9 +2,9 @@
 
 ## Overview
 
-The rate limiter protects your API from burst abuse and accidental flooding. It applies a **global rate limit** per session (or IP for anonymous visitors) and a **stricter login limiter** on public auth routes to mitigate brute-force attacks.
+The rate limiter protects your API from burst abuse and accidental flooding. It applies a **global rate limit** per session (Hono) or per IP (Express) and a **stricter login limiter** on public auth routes to mitigate brute-force attacks.
 
-Both limiters use Redis when available and gracefully fall back to in-memory storage.
+The store differs per engine — the **Hono** engine keeps limits in Redis when available and falls back to in-memory storage; the **Express** engine uses `express-rate-limit` with its built-in memory store.
 
 ## Global Rate Limiter
 
@@ -17,8 +17,8 @@ app.use("*", rateLimiterMiddleware);
 
 ### Key generation
 
-- Authenticated requests are keyed by `sessionId`.
-- Anonymous requests fall back to the `x-forwarded-for` header.
+- **Hono** — authenticated requests are keyed by `sessionId`; anonymous requests fall back to the `x-forwarded-for` header.
+- **Express** — requests are keyed by IP (`req.ip`, honoring trust proxy) via `express-rate-limit`.
 
 ## Login Limiter
 
@@ -53,7 +53,9 @@ export const rateLimitConfig = {
 
 To apply a different limit to a specific route group, create a new limiter in your route file:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { rateLimiter, MemoryStore } from "hono-rate-limiter";
 
 const uploadLimiter = rateLimiter({
@@ -66,6 +68,20 @@ const uploadLimiter = rateLimiter({
 
 router.post("/upload", uploadLimiter, uploadHandler);
 ```
+
+```ts [Express]
+import { rateLimit } from "express-rate-limit";
+
+const uploadLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 20,
+  standardHeaders: "draft-7",
+});
+
+router.post("/upload", uploadLimiter, uploadHandler);
+```
+
+:::
 
 ### Source files
 
@@ -86,8 +102,8 @@ router.post("/upload", uploadLimiter, uploadHandler);
 
 ## How It Works
 
-When Redis is available (`REDIS=true`), limits are stored in Redis under keys prefixed with `{REDIS_PREFIX}:rl:`. This ensures limits survive server restarts and are consistent across multiple instances.
+When Redis is available (`REDIS=true`), the **Hono** engine stores limits in Redis under keys prefixed with `{REDIS_PREFIX}:rl:`. This ensures limits survive server restarts and are consistent across multiple instances.
 
-When Redis is unavailable, a `MemoryStore` is used instead — limits reset on server restart.
+When Redis is unavailable (Hono) — or on the `express-rate-limit` memory store (Express) — limits reset on server restart.
 
-Both limiters send standard `RateLimit-*` headers (`draft-6` format) so clients can programmatically back off.
+Both limiters send standard `RateLimit-*` headers (`draft-6`/`draft-7` format) so clients can programmatically back off.

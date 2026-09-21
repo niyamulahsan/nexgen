@@ -79,7 +79,7 @@ const mi = (key, label) => navIcon(icons[key], label);
 export default defineConfig({
   base: "/nexgen/",
   title: "nexgen",
-  description: "Full-stack TypeScript framework with Hono, Vue 3, and Drizzle ORM",
+  description: "Full-stack TypeScript framework with Hono or Express, Vue 3, and Drizzle ORM",
   head: [
     ["link", { rel: "icon", type: "image/svg+xml", href: "/nexgen/favicon.svg" }],
     ["link", { rel: "icon", type: "image/png", sizes: "32x32", href: "/nexgen/nexgen-logo.png" }],
@@ -142,6 +142,7 @@ export default defineConfig({
             { text: mi("letter", "Mail"), link: "/guide/support/mail" },
             { text: mi("shield", "Password"), link: "/guide/support/password" },
             { text: mi("link", "URL"), link: "/guide/support/url" },
+            { text: mi("inbox", "Upload"), link: "/guide/support/upload" },
           ],
         },
         {
@@ -197,6 +198,7 @@ export default defineConfig({
       "/cli/": [
         { text: mi("terminal", "CLI Reference"), link: "/cli/reference" },
         { text: mi("puzzle", "Module Commands"), link: "/cli/module" },
+        { text: mi("shield", "Middleware Commands"), link: "/cli/middleware" },
         { text: mi("database", "Database Commands"), link: "/cli/database" },
         { text: mi("play", "Runtime Commands"), link: "/cli/runtime" },
         { text: mi("rocket", "Deploy Commands"), link: "/cli/deploy" },
@@ -270,6 +272,7 @@ export default defineConfig({
             { text: mi("letter", "mail"), link: "/api/mail" },
             { text: mi("fileText", "logger"), link: "/api/logger" },
             { text: mi("link", "urls"), link: "/api/urls" },
+            { text: mi("inbox", "upload"), link: "/api/upload" },
             { text: mi("boxes", "lodash"), link: "/api/lodash" },
           ],
         },

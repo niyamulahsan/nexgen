@@ -1,0 +1,14 @@
+import type { NextFunction, Request, Response } from "express";
+import { db } from "@/framework/facade.js";
+
+/**
+ * Why: Runs before route handlers to enforce cross-cutting rules for {{name}}.
+ * When: Attach to a route group or a specific route.
+ * Where: Add it to a group: group({{camel}}Middleware), or per route:
+ *        .api(route, [{{camel}}Middleware], handler)
+ * How: res.locals.auth is populated when authMiddleware ran first; db gives
+ *      typed access to your module models. Call next() to continue.
+ */
+export function {{camel}}Middleware(req: Request, res: Response, next: NextFunction) {
+  return next();
+}

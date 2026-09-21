@@ -12,8 +12,8 @@ import { password } from "@/framework/facade.js";
 
 | Method | Purpose |
 |---|---|
-| `password.hashPassword(input)` | Hashes a plaintext password with bcrypt (cost 10). Use before storing in the database. |
-| `password.verifyPassword(input, hash)` | Compares a plaintext password against a stored hash. Use during login. |
+| `password.hashPassword(input)` | Hashes a plaintext password with bcrypt (cost 10). Returns the hash string. Use before storing in the database. |
+| `password.verifyPassword(input, hash)` | Compares a plaintext password against a stored hash. Returns `true` if they match, `false` otherwise. Use during login. |
 
 ## Usage
 
@@ -25,4 +25,21 @@ const hash = await password.hashPassword("user-plaintext-password");
 
 // Verify during login
 const match = await password.verifyPassword("user-plaintext-password", hash);
+// match === true or false
 ```
+
+### Error handling
+
+Both methods throw on invalid input (non-string, empty string, or already-hashed value passed to `hashPassword`). Wrap in `try/catch` for production code:
+
+```ts
+try {
+  const hash = await password.hashPassword(input);
+} catch (error) {
+  // handle hashing error
+}
+```
+
+## Configuration
+
+Password settings are fixed — cost factor is 10, no configurable options.

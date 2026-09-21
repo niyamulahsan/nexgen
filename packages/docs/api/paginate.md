@@ -2,20 +2,20 @@
 
 Imported from the facade: `import { paginate } from "@/framework/facade.js"`.
 
-The default pagination helper: reads `page` / `per_page` / `size` from the request query string, runs a lean count, and returns a full `PaginatedResult`. Best for route handlers with joins, `WHERE`, `GROUP BY`, `HAVING`, or `DISTINCT`. See [Database](./../guide/database).
+The default pagination helper: reads `page` / `per_page` / `size` from the request query string, runs a lean count, and returns a full `PaginatedResult`. Best for route handlers with joins, `WHERE`, `GROUP BY`, or `DISTINCT`. For queries with `HAVING`, use [paginateQuery](./paginateQuery) instead. See [Database](./../guide/database).
 
 ## Signature
 
 | Function | Signature | Description |
 | --- | --- | --- |
-| `paginate` | `(c, query, perPage?, options?) => Promise<PaginatedResult<T>>` | Request-driven pagination for select queries |
+| `paginate` | `(context, query, perPage?, options?) => Promise<PaginatedResult<T>>` | Request-driven pagination for select queries — `context` is the request (`c` on Hono, `req` on Express) |
 
 Options (4th arg, optional):
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `perPage` | `number` | `15` | Items per page (also `3rd` argument, shorthand) |
-| `path` | `string` | `c.req.path` | Base path used in generated URLs |
+| `path` | `string` | current request path (`c.req.path` / `req.path`) | Base path used in generated URLs |
 
 Response — same shape as all four pagination helpers:
 
@@ -53,14 +53,16 @@ const query = db
   .where(eq(posts.published, true))
   .orderBy(desc(posts.id));
 
-const result = await paginate(c, query, 15);
+const result = await paginate(c, query, 15); // Hono
+// const result = await paginate(req, query, 15); // Express
 // GET /posts?page=2&per_page=20 => current_page: 2, per_page: 20
 ```
 
 ### Custom path
 
 ```ts
-const result = await paginate(c, query, 15, { path: "/api/posts" });
+const result = await paginate(c, query, 15, { path: "/api/posts" }); // Hono
+// const result = await paginate(req, query, 15, { path: "/api/posts" }); // Express
 ```
 
 ## Notes

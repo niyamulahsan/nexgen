@@ -2,7 +2,7 @@
 
 Imported from the facade: `import { shouldQueue } from "@/framework/facade.js"`.
 
-Registers a worker handler for `queue:job`. Add `{ durable: true }` for checkpointed handlers that survive crashes. Worker startup auto-discovers every `**/jobs/*` file, so registrations happen automatically. See [Events & Queue](./../guide/events-queue).
+Registers a worker handler for `queue:job`. Add `{ durable: true }` for checkpointed handlers that survive crashes. Worker startup auto-discovers every `**/jobs/**/*.ts` file, so registrations happen automatically. See [Events & Queue](./../guide/events-queue).
 
 ## Signature
 
@@ -93,7 +93,7 @@ shouldQueue("report.collectionexaminerexport", "default", async (job) => {
 
 ## Notes
 
-- Worker startup (`maker queue:work --queue=default,mail`) auto-discovers and imports every `**/jobs/*` file.
+- Worker startup (`maker queue:work --queue=default,mail`) auto-discovers and imports every `**/jobs/**/*.ts` file.
 - Handlers throw only when Redis is unavailable — the queueing side (`queueJob`/`dispatchEvent`) never throws.
 - Job + queue names must match the enqueueing call: `dispatchEvent(name, …)` → `shouldQueue(name, queue, …)`.
 

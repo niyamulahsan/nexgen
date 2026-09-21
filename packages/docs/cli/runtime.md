@@ -89,7 +89,7 @@ bun maker dev --with-redis-view --with-maildev --with-db-studio
 |---|---|---|
 | Redis Commander | `redis` / `--with-redis-view` | Web UI at port 1369 to inspect Redis keys |
 | MailDev | `maildev` / `--with-maildev` | SMTP server at port 1089 + web UI at port 1080 to view sent emails |
-| Drizzle Studio | `studio` / `--with-db-studio` | Web UI at `local.drizzle.studio` for database browsing |
+| Drizzle Studio | `studio` / `--with-db-studio` | Web UI at `https://local.drizzle.studio` for database browsing |
 
 ### `ui:dev`
 

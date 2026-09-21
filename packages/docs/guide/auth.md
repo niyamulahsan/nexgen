@@ -42,7 +42,8 @@ Client                          Server
   │ ───────────────────────────>   │
   │                                │  authMiddleware reads cookie
   │                                │  verifies JWT
-  │                                │  c.set("auth", user)
+  │                                │  c.set("auth", user)      (Hono)
+  │                                │  res.locals.auth = user   (Express)
   │ <───────────────────────────   │
   │  200 { user }                  │
 ```
@@ -57,18 +58,29 @@ import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
 **Logic:**
 
-1. Read `{cookie.name}_access` cookie → verify JWT → set `c.set("auth", { id, email, roleId, role })`
+1. Read `{cookie.name}_access` cookie → verify JWT → put `auth` on the request context (`c.set("auth", ...)` on Hono, `res.locals.auth` on Express)
 2. If access token expired/missing → read `{cookie.name}_refresh` cookie → verify JWT → check `jti` in DB → issue **new** access token → set new cookie
 3. If nothing valid → return 401
 
 The `auth` object is available in all protected handlers:
 
-```ts
+::: code-group
+
+```ts [Hono]
 export const me: Handler = async (c: any) => {
   const auth = c.get("auth");
   // auth.id, auth.email, auth.roleId, auth.role
 };
 ```
+
+```ts [Express]
+export const me = (req: Request, res: Response) => {
+  const auth = res.locals.auth;
+  // auth.id, auth.email, auth.roleId, auth.role
+};
+```
+
+:::
 
 ## API Routes
 
@@ -161,7 +173,22 @@ The session system manages guest sessions via a separate cookie:
 ```ts
 import { session } from "@/framework/facade.js";
 
-// Available in any request via c.get("sessionId")
+// Grab the session ID from the request context
+```
+
+::: code-group
+
+```ts [Hono]
+const sessionId = c.get("sessionId");
+```
+
+```ts [Express]
+const sessionId = res.locals.sessionId;
+```
+
+:::
+
+```ts
 await session.put(sessionId, "cart", items);
 const cart = await session.get(sessionId, "cart");
 ```

@@ -2,13 +2,13 @@
 
 Imported from the facade: `import { z } from "@/framework/facade.js"`.
 
-The frontend of `@hono/zod-openapi` — the Zod namespace with `.openapi()`, which attaches examples/descriptions and names schemas so the Scalar UI renders them. See [OpenAPI](./../guide/openapi).
+The `zod` namespace augmented with `.openapi()` — which attaches examples/descriptions and names schemas so the Scalar UI renders them. On **Hono** this is `@hono/zod-openapi`'s `z`; on **Express** the framework calls `extendZodWithOpenApi` from `@asteasolutions/zod-to-openapi` on the same `zod` export. See [OpenAPI](./../guide/openapi).
 
 ## Signature
 
 | Function | Signature | Description |
 | --- | --- | --- |
-| `z` | `ZodNamespace` | Extended Zod from `@hono/zod-openapi` (adds `.openapi()`) |
+| `z` | `ZodNamespace` | Zod extended with `.openapi()` (both engines) |
 | `z.any().openapi(meta)` | `(meta) => Z` | Attach `{ example, description, ... }` metadata |
 | `z.any().openapi("Name")` | `(name) => Z` | Name the schema in the generated spec |
 
@@ -53,7 +53,7 @@ responses: {
 
 ## Notes
 
-- Import `z` from the facade — never from `zod` directly — so `.openapi()` metadata flows into the spec.
+- Import `z` from the facade — never from `zod` directly — so `.openapi()` metadata flows into the spec (the Express engine also calls `extendZodWithOpenApi` on the same module instance at boot).
 - Enhancements auto-populate the Scalar UI at `/api-docs` when `OPEN_API=true`.
 - Prefer `z.coerce.number()` for query/params so `"?page=3"` arrives as a number.
 

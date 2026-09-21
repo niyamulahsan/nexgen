@@ -14,7 +14,9 @@ Runs any Zod schema against untrusted input (request bodies outside OpenAPI rout
 
 ### Validate a plain request body
 
-```ts
+::: code-group
+
+```ts [Hono]
 import { validate } from "@/framework/facade.js";
 
 export const store = async (c) => {
@@ -22,6 +24,17 @@ export const store = async (c) => {
   // body is inferred from CreatePostSchema — no casts needed
 };
 ```
+
+```ts [Express]
+import { validate } from "@/framework/facade.js";
+
+export const store = async (req, res) => {
+  const body = await validate(CreatePostSchema, req.body);
+  // body is inferred from CreatePostSchema — no casts needed
+};
+```
+
+:::
 
 ### Structured failure shape
 
@@ -33,7 +46,7 @@ try {
 } catch (error) {
   // error.status === 422
   // error.message === "Validation failed"
-  // error.errors === result.error.flatten()  // { formErrors, fieldErrors }
+  // error.errors === { formErrors, fieldErrors }
 }
 ```
 
@@ -79,5 +92,5 @@ responses: {
 
 ## Notes
 
-- Prefer OpenAPI route schemas in endpoints — Hono validates automatically via `c.req.valid("json")`. Use `validate` when schema validation is needed outside the route layer.
+- Prefer OpenAPI route schemas in endpoints — Hono validates automatically via `c.req.valid("json")`; Express route schemas are validated by the OpenAPI middleware. Use `validate` when schema validation is needed outside the route layer (config values, webhook payloads, non-route bodies).
 - The thrown value is a plain object (not an `Error` instance) so the framework's error middleware can map it directly to an HTTP `422` response.

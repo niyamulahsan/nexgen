@@ -2,13 +2,13 @@
 
 Imported from the facade: `import { createRouter } from "@/framework/facade.js"`.
 
-Creates the Hono-based router every module route file exports. It adds `group()` (middleware for all later routes), `api()` (register a `createRoute` with an optional middleware array), and `route()` (mount sub-routers). See [Routing](./../guide/routing).
+Creates the module router every module route file exports — an `OpenAPIHono` instance on Hono, an Express `Router` on Express. Both add the same helpers: `group()` (middleware for all later routes), `api()` (register a `createRoute` with an optional middleware array), and `route()` (mount sub-routers). See [Routing](./../guide/routing).
 
 ## Signature
 
 | Function | Signature | Description |
 | --- | --- | --- |
-| `createRouter` | `() => NexgenRouter` | Creates an `OpenAPIHono` router with `group()`, `api()`, and `route()` helpers |
+| `createRouter` | `() => NexgenRouter` | Creates the engine's router with `group()`, `api()`, and `route()` helpers |
 | `router.group` | `(...middlewares) => NexgenRouter` | Applies middleware to every route registered after it |
 | `router.api` | `(route, handlerOrMiddlewares?, handler?) => NexgenRouter` | Registers a `createRoute`; accepts an optional middleware array |
 
@@ -57,7 +57,7 @@ export default createRouter()
 
 ## Notes
 
-- `createRouter` returns an `OpenAPIHono` instance (from `@hono/zod-openapi`), so all standard Hono methods (`.get`, `.post`, `.middleware`, …) are available.
+- On **Hono**, `createRouter` returns an `OpenAPIHono` instance (from `@hono/zod-openapi`), so all standard Hono methods (`.get`, `.post`, `.middleware`, …) are available. On **Express** it returns an `express.Router` augmented with the same helpers — standard Express methods (`.get`, `.post`, `.use`, …) work too, and handlers receive `(req, res)`.
 - Route auto-discovery imports the default export of each `routes/*.ts` and mounts it under `/api/<module>`.
 - `api(route, middlewares, handler)` throws if `handler` is missing while a middleware array is given.
 - Shorthand: `group(...)` == `createRouter().group(...)`.

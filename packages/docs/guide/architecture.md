@@ -51,9 +51,9 @@ server.ts
   │       │
   │       ├─ initRedis()                      Connect Redis (if REDIS=true)
   │       │
-  │       ├─ createHttpApp()                   Build Hono app with middleware stack
+  │       ├─ createHttpApp()                   Build the HTTP app with middleware stack
   │       │    │
-  │       │    ├─ createRouter()               Create Hono router instance
+  │       │    ├─ createRouter()               Create the engine router instance
   │       │    ├─ configureOpenApi()           Setup OpenAPI/Scalar UI (if OPEN_API=true)
   │       │    ├─ app.use("*", sessionMiddleware)      Session cookie + Redis
   │       │    ├─ app.use("*", corsMiddleware)         CORS headers
@@ -70,7 +70,8 @@ server.ts
   │       ├─ setupQueueDashboard()                 Setup BullMQ dashboard UI
   │       └─ UI static (if UI=true & build exists)
   │
-  ├─ 2. serve(app.fetch)                      Start HTTP listener on APP_PORT
+  ├─ 2. serve(app)                           Start HTTP listener on APP_PORT
+  │                                            (Hono via @hono/node-server, Express via app.listen)
   │
   ├─ 3. initRealtime(server)                  Attach Socket.IO to HTTP server
   ├─ 4. setupSocketAdminUI()                  Socket.IO admin dashboard
@@ -80,7 +81,7 @@ server.ts
 
 ### Stage 1 — HTTP App (`http/app.ts`)
 
-`createHttpApp()` builds the Hono application with the global middleware pipeline:
+`createHttpApp()` builds the application with the global middleware pipeline:
 
 ```
 Request → sessionMiddleware → corsMiddleware → loggerMiddleware
@@ -117,7 +118,7 @@ Stack details:
 The server entrypoint:
 
 1. **Calls `createKernel()`** to get the assembled `app` and `bullBoard`
-2. **Starts HTTP server** via `@hono/node-server` on the configured `APP_PORT`
+2. **Starts HTTP server** on the configured `APP_PORT`
 3. **Initializes Socket.IO** — attaches realtime WebSocket to the HTTP server
 4. **Sets up Socket.IO Admin UI** — web dashboard at `admin.socket.io`
 5. **Prints startup info** — API docs URL, Redis status, BullBoard, Socket.IO, UI status, dev tool URLs
@@ -125,11 +126,23 @@ The server entrypoint:
 
 ## Runtime Entrypoints
 
-| Entrypoint   | File                             | Purpose               |
-| ------------ | -------------------------------- | --------------------- |
-| API Server   | `src/framework/server.ts`        | HTTP server (Hono)    |
-| Queue Worker | `src/framework/queue/worker.ts`  | BullMQ worker process |
-| Scheduler    | `src/framework/scheduler/run.ts` | Cron job runner       |
+All three runtimes are **self-executing** — they wire their own dependency boot (DB/Redis/queue), register the shared shutdown handler, and run as standalone processes. Each returns a runtime handle (`ServerHandle`, `WorkerHandle`, `SchedulerHandle`).
+
+| Entrypoint   | File                             | Entry function                  | Wires at boot                                         |
+| ------------ | -------------------------------- | ------------------------------- | ----------------------------------------------------- |
+| API Server   | `src/framework/server.ts`        | `startServer()`                 | HTTP app, Socket.IO, Redis pub/sub broadcast sub       |
+| Queue Worker | `src/framework/queue/worker.ts`  | `startQueueWorkerRuntime()`     | Redis, BullMQ worker, `parseCsvOrFallback(queue list)` |
+| Scheduler    | `src/framework/scheduler/run.ts` | `startSchedulerRuntime()`       | DB/Redis, scheduler boot, queue runtime                |
+
+### Self-executing lifecycle & duplicate shutdown
+
+Because each runtime is self-executing, a process can be started **and** hit a shutdown signal during the same boot — or the same runtime imported twice (e.g. a worker inside a scheduler). The framework guards against this:
+
+- **`registerShutdownSignals`** (`src/framework/support/lifecycle.ts`) is the **single, shared** shutdown wiring point. It registers SIGINT/SIGTERM handlers once and tracks registered signals, so **duplicate registration is a no-op** — a worker started inside a scheduler doesn't register a second SIGINT handler that would double-shutdown the process.
+- **Each runtime's `shutdown()`** drains its own resources (close Redis, BullMQ worker/scheduler, HTTP realtime) then calls `process.exit` — exactly once.
+- Lifecycle helpers also provide `parseCsvOrFallback` (used by the worker to split the `QUEUE_NAMES` env CSV) and the `ShutdownSignal` type shared across all three handles.
+
+> **App settings, not facade:** which queues the worker processes (`QUEUE_NAMES`) and whether the scheduler/worker auto-run (`APP_ROLE`/entrypoint choice) are **env/app settings** — resolved at boot via `parseCsvOrFallback`, never imported through the facade and never user-end API.
 
 ## Framework Structure
 
@@ -185,7 +198,7 @@ src/framework/
 Client Request
     │
     ▼
-@hono/node-server (HTTP listener on port 3000)
+HTTP listener (port 3000)     — Hono via @hono/node-server, Express via app.listen
     │
     ▼
 sessionMiddleware     — Attach/generate session cookie, refresh Redis TTL
@@ -210,3 +223,44 @@ Module Router         — Match route → run middleware → execute controller
 ├─ 404      → notFound handler
 └─ Error    → onError handler (logs + returns 500)
 ```
+
+## App Settings vs Facade — What Lives Where
+
+> **The rule:** the facade is the **only user-facing surface**. Everything else is an **app setting** — declared in `src/config/`, validated at boot, wired automatically by the framework. It is **not** exported by the facade.Parameters use it; the framework runs it.
+
+| Concern            | Settings live in               | Wired by framework              | Facade export? |
+| ------------------ | ------------------------------ | ------------------------------- | -------------- |
+| Security headers   | `src/config/security.ts`       | `src/framework/http/security.ts`| No             |
+| Config validation  | `src/config/validate.ts`       | Kernel boot (`validateConfig`)  | No             |
+| Metrics            | `src/config/metrics.ts`        | `src/framework/http/metrics.ts` | No             |
+| Health / liveness  | `src/config/health.ts`         | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
+| Circuit breaker    | `src/config/circuit-breaker.ts`| `src/framework/circuit-breaker` | No             |
+| Rate limiting      | `src/config/rateLimit.ts`      | `http/ratelimiter.ts`           | No             |
+| Storage facade     | —                              | —                               | **Yes**        |
+| DB facade          | —                              | —                               | **Yes**        |
+| Cache facade       | —                              | —                               | **Yes**        |
+| Events / queue     | —                              | —                              | **Yes**        |
+
+**Why this split:**
+
+- **The facade stays small and stable** — it exposes only a deliberately chosen set of app-facing verbs: `storage`, `cache`, `db`/`database` (plus `paginate*`), `dispatchCommand`/`command`, `dispatchEvent`, `shouldQueue`/`queue`, `defineSchedule`, `session`, `notify`, `broadcast`, and a few support helpers (`createRoute`, `group`, `createRouter`, `validate`, `cache`, `cookie`, `jwt`, `logger`, `password`, `urls`, `mail`). Even that set is deliberately chosen; if in doubt, a concern is *not* facade.
+- **App settings are config-driven, not code-driven.** You never write `security.ts` middleware by hand — you fill in `config/security.ts` and the framework wires `http/security.ts` for you at boot.
+- **Changing behavior never touches the facade or module code** — edit the config file, restart, done.
+- **Circuit breaker, validation, and security are ops/framework concerns, not user-end API.** They exist so the app bootstraps cleanly and survives faults — app code shouldn't even know they exist.
+
+### Orchestration endpoints (Kubernetes)
+
+The framework auto-wires the container-probe endpoints you need for orchestration:
+
+| Endpoint  | Purpose                            | K8s probe        |
+| --------- | ---------------------------------- | ---------------- |
+| `/health` | Process up (always 200 when alive) | `livenessProbe`  |
+| `/ready`  | App booted, deps connected         | `readinessProbe` |
+| `/live`   | App responding                     | `livenessProbe`  |
+| `/metrics`| Prometheus-style counters          | —                |
+
+These are mounted on the HTTP app by the framework — **you never define routes for them** in your modules. Kubernetes (or any orchestrator) hits the endpoint, reads the status, and decides pod health from it. Like circuit breaker, this is app/orchestration-level structure, not user code.
+
+### Circuit breaker (app settings)
+
+Circuit breaker is configured in `src/config/circuit-breaker.ts` (thresholds, reset timeout, half-open success count) and enforced by `src/framework/circuit-breaker` around shell/command execution. **It is not a facade export** — app modules shouldn't interact with it directly. It exists to prevent a failing dependency from cascading; the facade simply routes through it transparently.
