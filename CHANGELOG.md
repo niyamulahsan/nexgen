@@ -4,11 +4,11 @@
 
 ### Added
 
-- **`express` engine** — `create-nexgen` can now scaffold a project on **Express** instead of only Hono. Pick the engine at scaffold time with `--engine express` (Hono stays the default; pass `--engine hono` explicitly).
+- **`express` engine** — `create-nexgen` can now scaffold a project on **Express** instead of only Hono. Pick the engine at scaffold time with `--engine=express` (Hono stays the default; pass `--engine=hono` explicitly).
 
 ### Changed
 
-- **Both engines ship the same facade surface** — the identical set of app-facing verbs (`storage`, `cache`, `db`/`database` + `paginate*`, `command`/`dispatchCommand`, `dispatchEvent`, `shouldQueue`/`queue`, `defineSchedule`, `session`, `notify`, `broadcast`, plus support helpers), each **implemented natively** in its own engine's idiom. Hono's facade relies on `@hono/zod-openapi` (`createRoute`, `group`, `createRouter`); Express's uses its native router conventions. The files are **not byte-identical by design** — what's identical is the *surface* (same verbs, same signatures). Switching engines requires **no module, facade, or route changes** (the facade surface is the contract, not the implementation bytes).
+- **Both engines ship the same facade surface** — the identical set of app-facing verbs (`storage`, `cache`, `db`/`database` + `paginate*`, `command`/`dispatchCommand`, `dispatchEvent`, `shouldQueue`/`queue`, `defineSchedule`, `session`, `notify`, `broadcast`, plus support helpers), each **implemented natively** in its own engine's idiom. Hono's facade relies on `@hono/zod-openapi` (`createRoute`, `group`, `createRouter`); Express's uses its native router conventions. The files are **not byte-identical by design** — what's identical is the _surface_ (same verbs, same signatures). Switching engines requires **no module, facade, or route changes** (the facade surface is the contract, not the implementation bytes).
 - **Orchestration endpoints identical** — `/ready`, `/live`, `/metrics`, and `/health` are auto-wired by both engines' HTTP layer (`http/app.ts`) with byte-identical K8s probe semantics.
 - **App settings identical** — security, validation, rate limiting, circuit breaker, and metrics counters are config-driven app settings in both engines, wired by the framework at boot, and never part of the facade.
 
