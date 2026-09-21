@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://nexgen.dev">
-<img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
+    <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
   </a>
 </p>
 
@@ -66,22 +66,22 @@ nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 
 ## Features
 
-| Category            | What you get                                                                   |
-| ------------------- | ------------------------------------------------------------------------------ |
-| **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting |
-| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`. |
-| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware  |
-| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard   |
-| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events       |
-| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                     |
-| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                         |
-| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)           |
-| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                |
-| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin       |
-| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment |
+| Category            | What you get                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting         |
+| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
+| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware          |
+| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard           |
+| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events               |
+| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                             |
+| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                                 |
+| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)                   |
+| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                        |
+| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin               |
+| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment          |
 | **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation |
-| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy           |
-| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                   |
+| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy                   |
+| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                           |
 
 ## Architecture
 

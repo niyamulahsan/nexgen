@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://nexgen.dev">
-<img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
+    <img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
   </a>
 </p>
 
