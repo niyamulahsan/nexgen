@@ -1,13 +1,13 @@
-﻿# Database
+# Database
 
 ## How It Works
 
 The database pipeline is fully automated. You never write schema files or migration SQL by hand.
 
-1. **Define models** â€” Create Drizzle model files under `modules/<module>/database/models/`
-2. **Run `db:migrate --seed`** â€” The CLI auto-generates the schema barrel file, creates migration SQL via Drizzle Kit, applies them, and optionally seeds
+1. **Define models** — Create Drizzle model files under `modules/<module>/database/models/`
+2. **Run `db:migrate --seed`** — The CLI auto-generates the schema barrel file, creates migration SQL via Drizzle Kit, applies them, and optionally seeds
 
-The schema file at `src/database/schema.ts` is **auto-generated** â€” it scans all `modules/**/database/models/*.ts` and re-exports them. You never edit it manually.
+The schema file at `src/database/schema.ts` is **auto-generated** — it scans all `modules/**/database/models/*.ts` and re-exports them. You never edit it manually.
 
 ## Typical Workflow
 
@@ -37,11 +37,11 @@ bun maker db:migrate --seed
 
 :::
 
-The first migration uses `--name init`. Subsequent migrations are named incrementally by Drizzle Kit. The schema is regenerated automatically before every migration â€” no manual `db:schema` needed.
+The first migration uses `--name init`. Subsequent migrations are named incrementally by Drizzle Kit. The schema is regenerated automatically before every migration — no manual `db:schema` needed.
 
 ## Commands
 
-### `db:migrate` â€” Full Pipeline (recommended)
+### `db:migrate` — Full Pipeline (recommended)
 
 ::: code-group
 
@@ -78,7 +78,7 @@ Initial migration was generated, but the database already contains tables.
 Use 'npm run|pnpm|yarn|bun maker db:fresh --seed' to rebuild locally.
 ```
 
-### `db:generate` â€” Migration Files Only
+### `db:generate` — Migration Files Only
 
 ::: code-group
 
@@ -102,7 +102,7 @@ bun maker db:generate
 
 Generates schema and migration SQL without applying them. Useful for code review before running.
 
-### `db:migrate:run` â€” Apply Only
+### `db:migrate:run` — Apply Only
 
 ::: code-group
 
@@ -128,7 +128,7 @@ Applies existing migration files without regenerating schema or migrations. Used
 
 After migrations are applied, this command also executes model migration hooks.
 
-### `db:fresh` â€” Full Rebuild
+### `db:fresh` — Full Rebuild
 
 ::: code-group
 
@@ -166,7 +166,7 @@ Use this when:
 - The migration journal is out of sync with table state
 - You want to reset the database to a clean state during development
 
-### `db:reset` / `db:wipe` â€” Wipe Only
+### `db:reset` / `db:wipe` — Wipe Only
 
 ::: code-group
 
@@ -194,7 +194,7 @@ bun maker db:wipe
 
 Drops and recreates the database. No migrations, no seeds. Use this to quickly clear all data without rebuilding schema (e.g., before importing a production dump into a clean database).
 
-### `db:schema` â€” Regenerate Schema Only
+### `db:schema` — Regenerate Schema Only
 
 ::: code-group
 
@@ -216,9 +216,9 @@ bun maker db:schema
 
 :::
 
-Regenerates `src/database/schema.ts` from model files. Normally unnecessary â€” `migrate`, `generate`, and `fresh` all call this automatically. Only needed if you want to inspect the barrel file.
+Regenerates `src/database/schema.ts` from model files. Normally unnecessary — `migrate`, `generate`, and `fresh` all call this automatically. Only needed if you want to inspect the barrel file.
 
-### `db:seed` â€” Seed Only
+### `db:seed` — Seed Only
 
 ::: code-group
 
@@ -246,7 +246,7 @@ bun maker db:module:seed welcome  # seed a specific module
 
 Runs the seeder files for all modules (or a specific one). Useful after a `db:reset` to repopulate test data.
 
-### `db:push` â€” Direct Schema Push (no migration files)
+### `db:push` — Direct Schema Push (no migration files)
 
 ::: code-group
 
@@ -270,7 +270,7 @@ bun maker db:push
 
 Pushes schema directly to the database via Drizzle Kit push. Generates schema first.
 
-### `db:studio` â€” Drizzle Studio
+### `db:studio` — Drizzle Studio
 
 ::: code-group
 
@@ -441,9 +441,9 @@ export default async function PostSeeder() {
 }
 ```
 
-The first time a seeder is generated, it's created **commented out** â€” uncomment and fill in your data before running `--seed`.
+The first time a seeder is generated, it's created **commented out** — uncomment and fill in your data before running `--seed`.
 
-### Real Example â€” User Seeder
+### Real Example — User Seeder
 
 For a complete example, see `modules/auth/database/seeders/user.ts`:
 
@@ -495,9 +495,9 @@ This shows common patterns: looking up related records, hashing passwords, and s
 
 The framework adapts to your `DATABASE_URL`:
 
-- `mysql://` â†’ MySQL dialect
-- `postgres://` â†’ PostgreSQL dialect
-- `sqlite:` â†’ SQLite dialect
+- `mysql://` → MySQL dialect
+- `postgres://` → PostgreSQL dialect
+- `sqlite:` → SQLite dialect
 
 Drizzle model stubs use the correct types per dialect. Migration files are stored in `src/database/migrations/<dialect>/`. The CLI detects dialect changes and resets migration files automatically.
 
@@ -511,14 +511,14 @@ Drizzle ORM does not include a built-in pagination helper. **nexgen** provides p
 
 | Function          | When to use                                                                                                                                                 |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `paginate()`      | **Default choice** â€” route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
-| `paginateModel()` | **Relational eager loading** â€” uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
+| `paginate()`      | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
+| `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
 | `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                          |
-| `paginateQuery()` | **Count and data queries are structurally different** â€” e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
+| `paginateQuery()` | **Count and data queries are structurally different** — e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
 
-### `paginate(context, query, perPage)` â€” From Request (recommended)
+### `paginate(context, query, perPage)` — From Request (recommended)
 
-For route handlers. Reads `page`, `per_page`, and `size` from the request query string. Handles joins, GROUP BY, HAVING, DISTINCT correctly. `context` is the request-like object â€” `c` on Hono, `req` on Express:
+For route handlers. Reads `page`, `per_page`, and `size` from the request query string. Handles joins, GROUP BY, HAVING, DISTINCT correctly. `context` is the request-like object — `c` on Hono, `req` on Express:
 
 ::: code-group
 
@@ -590,7 +590,7 @@ const result = await paginate(req, query, 15);
 
 :::
 
-### `paginateModel(c, options)` â€” Relational Eager Loading
+### `paginateModel(c, options)` — Relational Eager Loading
 
 Use `paginateModel` when you want Drizzle relational eager loading with `db.query.<table>.findMany({ with })`:
 
@@ -792,7 +792,7 @@ const result = await paginateModel(req, {
 
 :::
 
-### `paginateTable(db, table, options)` â€” Direct Table
+### `paginateTable(db, table, options)` — Direct Table
 
 For simple single-table queries with optional filters and sorting. No joins, no GROUP BY:
 
@@ -809,7 +809,7 @@ const result = await paginateTable(db, posts, {
 });
 ```
 
-### `paginateQuery(options)` â€” Custom Callbacks
+### `paginateQuery(options)` — Custom Callbacks
 
 For complex queries where **the count must be different from the data query**:
 
