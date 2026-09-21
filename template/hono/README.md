@@ -1,6 +1,6 @@
-<p align="center">
+﻿<p align="center">
   <a href="https://nexgen.dev">
-    <img alt="nexgen" src="public/icons/nexgen.png" width="300">
+<img alt="nexgen" src="https://raw.githubusercontent.com/niyamulahsan/nexgen/main/logo-favicon/nexgen.png" width="300">
   </a>
 </p>
 
@@ -16,7 +16,7 @@
 
 ---
 
-nexgen is a batteries-included TypeScript framework that combines modular backends (Hono, Express) with Drizzle ORM, BullMQ, Socket.IO, Redis, and a Vue 3 SPA frontend — all scaffolded with a single command and deployed with Docker Compose.
+nexgen is a batteries-included TypeScript framework that combines modular backends (Hono, Express) with Drizzle ORM, BullMQ, Socket.IO, Redis, and a Vue 3 SPA frontend â€” all scaffolded with a single command and deployed with Docker Compose.
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ All examples use `npm` as the default. nexgen works with any major package manag
 
 ### Runtime
 
-nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
+nexgen runs on **Node.js** or **Bun** â€” pick whichever fits your deployment:
 
 | Runtime     | Minimum version | Notes                                                                 |
 | ----------- | --------------- | --------------------------------------------------------------------- |
@@ -69,7 +69,7 @@ nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 | Category            | What you get                                                                           |
 | ------------------- | -------------------------------------------------------------------------------------- |
 | **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting         |
-| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
+| **Database**        | Drizzle ORM â€” SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
 | **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware          |
 | **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard           |
 | **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events               |
@@ -77,23 +77,23 @@ nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 | **Scheduler**       | Cron-based task scheduling with distributed Redis lock                                 |
 | **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)                   |
 | **Notifications**   | Database-persisted notifications with broadcast + mail delivery                        |
-| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin               |
-| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment          |
+| **Frontend**        | Vue 3 SPA â€” Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin               |
+| **Security**        | CSP, HSTS, X-Frame headers â€” configured in one place, toggled per environment          |
 | **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation |
 | **CLI**             | `maker` command for code generation, migrations, runtime, and deploy                   |
-| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                           |
+| **Deploy**          | Two-layer Docker Compose â€” nginx-proxy, auto SSL, supervisor                           |
 
 ## Architecture
 
 ```
 src/
-├── env.ts              # Zod-validated environment config
-├── database/           # Drizzle schema, migrations, seeders
-├── framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
-├── modules/            # Application modules (auto-discovered)
-├── middlewares/        # Auth & role guards
-├── resources/          # Vue 3 SPA frontend
-└── storage/            # Uploaded files & logs
+â”œâ”€â”€ env.ts              # Zod-validated environment config
+â”œâ”€â”€ database/           # Drizzle schema, migrations, seeders
+â”œâ”€â”€ framework/          # Reusable engine (HTTP, auth, queue, cache, etc.)
+â”œâ”€â”€ modules/            # Application modules (auto-discovered)
+â”œâ”€â”€ middlewares/        # Auth & role guards
+â”œâ”€â”€ resources/          # Vue 3 SPA frontend
+â””â”€â”€ storage/            # Uploaded files & logs
 ```
 
 ### Modules
@@ -102,17 +102,17 @@ Every feature is a self-contained module under `src/modules/<name>/`:
 
 ```
 src/modules/posts/
-├── console/           # CLI commands & scheduled tasks
-├── controllers/       # Request handlers + Zod schemas
-├── database/
-│   ├── models/        # Drizzle table definitions
-│   └── seeders/       # Test data generators
-├── jobs/              # BullMQ queue handlers
-├── routes/            # HTTP route definitions (auto-discovered)
-└── __test__/          # Unit test
+â”œâ”€â”€ console/           # CLI commands & scheduled tasks
+â”œâ”€â”€ controllers/       # Request handlers + Zod schemas
+â”œâ”€â”€ database/
+â”‚   â”œâ”€â”€ models/        # Drizzle table definitions
+â”‚   â””â”€â”€ seeders/       # Test data generators
+â”œâ”€â”€ jobs/              # BullMQ queue handlers
+â”œâ”€â”€ routes/            # HTTP route definitions (auto-discovered)
+â””â”€â”€ __test__/          # Unit test
 ```
 
-Modules are **auto-discovered** — no manual registration. Create one with:
+Modules are **auto-discovered** â€” no manual registration. Create one with:
 
 ```bash
 npm run maker module:make blog
@@ -178,11 +178,11 @@ npm run maker deploy:workflow:remote           # Deploy to server
 
 The deploy system provisions:
 
-- **Multi-stage Dockerfile** — builder (install + build) → runner (minimal production image)
-- **Shared infrastructure** — nginx-proxy, MySQL/PostgreSQL, Redis, phpMyAdmin, pgAdmin
-- **Auto SSL** — Let's Encrypt via nginx-proxy companion
-- **Process supervisor** — API server, queue worker, cron scheduler, auto-migration
-- **Two-layer architecture** — server infra runs once per host, app stack rebuilds per deploy
+- **Multi-stage Dockerfile** â€” builder (install + build) â†’ runner (minimal production image)
+- **Shared infrastructure** â€” nginx-proxy, MySQL/PostgreSQL, Redis, phpMyAdmin, pgAdmin
+- **Auto SSL** â€” Let's Encrypt via nginx-proxy companion
+- **Process supervisor** â€” API server, queue worker, cron scheduler, auto-migration
+- **Two-layer architecture** â€” server infra runs once per host, app stack rebuilds per deploy
 
 See the [deploy documentation](https://niyamulahsan.github.io/nexgen/deploy/overview) for full details.
 
@@ -209,7 +209,7 @@ If nexgen helps you build faster, consider supporting the project:
 
 ## Security Vulnerabilities
 
-We take framework security seriously. If you discover a security vulnerability, please **do not open a public issue**. Email the maintainer directly at `niyamulahsan@gmail.com` — all security vulnerabilities will be addressed promptly and credited responsibly once disclosed.
+We take framework security seriously. If you discover a security vulnerability, please **do not open a public issue**. Email the maintainer directly at `niyamulahsan@gmail.com` â€” all security vulnerabilities will be addressed promptly and credited responsibly once disclosed.
 
 ## Code of Conduct
 
