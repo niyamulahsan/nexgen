@@ -49,11 +49,11 @@ Requires **Node.js >= 24** or **Bun >= 1.3**.
 Scaffold directly into the current directory:
 
 ```bash
-bun create nexgen@latest .
-bun create nexgen@latest . -- --engine=express
+npm create nexgen@latest .
+npm create nexgen@latest . -- --engine=express
 ```
 
-Works with any package manager: `pnpm`, `yarn`, or `npm`.
+Works with any package manager: `pnpm`, `yarn`, or `bun`.
 
 ### Package Manager
 
@@ -65,7 +65,7 @@ All examples use `npm` as the default. nexgen works with any major package manag
 | **pnpm** | `pnpm create nexgen@latest my-app`| `pnpm maker <cmd>`    |
 | **yarn** | `yarn create nexgen@latest my-app`| `yarn maker <cmd>`    |
 | **bun**  | `bun create nexgen@latest my-app` | `bun maker <cmd>`     |
-| **all**  | `bun create nexgen@latest .`      | current directory     |
+| **all**  | `npm create nexgen@latest .`      | current directory     |
 
 ### Runtime
 
