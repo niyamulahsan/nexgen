@@ -82,7 +82,7 @@ This single command:
 
 ```
 Container            Image                Hostname            Purpose
-─────────────────────────────────────────────────────────────────────
+───────────────────────────────────────────────────────────────────────────────────────────
 nginx-proxy          jwilder/nginx-proxy  —                   Reverse proxy (ports 80, 443)
 letsencrypt          jrcs/letsencrypt     —                   Auto SSL companion
 mysql-global         mysql:8.4            mysql-global        MySQL database
@@ -178,7 +178,7 @@ Your Machine (host)                Docker Desktop
      │  maker dev                        │
      │  ├─ serve (port 3000) ──┐         │
      │  ├─ queue:work          │         │
-      │  └─ ui:dev        │         │
+     │  └─ ui:dev              │         │
      │                         │         │
      │  localhost:3306 ────────┼────────>│ mysql-global
      │  localhost:6379 ────────┼────────>│ redis-global

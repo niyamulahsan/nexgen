@@ -30,6 +30,9 @@ const row = await db.query.users.findFirst({
 `db.execute()` runs raw queries and normalizes driver-specific shapes (mysql2 tuple, libsql/postgres arrays) into a consistent `{ rows }` shape:
 
 ```ts
+import { sql } from "drizzle-orm";
+import { db } from "@/framework/facade.js";
+
 const result = await db.execute(sql`select * from users where role_id = ${1}`);
 console.log(result.rows); // [{ ... }, ...] on every dialect
 ```
@@ -38,20 +41,52 @@ console.log(result.rows); // [{ ... }, ...] on every dialect
 
 ### Seeders
 
+Seeders live in `src/modules/<module>/database/seeders/<name>.ts`. Each file must export `table` (the model being seeded) and a default async function — the CLI discovers them via those two exports:
+
 ```ts
+// src/modules/auth/database/seeders/user.ts
+import { eq } from "drizzle-orm";
 import { db, password } from "@/framework/facade.js";
+import { roles } from "@/modules/auth/database/models/role.js";
 import { users } from "@/modules/auth/database/models/user.js";
 
-for (const row of rows) {
-  const existing = await db.query.users.findFirst({
-    where: (t, { eq }) => eq(t.email, row.email),
+export const table = users;
+
+export default async function UserSeeder() {
+  const adminRole = await db.query.roles.findFirst({
+    where: eq(roles.name, "admin"),
   });
-  if (!existing)
-    await db
-      .insert(users)
-      .values({ ...row, password: await password.hashPassword(row.password) });
+  const userRole = await db.query.roles.findFirst({
+    where: eq(roles.name, "user"),
+  });
+
+  const rows = [
+    {
+      name: "Admin",
+      email: "admin@example.com",
+      password: await password.hashPassword("Password@123"),
+      roleId: adminRole?.id ?? null,
+    },
+    {
+      name: "User One",
+      email: "user1@example.com",
+      password: await password.hashPassword("Password@123"),
+      roleId: userRole?.id ?? null,
+    },
+  ];
+
+  for (const row of rows) {
+    const existing = await db.query.users.findFirst({
+      where: eq(users.email, row.email),
+    });
+    if (!existing) await db.insert(users).values(row);
+  }
+
+  console.log("User seeder completed");
 }
 ```
+
+Seeders are idempotent — the `findFirst` guard skips rows already present, so re-running `db:seed` never duplicates data.
 
 ### Real world — eager loading with `columns` + `with`
 
@@ -62,14 +97,14 @@ An auth module can hide sensitive columns on a select and pull in relations in o
 const user = await db.query.users.findFirst({
   where: eq(users.id, auth.id),
   columns: { password: false, forgetPassword: false, rememberToken: false }, // { hiddenUserColumns }
-  with: { role: true, commissionerate: true },
+  with: { role: true, profile: true },
 });
 ```
 
 When the same restricted select is reused, keep it in a helper — the `role` relation is fetched and password columns are dropped for every caller:
 
 ```ts
-// modules/collectionbind/controllers/collectionbind.helpers.ts
+// modules/auth/controllers/auth.helpers.ts
 export async function getCurrentUser(auth: any) {
   if (!auth?.id) return null;
   return db.query.users.findFirst({

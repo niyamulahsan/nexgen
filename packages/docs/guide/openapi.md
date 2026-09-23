@@ -301,6 +301,14 @@ export default createRouter()
 
 ### `group()` vs `createRouter().group()`
 
+These two statements are identical — `group(...)` is literally `createRouter().group(...)`:
+
+```ts
+// Identical — pick either
+export default group().api(meRoute, me);
+export default createRouter().group().api(meRoute, me);
+```
+
 | Pattern                            | Use case                                                           |
 | ---------------------------------- | ------------------------------------------------------------------ |
 | `group(middleware)`                | Simple single-group export, no sub-grouping needed                 |

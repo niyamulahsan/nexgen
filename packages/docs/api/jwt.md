@@ -9,7 +9,7 @@ Guide: [JWT](./../guide/support/jwt).
 | Function            | Signature                                                          | Description                                                    |
 | ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
 | `jwt.generateToken` | `(payload, type, expirySeconds?) => Promise<{ token, jti?, exp }>` | Sign HS256 access/refresh token with `iat`/`exp`/`type` claims |
-| `jwt.verifyToken`   | `(token, type) => Promise<object                                   | null>`                                                         | Verify signature/expiry and enforce token type |
+| `jwt.verifyToken`   | `(token, type) => Promise<object \| null>`                                                         | Verify signature/expiry and enforce token type |
 
 ## Use cases
 

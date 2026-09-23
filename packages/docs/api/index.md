@@ -2,7 +2,9 @@
 
 Every reusable framework capability is exposed through **one import** — the facade at `@/framework/facade.js`. You never reach into framework internals; if it is not on this page, it is not part of the public API.
 
-```ts
+::: code-group
+
+```ts [Hono]
 import {
   createRouter, // router builder
   createRoute, // OpenAPI route declaration
@@ -39,6 +41,49 @@ import {
 } from "@/framework/facade.js";
 ```
 
+```ts [Express]
+import {
+  createRouter, // router builder
+  createRoute, // OpenAPI route declaration
+  group, // middleware grouping shorthand
+  z, // Zod + .openapi() schemas
+  jsonContent, // JSON media-type wrapper
+  HttpStatusCodes, // status constants (curated subset)
+  validate, // schema validation outside routes
+  database, // init/access the Drizzle instance
+  db, // global query proxy
+  paginate, // request-driven pagination
+  paginateModel, // eager-loading pagination
+  paginateQuery, // custom count/data pagination
+  paginateTable, // single-table pagination
+  cache, // Redis key-value cache
+  command, // register in-process handler
+  dispatchCommand, // run an in-process handler
+  dispatchEvent, // broadcast and/or enqueue an event
+  queue, // access a BullMQ queue
+  queueJob, // enqueue a background job
+  shouldQueue, // register a job handler
+  broadcast, // Socket.IO broadcast
+  defineSchedule, // named cron schedules
+  session, // server-side sessions
+  storage, // file storage
+  notify, // persisted + realtime notifications
+  password, // bcrypt hashing
+  jwt, // token generation/verification
+  cookie, // auth cookie helpers
+  mail, // SMTP transport
+  logger, // structured logging
+  urls, // absolute URL building
+  lodash, // full Lodash library
+  fields, // multer-driven multipart fields
+  upload, // multer-driven file upload middleware
+} from "@/framework/facade.js";
+```
+
+:::
+
+The difference between engines is **only** `upload`/`fields` — the Hono engine parses multipart natively via `c.req.parseBody()`, so it has no multer helpers. See [Upload](./upload) and the [Upload guide](../guide/support/upload).
+
 > **Express engine** additionally exports `upload` and `fields` — multipart parsing middleware built on `multer`. See [Upload](./upload) and the [Upload guide](./../guide/support/upload). The Hono engine parses multipart natively via `c.req.parseBody()`.
 
 ## Function reference
@@ -70,7 +115,7 @@ Each facade function has its own page. Every export below is a documented part o
 | [`broadcast`](./broadcast)             | Socket.IO emit to targeted audiences                 | [Realtime](./../guide/realtime)                               |
 | [`defineSchedule`](./defineSchedule)   | Named cron tasks with distributed locking            | [Scheduler](./../guide/scheduler)                             |
 | [`session`](./session)                 | Redis-backed server-side sessions                    | [Session](./../guide/session)                                 |
-| [`storage`](./storage)                 | Local + S3-compatible file storage                   | [Storage](./../guide/storage)                                 |
+| [`storage`](./storage/)                 | Local + S3-compatible file storage                   | [Storage](/guide/storage)                                       |
 | [`notify`](./notify)                   | Persist + broadcast + email notifications            | [Notifications](./../guide/notification)                      |
 | [`password`](./password)               | bcrypt hash / verify                                 | [Password](./../guide/support/password)                       |
 | [`jwt`](./jwt)                         | HS256 token generation / verification                | [JWT](./../guide/support/jwt)                                 |
@@ -165,7 +210,7 @@ export default createRouter()
   .group()
   .api(listRoute, async (req: Request, res: Response) => {
     const query = db.select().from(posts).orderBy(desc(posts.id));
-    return res.json(await paginate(req, query, 15));
+    res.json(await paginate(req, query, 15));
   });
 ```
 

@@ -427,10 +427,14 @@ Seeder files live under `modules/<module>/database/seeders/`. They populate your
 import { db } from "@/framework/facade.js";
 import { posts } from "@/modules/blog/database/models/post.js";
 
+export const table = posts;
+
 export default async function PostSeeder() {
   const rows = [
-    // { name: "Post 1", description: "First post" },
-    // { name: "Post 2", description: "Second post" }
+    // Add your seed data here
+    // Example:
+    // { name: "Post 1", description: "This is the first post" },
+    // { name: "Post 2", description: "This is the second post" }
   ];
 
   for (const row of rows) {
@@ -452,6 +456,8 @@ import { eq } from "drizzle-orm";
 import { db, password } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";
 import { users } from "@/modules/auth/database/models/user.js";
+
+export const table = users;
 
 export default async function UserSeeder() {
   const adminRole = await db.query.roles.findFirst({
@@ -649,14 +655,14 @@ const result = await paginateModel(c, {
   where,
   with: {
     role: true,
-    userarea: {
+    profile: {
       with: {
-        area: {
+        address: {
           with: {
-            commissionerate: true,
-            division: true,
-            circle: true,
-            sector: true,
+            region: true,
+            district: true,
+            block: true,
+            ward: true,
           },
         },
       },
@@ -673,14 +679,14 @@ const result = await paginateModel(req, {
   where,
   with: {
     role: true,
-    userarea: {
+    profile: {
       with: {
-        area: {
+        address: {
           with: {
-            commissionerate: true,
-            division: true,
-            circle: true,
-            sector: true,
+            region: true,
+            district: true,
+            block: true,
+            ward: true,
           },
         },
       },

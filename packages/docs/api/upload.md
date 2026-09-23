@@ -90,5 +90,5 @@ Failures surface as `422` before the controller runs, so handlers never receive 
 
 ## Notes
 
-- Memory storage only — buffers live in `req.file` / `req.files`; persist with `storage.putFile` etc. (see [Storage](./../guide/storage)).
+- Memory storage only — buffers live in `req.file` / `req.files`; persist with `storage.putFile` etc. (see [Storage > Multipart File Upload](/guide/storage#multipart-file-upload)).
 - Express-only export: importing from a Hono project fails at type-check; Hono apps parse bodies via `c.req.parseBody()`.

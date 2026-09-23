@@ -198,22 +198,22 @@ src/framework/
 Client Request
     │
     ▼
-HTTP listener (port 3000)     — Hono via @hono/node-server, Express via app.listen
+HTTP listener (port 3000)  — Hono via @hono/node-server, Express via app.listen
     │
     ▼
-sessionMiddleware     — Attach/generate session cookie, refresh Redis TTL
+sessionMiddleware          — Attach/generate session cookie, refresh Redis TTL
     │
     ▼
-corsMiddleware        — Set CORS headers
+corsMiddleware             — Set CORS headers
     │
     ▼
-loggerMiddleware      — Log request method, path, status, duration
+loggerMiddleware           — Log request method, path, status, duration
     │
     ▼
-rateLimiterMiddleware — Check rate limits
+rateLimiterMiddleware      — Check rate limits
     │
     ▼
-Module Router         — Match route → run middleware → execute controller
+Module Router              — Match route → run middleware → execute controller
 │   │
 │   ├─ authMiddleware (if route requires auth)
 │   ├─ requireRole (if route requires specific role)

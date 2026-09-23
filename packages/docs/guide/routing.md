@@ -73,6 +73,21 @@ const protectedGroup = group(authMiddleware)
   .api(showRoute, show);
 ```
 
+`group(...)` is literally `createRouter().group(...)` — indistinguishable. These two statements are identical:
+
+```ts
+// Identical — pick either
+export default group().api(listRoute, list);
+export default createRouter().group().api(listRoute, list);
+```
+
+Use `createRouter()` directly only when a single file needs multiple independent groups composed together (e.g. public + protected under the same prefix via `.route()`):
+
+| Pattern                            | Use case                                                           |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| `group(middleware)`                | Simple single-group export, no sub-grouping needed                 |
+| `createRouter().group(middleware)` | Multiple independent groups in the same file (public vs protected) |
+
 ## Handlers
 
 A handler receives the request and must return/send a response. Read the input, then respond:

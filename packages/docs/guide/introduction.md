@@ -73,7 +73,9 @@ The route file is picked up automatically. The model is used by the migration sy
 
 All features are accessible from a single facade:
 
-```ts
+::: code-group
+
+```ts [Hono]
 import {
   db,
   cache,
@@ -99,6 +101,39 @@ import {
   z,
 } from "@/framework/facade.js";
 ```
+
+```ts [Express]
+import {
+  db,
+  cache,
+  session,
+  queue,
+  queueJob,
+  shouldQueue,
+  defineSchedule,
+  broadcast,
+  notify,
+  storage,
+  jwt,
+  cookie,
+  mail,
+  password,
+  logger,
+  urls,
+  paginate,
+  validate,
+  createRouter,
+  group,
+  createRoute,
+  z,
+  fields, // multer-driven multipart field parsing
+  upload, // multer-driven file upload middleware
+} from "@/framework/facade.js";
+```
+
+:::
+
+The Hono engine parses multipart natively via `c.req.parseBody()` — no `upload`/`fields` helpers needed. The Express engine relies on `multer`; see [Upload](../api/upload).
 
 ## Minimal example
 
@@ -311,11 +346,9 @@ Unified file storage that works with the local filesystem or any S3-compatible s
 ```ts
 import { storage } from "@/framework/facade.js";
 
+const fileBuffer = Buffer.from("avatar bytes"); // e.g. fs.readFile(...) or an upload
 // Write a file
 await storage.put("avatars/user-1.jpg", fileBuffer);
-
-// Upload from a browser File object
-await storage.putFile("uploads", browserFile, "report.pdf");
 
 // Read, check, delete
 const content = await storage.get("avatars/user-1.jpg");
@@ -325,6 +358,32 @@ await storage.delete("avatars/user-1.jpg");
 // Generate a signed URL for temporary access
 const url = await storage.temporaryUrl("private/report.pdf", 3600);
 ```
+
+Uploading a browser `File` is the only engine difference — the `storage` calls are identical:
+
+::: code-group
+
+```ts [Hono]
+const body = await c.req.parseBody();
+const file = body.file;
+if (!(file instanceof File))
+  return c.json({ message: "File is required" }, 422);
+await storage.disk("public").putFile("uploads", file);
+```
+
+```ts [Express]
+export default group().api(
+  uploadRoute,
+  [upload({ field: "file" })],
+  async (req: Request, res: Response) => {
+    if (!req.file) return res.status(422).json({ message: "File is required" });
+    await storage.disk("public").putFile("uploads", req.file);
+    res.json({ message: "Uploaded", path: "uploads/" + req.file.filename });
+  },
+);
+```
+
+:::
 
 ## Realtime
 

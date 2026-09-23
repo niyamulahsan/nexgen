@@ -5,41 +5,41 @@
 The deploy system uses a **two-layer Docker** architecture with external networks.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    deploy/server/                      │
-│  Shared Infrastructure (runs once per host)            │
+┌───────────────────────────────────────────────────────┐
+│                    deploy/server/                     │
+│  Shared Infrastructure (runs once per host)           │
 │                                                       │
 │  docker network: nginx-proxy (external)               │
 │  docker network: infra (external)                     │
 │                                                       │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐ │
-│  │  nginx-   │  │  MySQL   │  │  PostgreSQL           │ │
-│  │  proxy    │  │  8.4     │  │  16-alpine            │ │
+│  │  nginx-  │  │  MySQL   │  │  PostgreSQL          │ │
+│  │  proxy   │  │  8.4     │  │  16-alpine           │ │
 │  └──────────┘  └──────────┘  └──────────────────────┘ │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐ │
-│  │  Redis   │  │ phpMyAdmin│  │  pgAdmin              │ │
-│  │  7-alpine │  │          │  │                       │ │
+│  │  Redis   │  │phpMyAdmin│  │  pgAdmin             │ │
+│  │  7-alpine│  │          │  │                      │ │
 │  └──────────┘  └──────────┘  └──────────────────────┘ │
-│  ┌──────────────────────┐                              │
-│  │  letsencrypt         │                              │
-│  │  (auto SSL)          │                              │
-│  └──────────────────────┘                              │
-└──────────────────────┬──────────────────────────────┘
+│  ┌──────────────────────┐                             │
+│  │  letsencrypt         │                             │
+│  │  (auto SSL)          │                             │
+│  └──────────────────────┘                             │
+└──────────────────────┬────────────────────────────────┘
                        │ infra network
-┌──────────────────────┴──────────────────────────────┐
-│                    deploy/                             │
+┌──────────────────────┴────────────────────────────────┐
+│                    deploy/                            │
 │  App Stack (built & started per deploy)               │
 │                                                       │
 │  ┌──────────────────────────────────────────────┐     │
-│  │  App Container                                │     │
-│  │                                               │     │
-│  │  supervisor:                                   │     │
-│  │  ├─ auto-migrate.sh (one-shot)                │     │
-│  │  ├─ "maker serve --prod" (API server)          │     │
-│  │  ├─ "maker queue:work" (if Redis)             │     │
-│  │  └─ "maker schedule:work" (cron scheduler)    │     │
+│  │  App Container                               │     │
+│  │                                              │     │
+│  │  supervisor:                                 │     │
+│  │  ├─ auto-migrate.sh (one-shot)               │     │
+│  │  ├─ "maker serve --prod" (API server)        │     │
+│  │  ├─ "maker queue:work" (if Redis)            │     │
+│  │  └─ "maker schedule:work" (cron scheduler)   │     │
 │  └──────────────────────────────────────────────┘     │
-└──────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────┘
 ```
 
 ### Why two layers?

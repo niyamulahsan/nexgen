@@ -68,29 +68,29 @@ The `entity` module composes the full option surface in one call — `with` rela
 ::: code-group
 
 ```ts [Hono]
-// modules/entity/controllers/entity.controller.ts (simplified)
+// modules/project/controllers/project.controller.ts (simplified)
 const result = await paginateModel(c, {
   // Hono — pass req on Express
-  table: entities,
-  query: db.query.entities,
-  where: and(eq(entities.status, "1"), roleFilter),
-  with: { commissionerates: { with: { districts: true } }, users: true },
+  table: projects,
+  query: db.query.projects,
+  where: and(eq(projects.status, "1"), roleFilter),
+  with: { departments: { with: { teams: true } }, users: true },
   columns: { hidden: false },
-  orderBy: desc(entities.id),
+  orderBy: desc(projects.id),
   perPage: 15,
 });
 ```
 
 ```ts [Express]
-// modules/entity/controllers/entity.controller.ts (simplified)
+// modules/project/controllers/project.controller.ts (simplified)
 const result = await paginateModel(req, {
   // Hono — pass req on Express
-  table: entities,
-  query: db.query.entities,
-  where: and(eq(entities.status, "1"), roleFilter),
-  with: { commissionerates: { with: { districts: true } }, users: true },
+  table: projects,
+  query: db.query.projects,
+  where: and(eq(projects.status, "1"), roleFilter),
+  with: { departments: { with: { teams: true } }, users: true },
   columns: { hidden: false },
-  orderBy: desc(entities.id),
+  orderBy: desc(projects.id),
   perPage: 15,
 });
 ```

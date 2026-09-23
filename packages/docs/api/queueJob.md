@@ -8,7 +8,7 @@ Enqueues a job into a BullMQ queue with retry/backoff defaults, and returns the 
 
 | Function   | Signature                                    | Description                               |
 | ---------- | -------------------------------------------- | ----------------------------------------- |
-| `queueJob` | `(job, data, options?) => Promise<Job/null>` | Enqueue a job with retry/backoff defaults |
+| `queueJob` | `(job, data, options?) => Promise<Job \| null>` | Enqueue a job with retry/backoff defaults |
 
 Options:
 

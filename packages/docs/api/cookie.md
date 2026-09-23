@@ -10,8 +10,8 @@ Guide: [Cookie](./../guide/support/cookie).
 | ---------------------- | -------------------------------------- | ----------------------------------------- | ------------------------ |
 | `cookie.setAuth`       | `(c, token) => Promise<void>`          | Sets the `{name}_access` httpOnly cookie  |
 | `cookie.setRefresh`    | `(c, token, maxAge?) => Promise<void>` | Sets the `{name}_refresh` httpOnly cookie |
-| `cookie.getAuth`       | `(c) => Promise<string                 | undefined>`                               | Reads the access cookie  |
-| `cookie.getRefresh`    | `(c) => Promise<string                 | undefined>`                               | Reads the refresh cookie |
+| `cookie.getAuth`       | `(c) => Promise<string \| undefined>`                               | Reads the access cookie  |
+| `cookie.getRefresh`    | `(c) => Promise<string \| undefined>`                               | Reads the refresh cookie |
 | `cookie.deleteAuth`    | `(c) => void`                          | Clears the access cookie                  |
 | `cookie.deleteRefresh` | `(c) => void`                          | Clears the refresh cookie                 |
 

@@ -4,7 +4,7 @@
 
 ```ts [Hono]
 // POST /generate — create temp file
-export const generateCsv: Handler = async () => {
+export const generateCsv: Handler = async (c: any) => {
   const csv = ["id,title", "1,nexgen report", "2,temporary file"].join("\n");
   const token = await storage.generateForDownload({
     prefix: "report",
@@ -18,7 +18,7 @@ export const generateCsv: Handler = async () => {
 };
 
 // GET /download/:token — serve once and delete
-export const downloadCsv: Handler = async (c) => {
+export const downloadCsv: Handler = async (c: any) => {
   const token = decodeURIComponent(c.req.param("token"));
   try {
     const file = await storage.consumeGenerated(token);
@@ -139,16 +139,16 @@ import { storage } from "@/framework/facade.js";
 import { PassThrough } from "node:stream";
 import ExcelJS from "exceljs";
 
-// POST /report/sectorwise/export - streaming Excel for very large data
-export const exportSectorwise: Handler = async (c: any) => {
+// POST /report/export - streaming Excel for very large data
+export const exportReport: Handler = async (c: any) => {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("Sectorwise");
+  const sheet = workbook.addWorksheet("Report");
 
   // ...fill the sheet row by row...
 
   const bridge = new PassThrough();
   const pendingToken = storage.generateForDownloadStream({
-    prefix: `sectorwise_${authId}`,
+    prefix: `report_${c.req.valid("param").id}`,
     extension: "xlsx",
     stream: bridge,
   });
@@ -168,16 +168,16 @@ import { storage } from "@/framework/facade.js";
 import { PassThrough } from "node:stream";
 import ExcelJS from "exceljs";
 
-// POST /report/sectorwise/export - streaming Excel for very large data
-export const exportSectorwise = async (req: Request, res: Response) => {
+// POST /report/export - streaming Excel for very large data
+export const exportReport = async (req: Request, res: Response) => {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("Sectorwise");
+  const sheet = workbook.addWorksheet("Report");
 
   // ...fill the sheet row by row...
 
   const bridge = new PassThrough();
   const pendingToken = storage.generateForDownloadStream({
-    prefix: `sectorwise_${authId}`,
+    prefix: `report_${req.params.id}`,
     extension: "xlsx",
     stream: bridge,
   });

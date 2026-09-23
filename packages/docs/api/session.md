@@ -9,8 +9,8 @@ Redis-backed server-side session documents with an automatic httpOnly cookie. Di
 | Function              | Signature                              | Description                                                  |
 | --------------------- | -------------------------------------- | ------------------------------------------------------------ | -------------------------------- |
 | `session.start`       | `(data?) => Promise<string>`           | Create a session document; returns its ID                    |
-| `session.all`         | `(id) => Promise<T                     | null>`                                                       | Fetch the entire session payload |
-| `session.get`         | `(id, key) => Promise<T                | null>`                                                       | Read a single key                |
+| `session.all`         | `(id) => Promise<T \| null>`                                                       | Fetch the entire session payload |
+| `session.get`         | `(id, key) => Promise<T \| null>`                                                       | Read a single key                |
 | `session.put`         | `(id, key, value) => Promise<boolean>` | Write/update a single key (rewrites the document, fresh TTL) |
 | `session.refresh`     | `(id) => Promise<boolean>`             | Extend the TTL (called automatically by the middleware)      |
 | `session.destroy`     | `(id) => Promise<boolean>`             | Delete the session document                                  |

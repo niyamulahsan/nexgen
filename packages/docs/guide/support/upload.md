@@ -1,6 +1,6 @@
 # Upload — Express only
 
-> **Express engine only.** The Hono engine parses multipart bodies natively via `c.req.parseBody()` (see [Storage > Multipart File Upload](./../storage)). The `upload` / `fields` helpers exist only on the **Express** engine, where they wrap `multer` so controllers receive ready-to-use buffers.
+> **Express engine only.** The Hono engine parses multipart bodies natively via `c.req.parseBody()` (see [Storage > Multipart File Upload](/guide/storage#multipart-file-upload)). The `upload` / `fields` helpers exist only on the **Express** engine, where they wrap `multer` so controllers receive ready-to-use buffers.
 
 ## Overview
 
@@ -133,5 +133,5 @@ All failures are normalized to `422` with clear messages, so your controller onl
 
 ## Notes
 
-- Uses **memory storage** — buffers land in `req.file` / `req.files`, not on disk. Persist them with `storage.put*` (see [Storage](./../storage)).
+- Uses **memory storage** — buffers land in `req.file` / `req.files`, not on disk. Persist them with `storage.put*` (see [Storage guide > Multipart File Upload](/guide/storage#multipart-file-upload)).
 - For the Hono engine, use `c.req.parseBody()` and `storage.disk("public").putFile(...)` instead.

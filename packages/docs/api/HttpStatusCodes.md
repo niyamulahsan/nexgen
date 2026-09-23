@@ -68,7 +68,7 @@ if (authConfig.requireEmailVerification && !user.emailVerifiedAt) {
     .status(HttpStatusCodes.FORBIDDEN)
     .json({ message: "Please verify your email before logging in" });
 }
-return res
+res
   .status(HttpStatusCodes.OK)
   .json({ message: "User logged in successfully", data });
 ```
@@ -78,7 +78,8 @@ return res
 ## Notes
 
 - Keys must match OpenAPI numeric keys for `createRoute` responses.
-- The full `stoker/http-status-codes` export is re-exported — every status name is available.
+- **Coverage differs by engine:** Hono re-exports the **full** `stoker/http-status-codes` set (every name). Express ships a **curated subset** (the common codes above plus `GONE`/`PAYLOAD_TOO_LARGE`/`URI_TOO_LONG`/`UNSUPPORTED_MEDIA_TYPE`/`GATEWAY_TIMEOUT`, defined in `src/framework/facade.ts`). The docs use only a handful of names — all present on both engines.
+- **Adding a missing code on Express:** append it to `HttpStatusCodes` in `src/framework/facade.ts` with the stoker-matching numeric value.
 
 ## Related
 

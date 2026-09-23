@@ -65,7 +65,8 @@ export const streamMedia = async (req: Request, res: Response) => {
 
   const range = req.headers.range;
   if (!range) {
-    return res.json({ size: total, type: mime });
+    res.json({ size: total, type: mime });
+    return;
   }
 
   const [_, spec] = range.replace(/bytes=/, "").split("-");

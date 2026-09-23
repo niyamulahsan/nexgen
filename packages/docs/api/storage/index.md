@@ -2,7 +2,7 @@
 
 Imported from the facade: `import { storage } from "@/framework/facade.js"`.
 
-Unified API for **local disk** and **S3-compatible** storage (AWS S3, DigitalOcean Spaces, Cloudflare R2, MinIO). Swap the driver in `config/storage.ts` without touching code. See [Storage](./../guide/storage).
+Unified API for **local disk** + **S3-compatible** storage (AWS S3, DigitalOcean Spaces, Cloudflare R2, MinIO). Swap the driver in `config/storage.ts` without touching code. See [Storage guide](/guide/storage).
 
 ## Disks
 
@@ -17,7 +17,7 @@ Unified API for **local disk** and **S3-compatible** storage (AWS S3, DigitalOce
 Top-level methods operate on the **default disk**; `disk()` targets a specific disk with the same API.
 
 | Function                                     | Signature                                          | Description                                                        |
-| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------ |
 | `storage.put`                                | `(file, data) => Promise<string>`                  | Write a file (string, Buffer, Uint8Array, ArrayBuffer, Blob, File) |
 | `storage.putFile`                            | `(directory, file, name?) => Promise<string>`      | Store a browser `File` with unique naming                          |
 | `storage.get`                                | `(file) => Promise<Buffer>`                        | Read file content                                                  |
@@ -27,7 +27,7 @@ Top-level methods operate on the **default disk**; `disk()` targets a specific d
 | `storage.exists` / `missing`                 | `(file) => Promise<boolean>`                       | Presence check (and its inverse)                                   |
 | `storage.files` / `directories`              | `(directory?) => Promise<string[]>`                | List files / subdirectories                                        |
 | `storage.makeDirectory` / `deleteDirectory`  | `(directory) => Promise<boolean>`                  | Create / remove a directory tree                                   |
-| `storage.size` / `mimeType` / `lastModified` | `(file) => Promise<number                          | string>`                                                           | Metadata |
+| `storage.size` / `mimeType` / `lastModified` | `(file) => Promise<number \| string>`              | Metadata                                                           |
 | `storage.readStream` / `writeStream`         | `(file[, stream]) => Promise<Readable>`            | Stream a file in/out                                               |
 | `storage.url`                                | `(file) => string`                                 | Public URL                                                         |
 | `storage.temporaryUrl`                       | `(file, ttl?) => Promise<string>`                  | Signed URL (S3) or local proxy URL                                 |
@@ -45,6 +45,7 @@ Top-level methods operate on the **default disk**; `disk()` targets a specific d
 ```ts
 import { storage } from "@/framework/facade.js";
 
+const fileBuffer = Buffer.from("avatar bytes"); // e.g. fs.readFile(...) or an upload
 await storage.put("avatars/user-1.jpg", fileBuffer);
 const data = await storage.get("avatars/user-1.jpg");
 await storage.delete("avatars/user-1.jpg");
@@ -54,6 +55,7 @@ await storage.delete("avatars/user-1.jpg");
 
 ```ts
 const disk = storage.disk("private");
+const pdfBuffer = Buffer.from("%PDF-1.4 ..."); // e.g. playwright.pdf() output
 await disk.put("invoices/42.pdf", pdfBuffer);
 if (await disk.exists("invoices/42.pdf")) {
   const url = await disk.temporaryUrl("invoices/42.pdf", 300);
@@ -103,12 +105,13 @@ export default group().api(
 
 :::
 
-> Express: `req.file` is an `Express.Multer.File` with a `buffer`. Hono: files arrive as web `File` instances via `c.req.parseBody()`. See [Upload](./upload) and [Storage guide > Multipart](./../guide/storage).
+> Express: `req.file` is an `Express.Multer.File` with a `buffer`. Hono: files arrive as web `File` instances via `c.req.parseBody()`. See [Upload](../upload) and [Storage guide > Multipart](/guide/storage#multipart-file-upload).
 
 ### One-time generated download
 
 ```ts
 // Create a temp file (CSV, PDF, XLSX, …)
+const csvText = ["name,email", "Ada,ada@example.com"].join("\n");
 const token = await storage.generateForDownload({
   prefix: "report",
   extension: "csv",
@@ -192,7 +195,7 @@ export default group().api(
       throw error;
     }
 
-    return res.json({ message: "File uploaded successfully", path });
+    res.json({ message: "File uploaded successfully", path });
   },
 );
 ```
@@ -211,16 +214,16 @@ return storage.download(c, file.path, file.name); // Hono — Express: storage.d
 Export jobs are the ideal `generateForDownload` + `consumeGenerated` pairing: the worker writes the workbook to a single-use temp file and announces a tokenized URL, which the controller consumes and deletes:
 
 ```ts
-// modules/report/jobs/collectionExaminerExport.ts (worker)
+// modules/report/jobs/exportJob.ts (worker)
 const token = await storage.generateForDownload({
-  prefix: `collectionexaminer_${authId}`,
+  prefix: `report_${authId}`,
   extension: "xlsx",
   data: buffer,
 });
 await dispatchEvent(
-  "report.collectionexaminerexport.ready",
+  "report.export.ready",
   {
-    downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`,
+    downloadUrl: `/api/report/export/download/${encodeURIComponent(token)}`,
     authId,
   },
   { broadcast: { users: [authId] } },
@@ -228,9 +231,12 @@ await dispatchEvent(
 ```
 
 ```ts
-// modules/report/controllers/entity-analysis.controller.ts (download route)
+// modules/report/controllers/report-export.controller.ts (download route)
 export const download: Handler = async (c: any) => {
   const { token } = c.req.valid("param");
+  const auth = c.get("auth"); // Express: const auth = res.locals.auth
+  if (!token.includes(`report_${auth.id}`))
+    return c.json({ message: "Unauthorized" }, 403);
   const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
   return c.newResponse(buffer, 200, {
     "Content-Type": "application/octet-stream",
@@ -242,11 +248,11 @@ export const download: Handler = async (c: any) => {
 // Express engine version of the same controller
 export const download = async (req: Request, res: Response) => {
   const token = req.params.token; // validated in place
+  const auth = res.locals.auth;
+  if (!token.includes(`report_${auth.id}`))
+    return res.status(403).json({ message: "Unauthorized" });
   const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
-  return res
-    .status(200)
-    .set("Content-Type", "application/octet-stream")
-    .send(buffer);
+  res.status(200).set("Content-Type", "application/octet-stream").send(buffer);
 };
 ```
 

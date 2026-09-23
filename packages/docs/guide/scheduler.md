@@ -22,21 +22,47 @@ defineSchedule({
 });
 ```
 
+## Cron Expression Format
+
+Expressions support the **5-field** cron format, with an optional leading **seconds** field (Croner auto-detects):
+
+```
+┌──────────────── (optional) second (0 - 59)
+│ ┌────────────── minute (0 - 59)
+│ │ ┌──────────── hour (0 - 23)
+│ │ │ ┌────────── day of month (1 - 31)
+│ │ │ │ ┌──────── month (1 - 12)
+│ │ │ │ │ ┌────── day of week (0 - 6, 0 = Sunday)
+│ │ │ │ │ │
+* * * * * *
+```
+
+Examples:
+
+| Expression      | Meaning                                        |
+| --------------- | ---------------------------------------------- |
+| `0 */6 * * *`   | Every 6 hours                                  |
+| `0 2 * * *`     | Every day at 02:00                             |
+| `*/5 * * * *`   | Every 5 minutes                                |
+| `0 0 2 * * *`   | Every day at 02:00:00 (seconds field included) |
+
+The scheduler runs on **Croner** (`croner` ^10), which also accepts an optional leading **seconds** field for second-level precision — a 6-field expression: `SECOND MINUTE HOUR DAY-OF-MONTH MONTH DAY-OF-WEEK` (e.g. `0 0 2 * * *` runs every day at 02:00:00). Both the 5-field and 6-field forms are valid, so the 6-field cron strings used in existing apps work as-is.
+
 ## Options
 
-| Option       | Type       | Default   | Description                                                       |
-| ------------ | ---------- | --------- | ----------------------------------------------------------------- |
-| `name`       | `string`   | —         | **Required.** Unique identifier used as the lock key              |
-| `expression` | `string`   | —         | **Required.** Cron expression (`* * * * *`)                       |
-| `handler`    | `function` | —         | Async function with the task logic (required in handler mode)     |
-| `queue`      | `string`   | —         | Queue name for queue mode — dispatches `job` to this queue        |
-| `job`        | `string`   | `name`    | Job name enqueued on each tick (queue mode, defaults to `name`)   |
-| `data`       | `any`      | —         | Static data passed to every enqueued job (queue mode)             |
-| `immediately`| `boolean`  | `false`   | Dispatch one job immediately at boot (queue mode)                 |
-| `timezone`   | `string`   | server TZ | Timezone for cron evaluation (e.g. `"America/New_York"`)          |
-| `runOnInit`  | `boolean`  | `false`   | Run the handler immediately when the scheduler starts (handler mode) |
-| `enabled`    | `boolean`  | `true`    | Set to `false` to disable without deleting                        |
-| `ttlMs`      | `number`   | `120000`  | Lock TTL in milliseconds — prevents overlap if a run exceeds this |
+| Option        | Type       | Default   | Description                                                          |
+| ------------- | ---------- | --------- | -------------------------------------------------------------------- |
+| `name`        | `string`   | —         | **Required.** Unique identifier used as the lock key                 |
+| `expression`  | `string`   | —         | **Required.** Cron expression (`* * * * *`)                          |
+| `handler`     | `function` | —         | Async function with the task logic (required in handler mode)        |
+| `queue`       | `string`   | —         | Queue name for queue mode — dispatches `job` to this queue           |
+| `job`         | `string`   | `name`    | Job name enqueued on each tick (queue mode, defaults to `name`)      |
+| `data`        | `any`      | —         | Static data passed to every enqueued job (queue mode)                |
+| `immediately` | `boolean`  | `false`   | Dispatch one job immediately at boot (queue mode)                    |
+| `timezone`    | `string`   | server TZ | Timezone for cron evaluation (e.g. `"America/New_York"`)             |
+| `runOnInit`   | `boolean`  | `false`   | Run the handler immediately when the scheduler starts (handler mode) |
+| `enabled`     | `boolean`  | `true`    | Set to `false` to disable without deleting                           |
+| `ttlMs`       | `number`   | `120000`  | Lock TTL in milliseconds — prevents overlap if a run exceeds this    |
 
 ## Start the Scheduler
 

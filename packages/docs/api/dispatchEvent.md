@@ -96,9 +96,9 @@ await dispatchEvent(
   { broadcast: { auth: true } },
 );
 
-// modules/report/jobs/collectionExaminerExport.ts — tell the requester their export is ready
+// modules/report/jobs/exportJob.ts — tell the requester their export is ready
 await dispatchEvent(
-  "report.collectionexaminerexport.ready",
+  "report.export.ready",
   { downloadUrl, authId },
   { broadcast: { users: [authId] } },
 );

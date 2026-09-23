@@ -76,32 +76,28 @@ shouldQueue("user:signup", "mail", async (job) => {
 Long-running reports read with eager loading, build an `ExcelJS` workbook, stage a one-time download file, and notify only the requesting user:
 
 ```ts
-// modules/report/jobs/collectionExaminerExport.ts
-shouldQueue("report.collectionexaminerexport", "default", async (job) => {
-  const { authId, role, commissionerateId, userId, areaId, taxPeriod, search } =
-    job.data;
+// modules/report/jobs/exportJob.ts
+shouldQueue("report.export", "default", async (job) => {
+  const { authId, search } = job.data;
 
-  const rows = await db.query.collections.findMany({
-    where: buildExaminerWhere(
-      { id: authId, role, commissionerateId },
-      { userId, areaId, taxPeriod, search },
-    ),
-    with: collectionExaminerWith,
-    orderBy: desc(collections.id),
+  const rows = await db.query.reportRows.findMany({
+    where: buildExportWhere({ id: authId }, { search }),
+    with: reportRowsWith,
+    orderBy: desc(reportRows.id),
   });
 
   const buffer = Buffer.from(await new ExcelJS.Workbook().xlsx.writeBuffer());
 
   const token = await storage.generateForDownload({
-    prefix: `collectionexaminer_${authId}`,
+    prefix: `report_${authId}`,
     extension: "xlsx",
     data: buffer,
   });
 
   await dispatchEvent(
-    "report.collectionexaminerexport.ready",
+    "report.export.ready",
     {
-      downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`,
+      downloadUrl: `/api/report/excel/download/${encodeURIComponent(token)}`,
       authId,
     },
     { broadcast: { users: [authId] } },

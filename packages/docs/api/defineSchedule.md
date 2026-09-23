@@ -15,7 +15,7 @@ Registers named cron tasks run by the `schedule:work` process. Every run is wrap
 | Option        | Type       | Default   | Description                                                      |
 | ------------- | ---------- | --------- | ---------------------------------------------------------------- |
 | `name`        | `string`   | —         | **Required.** Unique identifier (used as the lock key)           |
-| `expression`  | `string`   | —         | **Required.** Cron expression (`* * * * *`)                      |
+| `expression`  | `string`   | —         | **Required.** Cron expression (`* * * * *`; an optional leading seconds field is also accepted, see [Cron Expression Format](./../guide/scheduler#cron-expression-format)) |
 | `handler`     | `function` | —         | Async task logic (handler mode)                                  |
 | `queue`       | `string`   | —         | Queue mode: dispatch `job` to this queue on each tick            |
 | `job`         | `string`   | `name`    | Job name enqueued on each tick (queue mode)                      |
@@ -72,61 +72,57 @@ defineSchedule({
 A cron handler that scans **keyset-paginated** rows (`id > lastId`, `LIMIT 1000`), updates them in chunks, then hands the collected results to a queue worker — the scan pattern to copy for any large bulk job:
 
 ```ts
-// modules/collection/console/collection.ts
+// modules/invoices/console/invoices.ts
 import { and, eq, gt, inArray, lt } from "drizzle-orm";
 import { db, defineSchedule, dispatchEvent } from "@/framework/facade.js";
-import { collectionbinds } from "@/modules/collectionbind/database/models/collectionbind.js";
+import { invoices } from "@/modules/invoices/database/models/invoice.js";
 
 defineSchedule({
-  name: "collection:status-update",
+  name: "invoices:status-update",
   expression: "0 0 0 * * *",
   handler: async () => {
     const now = new Date();
     let lastId = 0;
-    const expiredBinds: { commissionerateId: number; taxPeriod: string }[] = [];
+    const expiredInvoices: { userId: number }[] = [];
 
     while (true) {
       const where: any[] = [
-        eq(collectionbinds.last, 1),
-        lt(collectionbinds.endDate, now),
+        eq(invoices.active, 1),
+        lt(invoices.expiresAt, now),
       ];
-      if (lastId > 0) where.push(gt(collectionbinds.id, lastId));
+      if (lastId > 0) where.push(gt(invoices.id, lastId));
 
       const rows = await db
         .select({
-          id: collectionbinds.id,
-          commissionerateId: collectionbinds.commissionerateId,
-          taxPeriod: collectionbinds.taxPeriod,
+          id: invoices.id,
+          userId: invoices.userId,
         })
-        .from(collectionbinds)
+        .from(invoices)
         .where(and(...where))
-        .orderBy(collectionbinds.id)
+        .orderBy(invoices.id)
         .limit(1000);
 
       if (!rows.length) break;
       await db
-        .update(collectionbinds)
-        .set({ last: 0, updatedAt: now })
+        .update(invoices)
+        .set({ active: 0, updatedAt: now })
         .where(
           inArray(
-            collectionbinds.id,
+            invoices.id,
             rows.map((r) => r.id),
           ),
         );
-      expiredBinds.push(
-        ...rows.map((r) => ({
-          commissionerateId: r.commissionerateId,
-          taxPeriod: r.taxPeriod,
-        })),
+      expiredInvoices.push(
+        ...rows.map((r) => ({ userId: r.userId })),
       );
       lastId = rows[rows.length - 1].id;
     }
 
-    if (expiredBinds.length) {
+    if (expiredInvoices.length) {
       await dispatchEvent(
-        "collection.statusUpdate",
-        { binds: expiredBinds },
-        { queue: "collection" },
+        "invoices.statusUpdate",
+        { invoices: expiredInvoices },
+        { queue: "invoices" },
       );
     }
   },

@@ -90,16 +90,16 @@ onUnmounted(() => {
 Private per-user channels use the `user:<id>` naming and are emitted with `broadcast: { users: [id] }` — e.g. export-notification pages listen on `pulse.channel("user:${authUser.value.id}")` and request reports announce `report.*.ready` back to that single user:
 
 ```ts
-// modules/report/jobs/collectionExaminerExport.ts
+// modules/report/jobs/exportJob.ts
 await dispatchEvent(
-  "report.collectionexaminerexport.ready",
+  "report.export.ready",
   { downloadUrl, authId },
   { broadcast: { users: [authId] } },
 );
 ```
 
 ```vue
-pulse.channel(`user:${authUser.value.id}`).listen("report.collectionexaminerexport.ready",
+pulse.channel(`user:${authUser.value.id}`).listen("report.export.ready",
 (event) => { status.value = "ready"; downloadUrl.value = event.data.downloadUrl;
 });
 ```

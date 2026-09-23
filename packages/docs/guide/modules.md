@@ -112,7 +112,7 @@ import type { Request, Response } from "express";
 
 export const show = (req: Request, res: Response) => {
   const id = req.params.id; // validated by route schema
-  return res.json({
+  res.json({
     message: "Post fetched successfully",
     data: { id, name: "" },
   });
@@ -192,7 +192,7 @@ import {
 
 export const show = async (req: Request, res: Response) => {
   const params = await validate(PostIdParamsSchema, req.params);
-  return res.json({
+  res.json({
     message: "Post fetched successfully",
     data: { id: params.id, name: "" },
   });

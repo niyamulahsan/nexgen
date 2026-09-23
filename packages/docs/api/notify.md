@@ -90,7 +90,7 @@ export const createComment = async (req: Request, res: Response) => {
     link: `/posts/${postId}`,
     broadcast: true,
   });
-  return res.json({ message: "Comment created" });
+  res.json({ message: "Comment created" });
 };
 ```
 

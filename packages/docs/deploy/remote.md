@@ -25,10 +25,10 @@ Your Machine                        Remote Server (VPS)
      │  ── ssh docker compose up -d ───────>│
      │      --build (app)                   │
      │                                      │
-     │                              ┌───────┴────────┐
-     │                              │  App running at │
+     │                              ┌───────┴──────────┐
+     │                              │  App running at  │
      │                              │  your-domain.com │
-     │                              └────────────────┘
+     │                              └──────────────────┘
 ```
 
 ## Prerequisites
