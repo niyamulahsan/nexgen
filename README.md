@@ -44,16 +44,28 @@ Your API is live at `http://localhost:3000`, Scalar docs at `/api-docs`, and the
 
 Requires **Node.js >= 24** or **Bun >= 1.3**.
 
+### Current directory
+
+Scaffold directly into the current directory:
+
+```bash
+bun create nexgen@latest .
+bun create nexgen@latest . -- --engine=express
+```
+
+Works with any package manager: `pnpm`, `yarn`, or `npm`.
+
 ### Package Manager
 
 All examples use `npm` as the default. nexgen works with any major package manager:
 
-| Manager  | Create project              | Run commands          |
-| -------- | --------------------------- | --------------------- |
-| **npm**  | `npm create nexgen@latest`  | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen@latest` | `pnpm maker <cmd>`    |
-| **yarn** | `yarn create nexgen@latest` | `yarn maker <cmd>`    |
-| **bun**  | `bun create nexgen@latest`  | `bun maker <cmd>`     |
+| Manager  | Create project                    | Run commands          |
+| -------- | --------------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest my-app` | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen@latest my-app`| `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen@latest my-app`| `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen@latest my-app` | `bun maker <cmd>`     |
+| **all**  | `bun create nexgen@latest .`      | current directory     |
 
 ### Runtime
 
