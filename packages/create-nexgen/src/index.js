@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync, renameSync, readdirSync, rmSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline";
 import { gunzipSync } from "node:zlib";
@@ -33,6 +33,7 @@ function isValidProjectName(name) {
 
 function resolveTargetDir(name) {
   const cwd = process.cwd();
+  if (name === ".") return cwd;
   const dir = join(cwd, name);
   if (existsSync(dir)) {
     console.error(`Error: Directory "${name}" already exists.`);
@@ -166,15 +167,16 @@ async function main() {
   const targetPkgPath = join(targetDir, "package.json");
   if (existsSync(targetPkgPath)) {
     const targetPkg = JSON.parse(readFileSync(targetPkgPath, "utf-8"));
-    targetPkg.name = projectName;
+    targetPkg.name = projectName === "." ? basename(targetDir) : projectName;
     writeFileSync(targetPkgPath, JSON.stringify(targetPkg, null, 2) + "\n");
   }
 
   const pm = detectPackageManager();
 
-  console.log(`Done! Created "${projectName}" (engine: ${engine}) at ${targetDir}`);
+  const cdName = projectName === "." ? basename(targetDir) : projectName;
+  console.log(`Done! Created "${cdName}" (engine: ${engine}) at ${targetDir}`);
   console.log();
-  console.log("  cd " + projectName);
+  console.log("  cd " + cdName);
   console.log("  " + pm + " install");
   console.log("  cp .env.example .env");
   console.log();
