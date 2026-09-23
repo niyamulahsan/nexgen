@@ -60,6 +60,36 @@ bun create nexgen@latest my-project --engine=express
 
 See [Routing: Hono vs Express](/guide/routing) for how the two engines differ.
 
+### Scaffold into the current directory
+
+Use `.` as the project name to scaffold directly into the current directory instead of creating a new folder:
+
+::: code-group
+
+```bash [npm]
+npm create nexgen@latest .
+```
+
+```bash [pnpm]
+pnpm create nexgen@latest .
+```
+
+```bash [yarn]
+yarn create nexgen@latest .
+```
+
+```bash [bun]
+bun create nexgen@latest .
+```
+
+:::
+
+::: tip
+`--engine=express` works the same way: `npm create nexgen@latest . -- --engine=express`, or `bun create nexgen@latest . --engine=express` for the other managers.
+:::
+
+The project name is derived from the current folder name.
+
 ## Setup
 
 ::: code-group
