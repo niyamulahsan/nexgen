@@ -137,8 +137,8 @@ async function main() {
     projectName = await ask("Project name: ");
   }
 
-  if (!projectName || !isValidProjectName(projectName)) {
-    console.error("Error: Invalid project name. Use alphanumeric, dashes, or underscores.");
+  if (!projectName || (projectName !== "." && !isValidProjectName(projectName))) {
+    console.error("Error: Invalid project name. Use alphanumeric, dashes, or underscores, or '.' for the current directory.");
     process.exit(1);
   }
 
@@ -176,7 +176,9 @@ async function main() {
   const cdName = projectName === "." ? basename(targetDir) : projectName;
   console.log(`Done! Created "${cdName}" (engine: ${engine}) at ${targetDir}`);
   console.log();
-  console.log("  cd " + cdName);
+  if (projectName !== ".") {
+    console.log("  cd " + cdName);
+  }
   console.log("  " + pm + " install");
   console.log("  cp .env.example .env");
   console.log();
