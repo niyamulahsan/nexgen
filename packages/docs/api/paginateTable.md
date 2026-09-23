@@ -6,19 +6,19 @@ Pagination for a single table with optional `WHERE`/`ORDER BY` — no request ob
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function        | Signature                                                    | Description                                                                 |
+| --------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
 | `paginateTable` | `(database, table, options?) => Promise<PaginatedResult<T>>` | Single-table pagination; explicit page/perPage, optional where/orderBy/path |
 
 Options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `page` | `number` | `1` | Page number |
-| `perPage` | `number` | `15` | Items per page |
-| `where` | `SQL` | — | Filter clause (e.g. `or(...clauses)`) |
-| `orderBy` | `SQL | SQL[]` | — | Sort (`[desc(reports.id)]`) |
-| `path` | `string` | `""` | Base path for pagination URLs |
+| Option    | Type     | Default | Description                           |
+| --------- | -------- | ------- | ------------------------------------- | --------------------------- |
+| `page`    | `number` | `1`     | Page number                           |
+| `perPage` | `number` | `15`    | Items per page                        |
+| `where`   | `SQL`    | —       | Filter clause (e.g. `or(...clauses)`) |
+| `orderBy` | `SQL     | SQL[]`  | —                                     | Sort (`[desc(reports.id)]`) |
+| `path`    | `string` | `""`    | Base path for pagination URLs         |
 
 ## Use cases
 
@@ -62,7 +62,10 @@ export const index: Handler = async (c: any) => {
     path: c.req.path,
   });
 
-  return c.json({ message: "Files fetched successfully", data: result }, HttpStatusCodes.OK);
+  return c.json(
+    { message: "Files fetched successfully", data: result },
+    HttpStatusCodes.OK,
+  );
 };
 ```
 

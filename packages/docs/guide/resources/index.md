@@ -6,14 +6,14 @@ The UI lives under `src/resources/` and is served by the framework's Vite dev se
 
 The nexgen backend is **UI-agnostic**. The default template ships with **Vue 3** + **Pinia** + **Vue Router**, but you can swap it for any Vite-compatible framework:
 
-| Framework | Plugin | Notes |
-|-----------|--------|-------|
-| **Vue 3** (default) | `@vitejs/plugin-vue` | Ships with the template |
-| **React** | `@vitejs/plugin-react` | Replace plugin, rewrite `main.tsx` + `App.tsx` |
-| **Preact** | `@vitejs/plugin-react` (with `React.createElement`) | Lightweight React alternative |
-| **Solid** | `vite-plugin-solid` | JSX with fine-grained reactivity |
-| **Svelte** | `@sveltejs/vite-plugin-svelte` | `.svelte` components |
-| **Astro** | `@astrojs/vite-plugin-astro` | Static-first, islands architecture |
+| Framework           | Plugin                                              | Notes                                          |
+| ------------------- | --------------------------------------------------- | ---------------------------------------------- |
+| **Vue 3** (default) | `@vitejs/plugin-vue`                                | Ships with the template                        |
+| **React**           | `@vitejs/plugin-react`                              | Replace plugin, rewrite `main.tsx` + `App.tsx` |
+| **Preact**          | `@vitejs/plugin-react` (with `React.createElement`) | Lightweight React alternative                  |
+| **Solid**           | `vite-plugin-solid`                                 | JSX with fine-grained reactivity               |
+| **Svelte**          | `@sveltejs/vite-plugin-svelte`                      | `.svelte` components                           |
+| **Astro**           | `@astrojs/vite-plugin-astro`                        | Static-first, islands architecture             |
 
 ### What to change
 
@@ -46,15 +46,15 @@ src/resources/
 
 ## Quick reference
 
-| Page | What it covers |
-|------|----------------|
-| [Entry Point](/guide/resources/entry-point) | `main.ts`, `App.vue`, `index.html`, plugin registration order |
-| [Vite Config](/guide/resources/vite-config) | Dev server proxy, aliases, build output, SCSS options |
-| [Router](/guide/resources/router) | Route definitions, auth guards, meta flags, route progress |
-| [Pages](/guide/resources/pages) | Page components, dashboard & auth examples |
-| [Layouts](/guide/resources/layouts) | Dashboard layout (header, sidebar, footer) and auth layout |
-| [Plugins](/guide/resources/gum) | Gum, Pulse, Dialog — dedicated guides with full API reference |
-| [Stores](/guide/resources/stores) | Auth store and admin-ui Pinia store |
-| [Composables](/guide/resources/composables) | `useAuth` composable |
-| [Components](/guide/resources/components) | DataTable, Select, Datepicker, Button, Input, Modal, Toast, and more |
-| [Helpers](/guide/resources/helpers) | Number formatting and utility functions |
+| Page                                        | What it covers                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| [Entry Point](/guide/resources/entry-point) | `main.ts`, `App.vue`, `index.html`, plugin registration order        |
+| [Vite Config](/guide/resources/vite-config) | Dev server proxy, aliases, build output, SCSS options                |
+| [Router](/guide/resources/router)           | Route definitions, auth guards, meta flags, route progress           |
+| [Pages](/guide/resources/pages)             | Page components, dashboard & auth examples                           |
+| [Layouts](/guide/resources/layouts)         | Dashboard layout (header, sidebar, footer) and auth layout           |
+| [Plugins](/guide/resources/gum)             | Gum, Pulse, Dialog — dedicated guides with full API reference        |
+| [Stores](/guide/resources/stores)           | Auth store and admin-ui Pinia store                                  |
+| [Composables](/guide/resources/composables) | `useAuth` composable                                                 |
+| [Components](/guide/resources/components)   | DataTable, Select, Datepicker, Button, Input, Modal, Toast, and more |
+| [Helpers](/guide/resources/helpers)         | Number formatting and utility functions                              |

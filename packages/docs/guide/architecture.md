@@ -93,7 +93,7 @@ Stack details:
 | Middleware                | File                  | Purpose                                                |
 | ------------------------- | --------------------- | ------------------------------------------------------ |
 | `sessionMiddleware`       | `session/session.ts`  | Attaches/generates session cookie, refreshes Redis TTL |
-| `corsMiddleware`          | `http/cors.ts`        | CORS headers from `corsConfig.origin`                   |
+| `corsMiddleware`          | `http/cors.ts`        | CORS headers from `corsConfig.origin`                  |
 | `loggerMiddleware`        | `http/logger.ts`      | Structured request logging                             |
 | `rateLimiterMiddleware`   | `http/ratelimiter.ts` | Rate limiting per session (auth) / per IP (guest)      |
 | `storageStaticMiddleware` | `http/static.ts`      | Serve uploaded files from `/storage/*`                 |
@@ -128,11 +128,11 @@ The server entrypoint:
 
 All three runtimes are **self-executing** — they wire their own dependency boot (DB/Redis/queue), register the shared shutdown handler, and run as standalone processes. Each returns a runtime handle (`ServerHandle`, `WorkerHandle`, `SchedulerHandle`).
 
-| Entrypoint   | File                             | Entry function                  | Wires at boot                                         |
-| ------------ | -------------------------------- | ------------------------------- | ----------------------------------------------------- |
-| API Server   | `src/framework/server.ts`        | `startServer()`                 | HTTP app, Socket.IO, Redis pub/sub broadcast sub       |
-| Queue Worker | `src/framework/queue/worker.ts`  | `startQueueWorkerRuntime()`     | Redis, BullMQ worker, `parseCsvOrFallback(queue list)` |
-| Scheduler    | `src/framework/scheduler/run.ts` | `startSchedulerRuntime()`       | DB/Redis, scheduler boot, queue runtime                |
+| Entrypoint   | File                             | Entry function              | Wires at boot                                          |
+| ------------ | -------------------------------- | --------------------------- | ------------------------------------------------------ |
+| API Server   | `src/framework/server.ts`        | `startServer()`             | HTTP app, Socket.IO, Redis pub/sub broadcast sub       |
+| Queue Worker | `src/framework/queue/worker.ts`  | `startQueueWorkerRuntime()` | Redis, BullMQ worker, `parseCsvOrFallback(queue list)` |
+| Scheduler    | `src/framework/scheduler/run.ts` | `startSchedulerRuntime()`   | DB/Redis, scheduler boot, queue runtime                |
 
 ### Self-executing lifecycle & duplicate shutdown
 
@@ -228,22 +228,22 @@ Module Router         — Match route → run middleware → execute controller
 
 > **The rule:** the facade is the **only user-facing surface**. Everything else is an **app setting** — declared in `src/config/`, validated at boot, wired automatically by the framework. It is **not** exported by the facade.Parameters use it; the framework runs it.
 
-| Concern            | Settings live in               | Wired by framework              | Facade export? |
-| ------------------ | ------------------------------ | ------------------------------- | -------------- |
-| Security headers   | `src/config/security.ts`       | `src/framework/http/security.ts`| No             |
-| Config validation  | `src/config/validate.ts`       | Kernel boot (`validateConfig`)  | No             |
-| Metrics            | `src/config/metrics.ts`        | `src/framework/http/metrics.ts` | No             |
-| Health / liveness  | `src/config/health.ts`         | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
-| Circuit breaker    | `src/config/circuit-breaker.ts`| `src/framework/circuit-breaker` | No             |
-| Rate limiting      | `src/config/rateLimit.ts`      | `http/ratelimiter.ts`           | No             |
-| Storage facade     | —                              | —                               | **Yes**        |
-| DB facade          | —                              | —                               | **Yes**        |
-| Cache facade       | —                              | —                               | **Yes**        |
-| Events / queue     | —                              | —                              | **Yes**        |
+| Concern           | Settings live in                | Wired by framework                                                                            | Facade export? |
+| ----------------- | ------------------------------- | --------------------------------------------------------------------------------------------- | -------------- |
+| Security headers  | `src/config/security.ts`        | `src/framework/http/security.ts`                                                              | No             |
+| Config validation | `src/config/validate.ts`        | Kernel boot (`validateConfig`)                                                                | No             |
+| Metrics           | `src/config/metrics.ts`         | `src/framework/http/metrics.ts`                                                               | No             |
+| Health / liveness | `src/config/health.ts`          | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
+| Circuit breaker   | `src/config/circuit-breaker.ts` | `src/framework/circuit-breaker`                                                               | No             |
+| Rate limiting     | `src/config/rateLimit.ts`       | `http/ratelimiter.ts`                                                                         | No             |
+| Storage facade    | —                               | —                                                                                             | **Yes**        |
+| DB facade         | —                               | —                                                                                             | **Yes**        |
+| Cache facade      | —                               | —                                                                                             | **Yes**        |
+| Events / queue    | —                               | —                                                                                             | **Yes**        |
 
 **Why this split:**
 
-- **The facade stays small and stable** — it exposes only a deliberately chosen set of app-facing verbs: `storage`, `cache`, `db`/`database` (plus `paginate*`), `dispatchCommand`/`command`, `dispatchEvent`, `shouldQueue`/`queue`, `defineSchedule`, `session`, `notify`, `broadcast`, and a few support helpers (`createRoute`, `group`, `createRouter`, `validate`, `cache`, `cookie`, `jwt`, `logger`, `password`, `urls`, `mail`). Even that set is deliberately chosen; if in doubt, a concern is *not* facade.
+- **The facade stays small and stable** — it exposes only a deliberately chosen set of app-facing verbs: `storage`, `cache`, `db`/`database` (plus `paginate*`), `dispatchCommand`/`command`, `dispatchEvent`, `shouldQueue`/`queue`, `defineSchedule`, `session`, `notify`, `broadcast`, and a few support helpers (`createRoute`, `group`, `createRouter`, `validate`, `cache`, `cookie`, `jwt`, `logger`, `password`, `urls`, `mail`). Even that set is deliberately chosen; if in doubt, a concern is _not_ facade.
 - **App settings are config-driven, not code-driven.** You never write `security.ts` middleware by hand — you fill in `config/security.ts` and the framework wires `http/security.ts` for you at boot.
 - **Changing behavior never touches the facade or module code** — edit the config file, restart, done.
 - **Circuit breaker, validation, and security are ops/framework concerns, not user-end API.** They exist so the app bootstraps cleanly and survives faults — app code shouldn't even know they exist.
@@ -252,12 +252,12 @@ Module Router         — Match route → run middleware → execute controller
 
 The framework auto-wires the container-probe endpoints you need for orchestration:
 
-| Endpoint  | Purpose                            | K8s probe        |
-| --------- | ---------------------------------- | ---------------- |
-| `/health` | Process up (always 200 when alive) | `livenessProbe`  |
-| `/ready`  | App booted, deps connected         | `readinessProbe` |
-| `/live`   | App responding                     | `livenessProbe`  |
-| `/metrics`| Prometheus-style counters          | —                |
+| Endpoint   | Purpose                            | K8s probe        |
+| ---------- | ---------------------------------- | ---------------- |
+| `/health`  | Process up (always 200 when alive) | `livenessProbe`  |
+| `/ready`   | App booted, deps connected         | `readinessProbe` |
+| `/live`    | App responding                     | `livenessProbe`  |
+| `/metrics` | Prometheus-style counters          | —                |
 
 These are mounted on the HTTP app by the framework — **you never define routes for them** in your modules. Kubernetes (or any orchestrator) hits the endpoint, reads the status, and decides pod health from it. Like circuit breaker, this is app/orchestration-level structure, not user code.
 

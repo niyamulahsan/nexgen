@@ -28,13 +28,13 @@ bun maker <command> [options]
 
 Create a complete module with all default scaffolding.
 
-| Generated | Path |
-|---|---|
-| Controller | `src/modules/<name>/controllers/<name>.controller.ts` |
-| Schema | `src/modules/<name>/controllers/<name>.schema.ts` |
-| Route | `src/modules/<name>/routes/api.ts` |
-| Model | `src/modules/<name>/database/models/<name>.ts` |
-| Seeder | `src/modules/<name>/database/seeders/<name>.seeder.ts` |
+| Generated  | Path                                                   |
+| ---------- | ------------------------------------------------------ |
+| Controller | `src/modules/<name>/controllers/<name>.controller.ts`  |
+| Schema     | `src/modules/<name>/controllers/<name>.schema.ts`      |
+| Route      | `src/modules/<name>/routes/api.ts`                     |
+| Model      | `src/modules/<name>/database/models/<name>.ts`         |
+| Seeder     | `src/modules/<name>/database/seeders/<name>.seeder.ts` |
 
 ```
 src/modules/posts/
@@ -54,12 +54,12 @@ src/modules/posts/
 
 Generate a notification backend module with controller, routes, and job. Default name is `notification`.
 
-| File | Purpose |
-|---|---|
+| File                                     | Purpose                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
 | `controllers/notification.controller.ts` | 5 handlers: list, unreadCount, markRead, markAllRead, remove |
-| `controllers/notification.schema.ts` | Zod/OpenAPI schemas |
-| `routes/api.ts` | 5 routes under `authMiddleware` |
-| `jobs/notification.ts` | Queue handler for email delivery |
+| `controllers/notification.schema.ts`     | Zod/OpenAPI schemas                                          |
+| `routes/api.ts`                          | 5 routes under `authMiddleware`                              |
+| `jobs/notification.ts`                   | Queue handler for email delivery                             |
 
 ::: tip
 UI integration is manual — see [Notification Guide](/guide/notification) for Vue copy-paste components and setup instructions.

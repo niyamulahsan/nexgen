@@ -6,9 +6,9 @@ Gets or lazily creates a BullMQ queue instance (`"default"` if omitted) for moni
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `queue` | `(name?) => Queue/null` | Get or lazily create a BullMQ queue (`"default"` if omitted) |
+| Function | Signature               | Description                                                  |
+| -------- | ----------------------- | ------------------------------------------------------------ |
+| `queue`  | `(name?) => Queue/null` | Get or lazily create a BullMQ queue (`"default"` if omitted) |
 
 ## Use cases
 
@@ -19,7 +19,12 @@ import { queue } from "@/framework/facade.js";
 
 const q = queue("default");
 if (q) {
-  const counts = await q.getJobCounts("waiting", "active", "completed", "failed");
+  const counts = await q.getJobCounts(
+    "waiting",
+    "active",
+    "completed",
+    "failed",
+  );
 }
 ```
 

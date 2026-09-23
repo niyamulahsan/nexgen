@@ -6,22 +6,22 @@ Enqueues a job into a BullMQ queue with retry/backoff defaults, and returns the 
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function   | Signature                                    | Description                               |
+| ---------- | -------------------------------------------- | ----------------------------------------- |
 | `queueJob` | `(job, data, options?) => Promise<Job/null>` | Enqueue a job with retry/backoff defaults |
 
 Options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `queue` | `string` | `"default"` | Target queue name |
-| `delay` | `number` | `0` | Delay in seconds before the job is visible to workers |
-| `attempts` | `number` | `3` | Maximum retries if the job fails |
-| `jobId` | `string` | auto | Custom ID for idempotency (duplicates prevented) |
-| `priority` | `number` | — | Higher number processed first |
-| `backoff` | `object` | `{ type: "exponential", delay: 3000 }` | Retry strategy: `"exponential"` or `"fixed"` |
-| `removeOnComplete` | `number` | `1000` | Keep at most N completed jobs |
-| `removeOnFail` | `number` | `5000` | Keep at most N failed jobs |
+| Option             | Type     | Default                                | Description                                           |
+| ------------------ | -------- | -------------------------------------- | ----------------------------------------------------- |
+| `queue`            | `string` | `"default"`                            | Target queue name                                     |
+| `delay`            | `number` | `0`                                    | Delay in seconds before the job is visible to workers |
+| `attempts`         | `number` | `3`                                    | Maximum retries if the job fails                      |
+| `jobId`            | `string` | auto                                   | Custom ID for idempotency (duplicates prevented)      |
+| `priority`         | `number` | —                                      | Higher number processed first                         |
+| `backoff`          | `object` | `{ type: "exponential", delay: 3000 }` | Retry strategy: `"exponential"` or `"fixed"`          |
+| `removeOnComplete` | `number` | `1000`                                 | Keep at most N completed jobs                         |
+| `removeOnFail`     | `number` | `5000`                                 | Keep at most N failed jobs                            |
 
 ## Use cases
 
@@ -30,23 +30,29 @@ Options:
 ```ts
 import { queueJob } from "@/framework/facade.js";
 
-await queueJob("process-image", { path: "/tmp/photo.jpg" }, {
-  queue: "images",
-  delay: 30,                                  // seconds from now
-  attempts: 5,                                // retry up to 5 times
-  priority: 10,                               // higher = processed first
-  jobId: "img-123",                           // custom ID — prevents duplicates
-  backoff: { type: "fixed", delay: 5000 },    // 5s between retries
-  removeOnComplete: 500,
-  removeOnFail: 2000,
-});
+await queueJob(
+  "process-image",
+  { path: "/tmp/photo.jpg" },
+  {
+    queue: "images",
+    delay: 30, // seconds from now
+    attempts: 5, // retry up to 5 times
+    priority: 10, // higher = processed first
+    jobId: "img-123", // custom ID — prevents duplicates
+    backoff: { type: "fixed", delay: 5000 }, // 5s between retries
+    removeOnComplete: 500,
+    removeOnFail: 2000,
+  },
+);
 ```
 
 ### When Redis is off
 
 ```ts
 const job = await queueJob("process-image", { path });
-if (job === null) { /* Redis unavailable — handle gracefully */ }
+if (job === null) {
+  /* Redis unavailable — handle gracefully */
+}
 ```
 
 ## Notes

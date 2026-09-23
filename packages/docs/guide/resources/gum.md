@@ -16,13 +16,13 @@ The composable re-exports the plugin from `src/resources/src/plugins/gum.ts`.
 
 Use each layer for one job:
 
-| Layer | Purpose |
-|---|---|
-| `route.query` | Reload-safe request state: page, size, search, filters |
-| Pinia store | API data and shared application state |
-| `useGum()` | Visit lifecycle, query navigation, scroll preservation |
-| `useGumForm()` | Form submission, errors, processing, upload progress |
-| `useGumRemember()` | Local UI state that should not be in the URL |
+| Layer              | Purpose                                                |
+| ------------------ | ------------------------------------------------------ |
+| `route.query`      | Reload-safe request state: page, size, search, filters |
+| Pinia store        | API data and shared application state                  |
+| `useGum()`         | Visit lifecycle, query navigation, scroll preservation |
+| `useGumForm()`     | Form submission, errors, processing, upload progress   |
+| `useGumRemember()` | Local UI state that should not be in the URL           |
 
 The common flow for listings is:
 
@@ -40,35 +40,35 @@ const gum = useGum();
 
 Returned helpers:
 
-| Helper | Purpose |
-|---|---|
-| `processing` | `ref<boolean>` while a Gum request is running |
-| `visit(url, options)` | Core request method |
-| `get(url, options)` | GET request and route query visit |
-| `post(url, data, options)` | POST request |
-| `put(url, data, options)` | PUT request |
-| `patch(url, data, options)` | PATCH request |
-| `delete(url, options)` | DELETE request |
-| `reload(options)` | GET current route with current query |
+| Helper                      | Purpose                                       |
+| --------------------------- | --------------------------------------------- |
+| `processing`                | `ref<boolean>` while a Gum request is running |
+| `visit(url, options)`       | Core request method                           |
+| `get(url, options)`         | GET request and route query visit             |
+| `post(url, data, options)`  | POST request                                  |
+| `put(url, data, options)`   | PUT request                                   |
+| `patch(url, data, options)` | PATCH request                                 |
+| `delete(url, options)`      | DELETE request                                |
+| `reload(options)`           | GET current route with current query          |
 
 Options:
 
-| Option | Type | Default | Purpose |
-|---|---|---|---|
-| `method` | `get \| post \| put \| patch \| delete` | `get` | HTTP method for `visit()` |
-| `data` | `object \| FormData` | — | Request body for non-GET requests |
-| `query` | `object` | — | Query params sent to the API and written to the UI URL for GET requests |
-| `routePath` | `string` | current route path | UI route path to update after a GET request |
-| `replace` | `boolean` | `false` | Use `router.replace()` instead of `router.push()` |
-| `preserveState` | `boolean` | `false` for GET, `true` for mutations | Keep `useGumRemember()` state |
-| `preserveScroll` | `boolean` | `false` | Restore scroll after request and router update |
-| `skipFetch` | `boolean` | `false` | Skip the API call — only navigate and preserve scroll/state. Used by datatable components (page watcher handles the data fetch) |
-| `onBefore` | `() => boolean \| void \| Promise<boolean \| void>` | — | Return `false` to cancel |
-| `onStart` | `() => void \| Promise<void>` | — | Runs before request |
-| `onProgress` | `(event: AxiosProgressEvent) => void` | — | Upload progress callback (only `useGum()`, not `useGumForm()`) |
-| `onSuccess` | `(response) => void \| Promise<void>` | — | Runs on successful response |
-| `onError` | `(errors, error) => void \| Promise<void>` | — | Runs on failed response with normalized validation errors and the raw Axios error. Error is **not** rethrown when `onError` is provided — no try/catch needed. |
-| `onFinish` | `() => void \| Promise<void>` | — | Always runs after request |
+| Option           | Type                                                | Default                               | Purpose                                                                                                                                                        |
+| ---------------- | --------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`         | `get \| post \| put \| patch \| delete`             | `get`                                 | HTTP method for `visit()`                                                                                                                                      |
+| `data`           | `object \| FormData`                                | —                                     | Request body for non-GET requests                                                                                                                              |
+| `query`          | `object`                                            | —                                     | Query params sent to the API and written to the UI URL for GET requests                                                                                        |
+| `routePath`      | `string`                                            | current route path                    | UI route path to update after a GET request                                                                                                                    |
+| `replace`        | `boolean`                                           | `false`                               | Use `router.replace()` instead of `router.push()`                                                                                                              |
+| `preserveState`  | `boolean`                                           | `false` for GET, `true` for mutations | Keep `useGumRemember()` state                                                                                                                                  |
+| `preserveScroll` | `boolean`                                           | `false`                               | Restore scroll after request and router update                                                                                                                 |
+| `skipFetch`      | `boolean`                                           | `false`                               | Skip the API call — only navigate and preserve scroll/state. Used by datatable components (page watcher handles the data fetch)                                |
+| `onBefore`       | `() => boolean \| void \| Promise<boolean \| void>` | —                                     | Return `false` to cancel                                                                                                                                       |
+| `onStart`        | `() => void \| Promise<void>`                       | —                                     | Runs before request                                                                                                                                            |
+| `onProgress`     | `(event: AxiosProgressEvent) => void`               | —                                     | Upload progress callback (only `useGum()`, not `useGumForm()`)                                                                                                 |
+| `onSuccess`      | `(response) => void \| Promise<void>`               | —                                     | Runs on successful response                                                                                                                                    |
+| `onError`        | `(errors, error) => void \| Promise<void>`          | —                                     | Runs on failed response with normalized validation errors and the raw Axios error. Error is **not** rethrown when `onError` is provided — no try/catch needed. |
+| `onFinish`       | `() => void \| Promise<void>`                       | —                                     | Always runs after request                                                                                                                                      |
 
 ## GET Visits
 
@@ -80,10 +80,10 @@ await gum.get("/api/posts", {
   query: {
     page: 2,
     size: 10,
-    search: "vue"
+    search: "vue",
   },
   preserveState: true,
-  preserveScroll: true
+  preserveScroll: true,
 });
 ```
 
@@ -118,7 +118,7 @@ function queryParams() {
   return {
     page: Number(route.query.page || 1),
     size: Number(route.query.size || 10),
-    search: String(route.query.search || "")
+    search: String(route.query.search || ""),
   };
 }
 
@@ -127,15 +127,12 @@ watch(
   async () => {
     await store.fetchPosts(queryParams());
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
 <template>
-  <DataTable
-    :data="posts"
-    :search="search"
-    :option="[10, 25, 50]">
+  <DataTable :data="posts" :search="search" :option="[10, 25, 50]">
     <template #thead>
       <th>Title</th>
       <th>Status</th>
@@ -163,10 +160,14 @@ export const usePostsStore = defineStore("posts", () => {
     last_page: 1,
     per_page: 10,
     total: 0,
-    path: "/api/posts"
+    path: "/api/posts",
   });
 
-  async function fetchPosts(params: { page?: number; size?: number; search?: string }) {
+  async function fetchPosts(params: {
+    page?: number;
+    size?: number;
+    search?: string;
+  }) {
     const response = await axios.get("/api/posts", { params });
     posts.value = response.data.data;
     return posts.value;
@@ -201,11 +202,11 @@ gum.get(props.data.path, {
   query: {
     page,
     size,
-    search
+    search,
   },
   preserveState: true,
   preserveScroll: true,
-  skipFetch: true
+  skipFetch: true,
 });
 ```
 
@@ -213,20 +214,20 @@ gum.get(props.data.path, {
 
 ### Props
 
-| Prop | Type | Default | Notes |
-|------|------|---------|-------|
-| `data` | `object` | — | Paginated object with `data`, `current_page`, `last_page`, `per_page`, `total`, `path` |
-| `search` | `string` | `""` | Initial search text synced to internal state |
-| `option` | `Array<string \| number>` | `[]` | Page size options (e.g., `[10, 25, 50]`) |
-| `removable` | `boolean` | `true` | Show checkbox column and delete button |
-| `countable` | `boolean` | `true` | Show row number column |
-| `searchable` | `boolean` | `true` | Show search input |
-| `optionable` | `boolean` | `true` | Show page size selector |
+| Prop         | Type                      | Default | Notes                                                                                  |
+| ------------ | ------------------------- | ------- | -------------------------------------------------------------------------------------- |
+| `data`       | `object`                  | —       | Paginated object with `data`, `current_page`, `last_page`, `per_page`, `total`, `path` |
+| `search`     | `string`                  | `""`    | Initial search text synced to internal state                                           |
+| `option`     | `Array<string \| number>` | `[]`    | Page size options (e.g., `[10, 25, 50]`)                                               |
+| `removable`  | `boolean`                 | `true`  | Show checkbox column and delete button                                                 |
+| `countable`  | `boolean`                 | `true`  | Show row number column                                                                 |
+| `searchable` | `boolean`                 | `true`  | Show search input                                                                      |
+| `optionable` | `boolean`                 | `true`  | Show page size selector                                                                |
 
 ### Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
+| Event    | Payload                   | Description                                             |
+| -------- | ------------------------- | ------------------------------------------------------- |
 | `remove` | `Array<string \| number>` | Array of selected row IDs when delete button is clicked |
 
 ## Search
@@ -239,10 +240,10 @@ await gum.get("/api/posts", {
   query: {
     page: 1,
     size: route.query.size || 10,
-    search: searchText
+    search: searchText,
   },
   preserveState: true,
-  preserveScroll: true
+  preserveScroll: true,
 });
 ```
 
@@ -256,10 +257,10 @@ await gum.get("/api/posts", {
   query: {
     page: nextPage,
     size: route.query.size || 10,
-    search: route.query.search || ""
+    search: route.query.search || "",
   },
   preserveState: true,
-  preserveScroll: true
+  preserveScroll: true,
 });
 ```
 
@@ -273,10 +274,10 @@ await gum.get("/api/posts", {
   query: {
     page: 1,
     size: 25,
-    search: route.query.search || ""
+    search: route.query.search || "",
   },
   preserveState: true,
-  preserveScroll: true
+  preserveScroll: true,
 });
 ```
 
@@ -290,7 +291,7 @@ await gum.post("/api/posts", payload, {
   preserveState: true,
   onSuccess: async () => {
     await store.fetchPosts(queryParams());
-  }
+  },
 });
 ```
 
@@ -302,7 +303,7 @@ await gum.put(`/api/posts/${id}`, payload, {
   preserveState: true,
   onSuccess: async () => {
     await store.fetchPosts(queryParams());
-  }
+  },
 });
 ```
 
@@ -314,7 +315,7 @@ await gum.delete(`/api/posts/${id}`, {
   preserveState: true,
   onSuccess: async () => {
     await store.fetchPosts(queryParams());
-  }
+  },
 });
 ```
 
@@ -341,9 +342,7 @@ And Zod/Hono issue errors:
 ```json
 {
   "error": {
-    "issues": [
-      { "path": ["name"], "message": "Name is required" }
-    ]
+    "issues": [{ "path": ["name"], "message": "Name is required" }]
   }
 }
 ```
@@ -358,7 +357,7 @@ await gum.post("/api/posts", payload, {
 
     console.log(er.name);
     console.error(error);
-  }
+  },
 });
 ```
 
@@ -379,7 +378,7 @@ await gum.reload({
   preserveState: true,
   onSuccess: (response) => {
     // Optional: write response data into local state or a store.
-  }
+  },
 });
 ```
 
@@ -399,12 +398,12 @@ import { useGumForm } from "@/plugins/gum";
 
 const form = useGumForm({
   title: "",
-  body: ""
+  body: "",
 });
 
 async function submit() {
   await form.post("/api/posts", undefined, {
-    onSuccess: () => form.reset()
+    onSuccess: () => form.reset(),
   });
 }
 </script>
@@ -421,33 +420,37 @@ async function submit() {
 When the request payload differs from the form's data shape, pass it explicitly as the second argument:
 
 ```ts
-await form.post("/api/auth/login", {
-  email: form.data.email.trim(),
-  password: form.data.password
-}, {
-  onSuccess: async () => {
-    // handle success
+await form.post(
+  "/api/auth/login",
+  {
+    email: form.data.email.trim(),
+    password: form.data.password,
   },
-  onError: (errors, error) => {
-    // handle error — no try/catch needed
-  }
-});
+  {
+    onSuccess: async () => {
+      // handle success
+    },
+    onError: (errors, error) => {
+      // handle error — no try/catch needed
+    },
+  },
+);
 ```
 
 Form helpers:
 
-| Helper | Purpose |
-|---|---|
-| `form.data` | Reactive form data |
-| `form.errors` | Server or manual validation errors |
-| `form.processing` | Submission state |
-| `form.progress` | Upload progress percentage |
-| `form.wasSuccessful` | True after success |
-| `form.recentlySuccessful` | True briefly after success |
-| `form.isDirty` | True when values changed from initial defaults |
-| `form.setError(field, message)` | Set a manual error |
-| `form.clearErrors(...fields)` | Clear all or selected errors |
-| `form.reset(...fields)` | Reset all or selected fields |
+| Helper                          | Purpose                                        |
+| ------------------------------- | ---------------------------------------------- |
+| `form.data`                     | Reactive form data                             |
+| `form.errors`                   | Server or manual validation errors             |
+| `form.processing`               | Submission state                               |
+| `form.progress`                 | Upload progress percentage                     |
+| `form.wasSuccessful`            | True after success                             |
+| `form.recentlySuccessful`       | True briefly after success                     |
+| `form.isDirty`                  | True when values changed from initial defaults |
+| `form.setError(field, message)` | Set a manual error                             |
+| `form.clearErrors(...fields)`   | Clear all or selected errors                   |
+| `form.reset(...fields)`         | Reset all or selected fields                   |
 
 ### Form Errors
 
@@ -471,7 +474,7 @@ await form.post("/api/posts", payload, {
     const er: Record<string, string> = {};
     Object.keys(errors).map((key) => (er[key] = errors[key].toString()));
     err.name = er.name;
-  }
+  },
 });
 ```
 
@@ -481,7 +484,7 @@ The second `onError` argument is the raw Axios error:
 onError: (errors, error) => {
   console.log(errors);
   console.error(error);
-}
+};
 ```
 
 ## File Uploads
@@ -498,7 +501,7 @@ async function upload() {
   await form.post("/api/uploads", body, {
     onSuccess: () => {
       console.log("Upload complete");
-    }
+    },
   });
 }
 ```
@@ -517,7 +520,7 @@ Use `useGumRemember()` for local UI state that should survive navigation but sho
 const state = useGumRemember("posts.index", {
   selected: [] as number[],
   activeTab: "published",
-  formOpen: false
+  formOpen: false,
 });
 ```
 
@@ -544,7 +547,7 @@ Set `preserveScroll: true` for table actions and mutations that should not jump 
 await gum.get("/api/posts", {
   routePath: "/posts",
   query: { page: 2 },
-  preserveScroll: true
+  preserveScroll: true,
 });
 ```
 
@@ -558,7 +561,7 @@ await gum.delete(`/api/posts/${id}`, {
   preserveScroll: true,
   onSuccess: async () => {
     await store.fetchPosts(queryParams());
-  }
+  },
 });
 ```
 
@@ -582,7 +585,7 @@ const { posts } = storeToRefs(store);
 
 const ui = useGumRemember("posts.index.ui", {
   selected: [] as number[],
-  formOpen: false
+  formOpen: false,
 });
 
 const form = useGumForm({ title: "", body: "" });
@@ -592,7 +595,7 @@ function queryParams() {
   return {
     page: Number(route.query.page || 1),
     size: Number(route.query.size || 10),
-    search: String(route.query.search || "")
+    search: String(route.query.search || ""),
   };
 }
 
@@ -601,7 +604,7 @@ watch(
   async () => {
     await store.fetchPosts(queryParams());
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 async function save() {
@@ -612,7 +615,7 @@ async function save() {
       form.reset();
       ui.value.formOpen = false;
       await store.fetchPosts(queryParams());
-    }
+    },
   });
 }
 
@@ -623,7 +626,7 @@ async function remove(ids: number[]) {
     onSuccess: async () => {
       ui.value.selected = [];
       await store.fetchPosts(queryParams());
-    }
+    },
   });
 }
 </script>

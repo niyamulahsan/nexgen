@@ -18,23 +18,48 @@ export const routes = [
         path: "/",
         name: "dashboard",
         component: () => import("@/pages/dashboard/index.vue"),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true },
       },
       // Add your authenticated pages here
-    ]
+    ],
   },
   {
     path: "/login",
     name: "authlayout",
     component: () => import("@/layouts/AuthLayout.vue"),
     children: [
-      { path: "/login", name: "login", component: () => import("@/pages/auth/login.vue"), meta: { guestOnly: true } },
-      { path: "/register", name: "register", component: () => import("@/pages/auth/register.vue"), meta: { guestOnly: true } },
-      { path: "/forget-password", name: "forget-password", component: () => import("@/pages/auth/forgetPassword.vue"), meta: { guestOnly: true } },
-      { path: "/reset-password", name: "reset-password", component: () => import("@/pages/auth/resetPassword.vue"), meta: { guestOnly: true } },
-      { path: "/verify-email", name: "verify-email", component: () => import("@/pages/auth/verifyEmail.vue"), meta: { guestOnly: true } },
-    ]
-  }
+      {
+        path: "/login",
+        name: "login",
+        component: () => import("@/pages/auth/login.vue"),
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/register",
+        name: "register",
+        component: () => import("@/pages/auth/register.vue"),
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/forget-password",
+        name: "forget-password",
+        component: () => import("@/pages/auth/forgetPassword.vue"),
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/reset-password",
+        name: "reset-password",
+        component: () => import("@/pages/auth/resetPassword.vue"),
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/verify-email",
+        name: "verify-email",
+        component: () => import("@/pages/auth/verifyEmail.vue"),
+        meta: { guestOnly: true },
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
@@ -43,7 +68,7 @@ const router = createRouter({
   scrollBehavior: (_to, _from, savedPosition) => {
     if (savedPosition) return savedPosition;
     return { top: 0 };
-  }
+  },
 });
 
 setupRouteProgress(router);
@@ -73,10 +98,10 @@ Two parent layouts with nested child routes:
 
 ## Route meta flags
 
-| Flag | Purpose |
-|------|---------|
-| `requiresAuth: true` | Redirects to `/login` if unauthenticated |
-| `guestOnly: true` | Redirects to `/` if already authenticated |
+| Flag                 | Purpose                                   |
+| -------------------- | ----------------------------------------- |
+| `requiresAuth: true` | Redirects to `/login` if unauthenticated  |
+| `guestOnly: true`    | Redirects to `/` if already authenticated |
 
 ## Auth guard
 
@@ -95,9 +120,9 @@ children: [
     path: "/posts",
     name: "posts",
     component: () => import("@/pages/posts/index.vue"),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-]
+];
 
 // Create the page component at src/resources/src/pages/posts/index.vue
 ```

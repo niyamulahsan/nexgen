@@ -30,11 +30,11 @@ Start the full development stack — API server, UI, queue worker (if Redis enab
 
 **What starts:**
 
-| Process | Started when | Command |
-|---|---|---|
-| API server | Always | `serve --src` (hot-reload via tsx watch) |
-| UI | `UI != "false"` | Vite dev server on port 5173 |
-| Queue worker | `REDIS != "false"` | `queue:work --queue=default,mail --src` |
+| Process        | Started when              | Command                                  |
+| -------------- | ------------------------- | ---------------------------------------- |
+| API server     | Always                    | `serve --src` (hot-reload via tsx watch) |
+| UI             | `UI != "false"`           | Vite dev server on port 5173             |
+| Queue worker   | `REDIS != "false"`        | `queue:work --queue=default,mail --src`  |
 | Optional tools | `--view` / `--with` flags | MailDev, Redis Commander, Drizzle Studio |
 
 All child processes are tracked. If any required process exits unexpectedly, the entire stack shuts down.
@@ -85,11 +85,11 @@ bun maker dev --with-redis-view --with-maildev --with-db-studio
 
 :::
 
-| Tool | Flag | What it provides |
-|---|---|---|
-| Redis Commander | `redis` / `--with-redis-view` | Web UI at port 1369 to inspect Redis keys |
-| MailDev | `maildev` / `--with-maildev` | SMTP server at port 1089 + web UI at port 1080 to view sent emails |
-| Drizzle Studio | `studio` / `--with-db-studio` | Web UI at `https://local.drizzle.studio` for database browsing |
+| Tool            | Flag                          | What it provides                                                   |
+| --------------- | ----------------------------- | ------------------------------------------------------------------ |
+| Redis Commander | `redis` / `--with-redis-view` | Web UI at port 1369 to inspect Redis keys                          |
+| MailDev         | `maildev` / `--with-maildev`  | SMTP server at port 1089 + web UI at port 1080 to view sent emails |
+| Drizzle Studio  | `studio` / `--with-db-studio` | Web UI at `https://local.drizzle.studio` for database browsing     |
 
 ### `ui:dev`
 
@@ -123,12 +123,12 @@ Start the HTTP API server.
 
 **Flags:**
 
-| Flag | Default | Description |
-|---|---|---|
-| `--prod` | — | Run compiled `dist/src/framework/server.js` |
-| `--runtime <name>` | `node` | Runtime: `node` or `bun` |
-| `--watch` | — | Watch for file changes (source mode) |
-| `--src` | — | Force source mode even if `dist/` exists |
+| Flag               | Default | Description                                 |
+| ------------------ | ------- | ------------------------------------------- |
+| `--prod`           | —       | Run compiled `dist/src/framework/server.js` |
+| `--runtime <name>` | `node`  | Runtime: `node` or `bun`                    |
+| `--watch`          | —       | Watch for file changes (source mode)        |
+| `--src`            | —       | Force source mode even if `dist/` exists    |
 
 ::: code-group
 
@@ -176,12 +176,12 @@ bun maker serve --src
 
 Start a BullMQ queue worker that processes jobs from named queues.
 
-| Flag | Default | Description |
-|---|---|---|
-| `--queue <names>` | `default` | Comma-separated queue names (e.g. `default,mail,maintenance`) |
-| `--prod` | — | Run from compiled `dist/` instead of source |
-| `--runtime <name>` | `node` | Runtime: `node` or `bun` |
-| `--src` | — | Force source mode even if `dist/` exists |
+| Flag               | Default   | Description                                                   |
+| ------------------ | --------- | ------------------------------------------------------------- |
+| `--queue <names>`  | `default` | Comma-separated queue names (e.g. `default,mail,maintenance`) |
+| `--prod`           | —         | Run from compiled `dist/` instead of source                   |
+| `--runtime <name>` | `node`    | Runtime: `node` or `bun`                                      |
+| `--src`            | —         | Force source mode even if `dist/` exists                      |
 
 ::: code-group
 
@@ -382,9 +382,9 @@ bun maker test:ui
 Start MailDev — a combined SMTP server and web email viewer. Catches all outgoing emails during development.
 
 | Service | Port |
-|---|---|
-| SMTP | 1089 |
-| Web UI | 1080 |
+| ------- | ---- |
+| SMTP    | 1089 |
+| Web UI  | 1080 |
 
 ::: code-group
 
@@ -411,8 +411,8 @@ bun maker maildev:view
 Start Redis Commander — a web UI to browse and manage Redis keys.
 
 | Service | Port |
-|---|---|
-| Web UI | 1369 |
+| ------- | ---- |
+| Web UI  | 1369 |
 
 ::: code-group
 
@@ -460,18 +460,18 @@ bun maker vite:cache:clear
 
 ## Summary
 
-| Command | Development | Production |
-|---|---|---|
-| `dev` | Full stack (API + UI + queue + tools) | — |
-| `serve` | API with watch | API without watch |
-| `queue:work` | Queue worker from source | Queue worker from dist |
-| `schedule:work` | Scheduler from source | Scheduler from dist |
-| `ui:dev` | Vite dev server | — |
-| `test` | Run tests once | — |
-| `test:watch` | Run tests in watch mode | — |
-| `test:coverage` | Run tests with coverage | — |
-| `test:ui` | Run tests in UI mode | — |
-| `queue:clear` | Development cleanup | — |
-| `maildev:view` | Email testing | — |
-| `redis:view` | Redis inspection | — |
-| `vite:cache:clear` | Cache cleanup | — |
+| Command            | Development                           | Production             |
+| ------------------ | ------------------------------------- | ---------------------- |
+| `dev`              | Full stack (API + UI + queue + tools) | —                      |
+| `serve`            | API with watch                        | API without watch      |
+| `queue:work`       | Queue worker from source              | Queue worker from dist |
+| `schedule:work`    | Scheduler from source                 | Scheduler from dist    |
+| `ui:dev`           | Vite dev server                       | —                      |
+| `test`             | Run tests once                        | —                      |
+| `test:watch`       | Run tests in watch mode               | —                      |
+| `test:coverage`    | Run tests with coverage               | —                      |
+| `test:ui`          | Run tests in UI mode                  | —                      |
+| `queue:clear`      | Development cleanup                   | —                      |
+| `maildev:view`     | Email testing                         | —                      |
+| `redis:view`       | Redis inspection                      | —                      |
+| `vite:cache:clear` | Cache cleanup                         | —                      |

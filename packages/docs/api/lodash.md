@@ -6,9 +6,9 @@ The full Lodash bundle is re-exported for convenience. Guides live under [Others
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `lodash` | `Lodash` | Complete Lodash API (groupBy, orderBy, omit, pick, …) |
+| Function | Signature | Description                                           |
+| -------- | --------- | ----------------------------------------------------- |
+| `lodash` | `Lodash`  | Complete Lodash API (groupBy, orderBy, omit, pick, …) |
 
 ## Use cases
 

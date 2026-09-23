@@ -25,11 +25,11 @@ Renders the full application shell for authenticated pages:
 
 ### Components
 
-| Component | File | Description |
-|-----------|------|-------------|
-| `Sidebar` | `Layout/Sidebar.vue` | Left navigation with accordion menus, active state highlighting, collapse persistence |
-| `Header` | `Layout/Header.vue` | Sidebar toggle, page title (receives teleported content from `Pagebar`), refresh button, theme switch, user dropdown |
-| `Footer` | `Layout/Footer.vue` | Simple footer with copyright |
+| Component | File                 | Description                                                                                                          |
+| --------- | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `Sidebar` | `Layout/Sidebar.vue` | Left navigation with accordion menus, active state highlighting, collapse persistence                                |
+| `Header`  | `Layout/Header.vue`  | Sidebar toggle, page title (receives teleported content from `Pagebar`), refresh button, theme switch, user dropdown |
+| `Footer`  | `Layout/Footer.vue`  | Simple footer with copyright                                                                                         |
 
 ## Auth Layout (`AuthLayout.vue`)
 

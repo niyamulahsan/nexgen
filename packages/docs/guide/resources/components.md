@@ -4,27 +4,27 @@ The framework ships a library of reusable Vue components under `src/resources/sr
 
 ## Component list
 
-| Component | Description |
-|-----------|-------------|
-| `Button` | Styled button with label/icon/slot |
-| `Input` | Text input with label, formatting categories, maxlength counter, error display |
-| `InputPasswordToggle` | Password input with show/hide toggle |
-| `InputGroup` | Two-part input (editable + readonly) |
-| `Select` | Searchable select with infinite-scroll, pagination, and API fetching |
-| `TextArea` | Textarea with floating label & maxlength counter |
-| `Checkbox` | Checkbox with v-model |
-| `Switch` | Toggle switch |
-| `Modal` | Bootstrap modal via teleport into `#modal-show` |
-| `Toast` | Bootstrap toast via teleport |
-| `Spinner` | Loading spinner |
-| `Datepicker` | Date/datetime/month/year picker |
-| `DataTable` | Full data table with search, pagination, bulk delete, and skeleton loading |
-| `DataTableSkeleton` | Skeleton placeholder shown while data loads |
-| `Pagebar` | Teleports title into the header's page title area |
-| `Refresh` | Binds a click handler to the header's refresh button |
-| `Href` | Styled anchor link |
-| `FloatButton` | Positioned fixed action button |
-| `FeatureButton` | Header action button (injected via `featureButtons`) |
+| Component             | Description                                                                    |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `Button`              | Styled button with label/icon/slot                                             |
+| `Input`               | Text input with label, formatting categories, maxlength counter, error display |
+| `InputPasswordToggle` | Password input with show/hide toggle                                           |
+| `InputGroup`          | Two-part input (editable + readonly)                                           |
+| `Select`              | Searchable select with infinite-scroll, pagination, and API fetching           |
+| `TextArea`            | Textarea with floating label & maxlength counter                               |
+| `Checkbox`            | Checkbox with v-model                                                          |
+| `Switch`              | Toggle switch                                                                  |
+| `Modal`               | Bootstrap modal via teleport into `#modal-show`                                |
+| `Toast`               | Bootstrap toast via teleport                                                   |
+| `Spinner`             | Loading spinner                                                                |
+| `Datepicker`          | Date/datetime/month/year picker                                                |
+| `DataTable`           | Full data table with search, pagination, bulk delete, and skeleton loading     |
+| `DataTableSkeleton`   | Skeleton placeholder shown while data loads                                    |
+| `Pagebar`             | Teleports title into the header's page title area                              |
+| `Refresh`             | Binds a click handler to the header's refresh button                           |
+| `Href`                | Styled anchor link                                                             |
+| `FloatButton`         | Positioned fixed action button                                                 |
+| `FeatureButton`       | Header action button (injected via `featureButtons`)                           |
 
 ---
 
@@ -33,6 +33,7 @@ The framework ships a library of reusable Vue components under `src/resources/sr
 A fully-featured data table with server-side pagination, search, bulk delete, and configurable page size. Works with any paginated API response via the `PaginatedData` interface.
 
 **Import:**
+
 ```vue
 <script setup lang="ts">
 import DataTable from "@/components/datatable/index.vue";
@@ -42,33 +43,33 @@ import DataTableSkeleton from "@/components/datatable/DataTableSkeleton.vue";
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `data` | `PaginatedData` | required | Server response — must have `{ data, current_page, last_page, per_page, total, path }` |
-| `search` | `string` | `""` | Initial search query (typically from `route.query.search`) |
-| `loop` | `DataRow[] \| false` | — | Override rows (useful for local data). Falls back to `data.data` |
-| `option` | `(string \| number)[]` | `[]` | Per-page size options for the "Show X entries" dropdown |
-| `removable` | `boolean` | `true` | Show checkboxes and trash button for bulk delete |
-| `countable` | `boolean` | `true` | Show row number column |
-| `searchable` | `boolean` | `true` | Show search input in header |
-| `optionable` | `boolean` | `true` | Show "Show X entries" dropdown |
-| `disabled` | `boolean` | `false` | Disable all interactive elements |
+| Prop         | Type                   | Default  | Description                                                                            |
+| ------------ | ---------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `data`       | `PaginatedData`        | required | Server response — must have `{ data, current_page, last_page, per_page, total, path }` |
+| `search`     | `string`               | `""`     | Initial search query (typically from `route.query.search`)                             |
+| `loop`       | `DataRow[] \| false`   | —        | Override rows (useful for local data). Falls back to `data.data`                       |
+| `option`     | `(string \| number)[]` | `[]`     | Per-page size options for the "Show X entries" dropdown                                |
+| `removable`  | `boolean`              | `true`   | Show checkboxes and trash button for bulk delete                                       |
+| `countable`  | `boolean`              | `true`   | Show row number column                                                                 |
+| `searchable` | `boolean`              | `true`   | Show search input in header                                                            |
+| `optionable` | `boolean`              | `true`   | Show "Show X entries" dropdown                                                         |
+| `disabled`   | `boolean`              | `false`  | Disable all interactive elements                                                       |
 
 ### Slots
 
-| Slot | Bindings | Description |
-|------|----------|-------------|
-| `extra-tools` | — | Additional buttons/controls in the card header (right side) |
-| `extra` | — | Content inserted before the table (inside card body) |
-| `customhead` | — | Replace the entire `<thead>` (hides default thead) |
-| `thead` | — | Extra `<th>` columns appended after checkbox + `#` columns |
-| `custombody` | — | Replace the entire `<tbody>` (hides default tbody) |
-| `tbody` | `{ td: DataRow }` | Per-row `<td>` columns. Use `<slot name="tbody" :td="dt">` in parent |
+| Slot          | Bindings          | Description                                                          |
+| ------------- | ----------------- | -------------------------------------------------------------------- |
+| `extra-tools` | —                 | Additional buttons/controls in the card header (right side)          |
+| `extra`       | —                 | Content inserted before the table (inside card body)                 |
+| `customhead`  | —                 | Replace the entire `<thead>` (hides default thead)                   |
+| `thead`       | —                 | Extra `<th>` columns appended after checkbox + `#` columns           |
+| `custombody`  | —                 | Replace the entire `<tbody>` (hides default tbody)                   |
+| `tbody`       | `{ td: DataRow }` | Per-row `<td>` columns. Use `<slot name="tbody" :td="dt">` in parent |
 
 ### Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
+| Event    | Payload                | Description                                                     |
+| -------- | ---------------------- | --------------------------------------------------------------- |
 | `remove` | `(string \| number)[]` | Emitted when the trash button is clicked, with selected row IDs |
 
 ### `PaginatedData` interface
@@ -108,10 +109,10 @@ watch(
     await store.fetchPosts({
       page: Number(route.query.page || 1),
       size: Number(route.query.size || 10),
-      search: String(route.query.search || "")
+      search: String(route.query.search || ""),
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 
@@ -149,8 +150,12 @@ A compact table showing user info with edit/delete actions, inline status toggle
       <UserView :user="props.userpopup" />
     </template>
     <template #modalfooter>
-      <Button type="button" label="Close" icon="bi bi-x-circle"
-        class="btn btn-secondary" data-bs-dismiss="modal" />
+      <Button
+        type="button"
+        label="Close"
+        icon="bi bi-x-circle"
+        class="btn btn-secondary"
+        data-bs-dismiss="modal" />
     </template>
   </Modal>
 
@@ -171,24 +176,48 @@ A compact table showing user info with edit/delete actions, inline status toggle
         <p class="m-0" title="name & commissionerate">
           <i class="bi bi-person-bounding-box"></i> :
           {{ td?.name }}
-          {{ (hasRole('superadmin') && td.commissionerate)
-            ? `(${td?.commissionerate?.name})` : '' }}
+          {{
+            hasRole("superadmin") && td.commissionerate
+              ? `(${td?.commissionerate?.name})`
+              : ""
+          }}
         </p>
-        <p class="m-0" title="role"><i class="bi bi-person-badge"></i> : {{ td?.role?.name }}</p>
-        <p class="m-0" title="email"><i class="bi bi-person-vcard"></i> : {{ td?.email }}</p>
-        <p class="m-0" title="number"><i class="bi bi-telephone"></i> : {{ td?.mobile }}</p>
+        <p class="m-0" title="role">
+          <i class="bi bi-person-badge"></i> : {{ td?.role?.name }}
+        </p>
+        <p class="m-0" title="email">
+          <i class="bi bi-person-vcard"></i> : {{ td?.email }}
+        </p>
+        <p class="m-0" title="number">
+          <i class="bi bi-telephone"></i> : {{ td?.mobile }}
+        </p>
       </td>
       <td class="text-center">
         <div :class="{ 'd-none': hasRole('admin') }">
-          <Switch text="Alive" blank="Dead" :checked="Number(td.status)"
-            @change="props.statusUpdate(td.id, td.status)" vertical />
+          <Switch
+            text="Alive"
+            blank="Dead"
+            :checked="Number(td.status)"
+            @change="props.statusUpdate(td.id, td.status)"
+            vertical />
         </div>
-        <div class="btn-group mx-auto" :class="{ 'flex-column': hasRole('admin') }">
-          <Button type="button" title="view" class="btn btn-outline-secondary rounded"
-            icon="bi bi-eye" data-bs-toggle="modal" data-bs-target="#user"
+        <div
+          class="btn-group mx-auto"
+          :class="{ 'flex-column': hasRole('admin') }">
+          <Button
+            type="button"
+            title="view"
+            class="btn btn-outline-secondary rounded"
+            icon="bi bi-eye"
+            data-bs-toggle="modal"
+            data-bs-target="#user"
             @click="props.view(td.id)" />
-          <Button type="button" class="btn btn-outline-dark rounded" title="edit"
-            icon="bi bi-pencil-square" @click="props.edit(td.id)"
+          <Button
+            type="button"
+            class="btn btn-outline-dark rounded"
+            title="edit"
+            icon="bi bi-pencil-square"
+            @click="props.edit(td.id)"
             :disabled="hasRole('admin') && td.status == '0'" />
         </div>
       </td>
@@ -224,8 +253,12 @@ Multiple columns with nested object access:
       <td>{{ td.circle?.name }}</td>
       <td>{{ td.sector?.name }}</td>
       <td class="text-center">
-        <Button type="button" title="edit" class="btn btn-outline-dark mx-auto"
-          icon="bi bi-pencil-square" @click="props.edit(+td.id)" />
+        <Button
+          type="button"
+          title="edit"
+          class="btn btn-outline-dark mx-auto"
+          icon="bi bi-pencil-square"
+          @click="props.edit(+td.id)" />
       </td>
     </template>
   </DataTable>
@@ -247,6 +280,7 @@ Multiple columns with nested object access:
 A date/time picker wrapping `@vuepic/vue-datepicker`. Supports `date`, `datetime`, `month`, and `year` modes with locale-friendly input formats. Falls back to a native `<input type="month">` for month mode on Firefox.
 
 **Import:**
+
 ```vue
 <script setup lang="ts">
 import Datepicker from "@/components/Datepicker.vue";
@@ -255,34 +289,34 @@ import Datepicker from "@/components/Datepicker.vue";
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `mode` | `"date" \| "datetime" \| "month" \| "year"` | `"date"` | Picker mode |
-| `err` | `string \| boolean` | `false` | Error message shown below the picker |
-| `must` | `boolean` | — | Show the required indicator dot |
-| `hood` | `string \| boolean` | — | Right-aligned caption above the input |
+| Prop   | Type                                        | Default  | Description                           |
+| ------ | ------------------------------------------- | -------- | ------------------------------------- |
+| `mode` | `"date" \| "datetime" \| "month" \| "year"` | `"date"` | Picker mode                           |
+| `err`  | `string \| boolean`                         | `false`  | Error message shown below the picker  |
+| `must` | `boolean`                                   | —        | Show the required indicator dot       |
+| `hood` | `string \| boolean`                         | —        | Right-aligned caption above the input |
 
 All additional `@vuepic/vue-datepicker` props (like `model-type`, `placeholder`, `disabled`, `readonly`) are passed through via `v-bind="$attrs"`. See the [vue-datepicker docs](https://vuepic.github.io/vue-datepicker/) for the full list.
 
 **Inherited via `$attrs`:**
 
-| Attr | Type | Description |
-|------|------|-------------|
-| `label` | `string` | Label text shown above the picker |
-| `parentclass` | `string` | CSS class on the wrapper div (default `"mb-2"`) |
-| `model-type` | `string` | Format of the emitted value (e.g. `"yyyy-MM"` for month) |
-| `placeholder` | `string` | Placeholder text in the input |
-| `disabled` | `boolean` | Disable the picker |
-| `readonly` | `boolean` | Make the picker read-only |
+| Attr          | Type      | Description                                              |
+| ------------- | --------- | -------------------------------------------------------- |
+| `label`       | `string`  | Label text shown above the picker                        |
+| `parentclass` | `string`  | CSS class on the wrapper div (default `"mb-2"`)          |
+| `model-type`  | `string`  | Format of the emitted value (e.g. `"yyyy-MM"` for month) |
+| `placeholder` | `string`  | Placeholder text in the input                            |
+| `disabled`    | `boolean` | Disable the picker                                       |
+| `readonly`    | `boolean` | Make the picker read-only                                |
 
 ### Input formats
 
-| Mode | Input display format | Emits |
-|------|---------------------|-------|
-| `date` | `dd/MM/yyyy` | `Date` |
-| `datetime` | `dd/MM/yyyy hh:mm a` (12h) | `Date` |
-| `month` | `MM/yyyy` | `string \| Date` (depends on `model-type`) |
-| `year` | `yyyy` | `string \| Date` (depends on `model-type`) |
+| Mode       | Input display format       | Emits                                      |
+| ---------- | -------------------------- | ------------------------------------------ |
+| `date`     | `dd/MM/yyyy`               | `Date`                                     |
+| `datetime` | `dd/MM/yyyy hh:mm a` (12h) | `Date`                                     |
+| `month`    | `MM/yyyy`                  | `string \| Date` (depends on `model-type`) |
+| `year`     | `yyyy`                     | `string \| Date` (depends on `model-type`) |
 
 ### Usage
 
@@ -325,7 +359,7 @@ Common pattern: month picker that emits a `"yyyy-MM"` string for API submission.
 import { useGumForm } from "@/plugins/gum";
 
 const form = useGumForm({
-  taxPeriod: ""  // will be "yyyy-MM" string after selection
+  taxPeriod: "", // will be "yyyy-MM" string after selection
 });
 </script>
 ```
@@ -342,8 +376,9 @@ Two independent Datepickers for a date range filter. The `parentclass` attr cont
       mode="month"
       model-type="yyyy-MM"
       placeholder="Start: mm/yyyy"
-      :parentclass="`mb-0 ${err.startTaxPeriod
-        ? 'border border-danger rounded-2' : ''}`" />
+      :parentclass="`mb-0 ${
+        err.startTaxPeriod ? 'border border-danger rounded-2' : ''
+      }`" />
   </div>
   <div class="col-12 col-sm-6">
     <Datepicker
@@ -351,8 +386,9 @@ Two independent Datepickers for a date range filter. The `parentclass` attr cont
       mode="month"
       model-type="yyyy-MM"
       placeholder="End: mm/yyyy"
-      :parentclass="`mb-0 ${err.endTaxPeriod
-        ? 'border border-danger rounded-2' : ''}`" />
+      :parentclass="`mb-0 ${
+        err.endTaxPeriod ? 'border border-danger rounded-2' : ''
+      }`" />
   </div>
 </template>
 ```
@@ -389,6 +425,7 @@ When editing an existing record, the Datepicker is disabled:
 A searchable select with infinite-scroll pagination and API data fetching. Built on `vue-select`. Handles everything from simple static option lists to server-side paginated searches with dependent (cascade) dropdowns.
 
 **Import:**
+
 ```vue
 <script setup lang="ts">
 import Select from "@/components/Select.vue";
@@ -397,50 +434,50 @@ import Select from "@/components/Select.vue";
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `fetched` | `(payload) => FetchPack` | — | Function returning `{ url, data, mapFn, params?, option? }`. Called internally for search/reset/reload |
-| `must` | `boolean` | — | Show a required-field indicator (red dot next to label) |
-| `err` | `string \| boolean` | — | Validation error text displayed below the select |
-| `hood` | `string \| boolean` | — | Right-aligned hint/helper text next to the label |
-| `defaultValue` | `SelectValue` | `null` | Pre-select a value on mount |
-| `resetKey` | `any` | `null` | **Cascade key.** When this changes, the select clears + reloads automatically |
+| Prop           | Type                     | Default | Description                                                                                            |
+| -------------- | ------------------------ | ------- | ------------------------------------------------------------------------------------------------------ |
+| `fetched`      | `(payload) => FetchPack` | —       | Function returning `{ url, data, mapFn, params?, option? }`. Called internally for search/reset/reload |
+| `must`         | `boolean`                | —       | Show a required-field indicator (red dot next to label)                                                |
+| `err`          | `string \| boolean`      | —       | Validation error text displayed below the select                                                       |
+| `hood`         | `string \| boolean`      | —       | Right-aligned hint/helper text next to the label                                                       |
+| `defaultValue` | `SelectValue`            | `null`  | Pre-select a value on mount                                                                            |
+| `resetKey`     | `any`                    | `null`  | **Cascade key.** When this changes, the select clears + reloads automatically                          |
 
 **Inherited via `v-bind="$attrs"`:**
 
-| Attr | Type | Description |
-|------|------|-------------|
-| `title` | `string` | Label text |
-| `label` | `string` | Key to use as display label in options (default `"title"`) |
-| `placeholder` | `string` | Placeholder text in the search input |
-| `id` | `string` | Sets `for` on the label |
-| `parentclass` | `string` | CSS class on the wrapper div (default `"mb-2"`) |
-| `multiple` | `boolean` | Enable multi-select |
-| `options` | `array` | Static options array (for non-API mode) |
-| `disabled` | `boolean` | Disable the select |
+| Attr          | Type      | Description                                                |
+| ------------- | --------- | ---------------------------------------------------------- |
+| `title`       | `string`  | Label text                                                 |
+| `label`       | `string`  | Key to use as display label in options (default `"title"`) |
+| `placeholder` | `string`  | Placeholder text in the search input                       |
+| `id`          | `string`  | Sets `for` on the label                                    |
+| `parentclass` | `string`  | CSS class on the wrapper div (default `"mb-2"`)            |
+| `multiple`    | `boolean` | Enable multi-select                                        |
+| `options`     | `array`   | Static options array (for non-API mode)                    |
+| `disabled`    | `boolean` | Disable the select                                         |
 
 ### Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `fetched` | — | Emitted after options are fetched |
-| `clear` | — | Emitted when the selection is cleared (via × or backspace) |
+| Event     | Payload | Description                                                |
+| --------- | ------- | ---------------------------------------------------------- |
+| `fetched` | —       | Emitted after options are fetched                          |
+| `clear`   | —       | Emitted when the selection is cleared (via × or backspace) |
 
 ### Exposed methods
 
-| Method | Description |
-|--------|-------------|
+| Method     | Description                             |
+| ---------- | --------------------------------------- |
 | `reload()` | Reset selection and re-fetch first page |
 
 ### `FetchPack` interface
 
 ```ts
 interface FetchPack {
-  url: string;                        // API endpoint
-  data: string;                       // key in response that holds the paginated data
-  params?: Record<string, any>;       // extra query params (e.g. filter by parent)
-  mapFn?: (item) => Record<string, any>;  // transform API row → { id, title, ... }
-  option?: (value) => void;           // callback fired when selection changes
+  url: string; // API endpoint
+  data: string; // key in response that holds the paginated data
+  params?: Record<string, any>; // extra query params (e.g. filter by parent)
+  mapFn?: (item) => Record<string, any>; // transform API row → { id, title, ... }
+  option?: (value) => void; // callback fired when selection changes
 }
 ```
 
@@ -508,6 +545,7 @@ const roleStore = useRoleStore();
 ```
 
 **Store (for reference):**
+
 ```ts
 // stores/role.ts
 export const useRoleStore = defineStore("role", () => {
@@ -554,9 +592,12 @@ const form = useGumForm({
     title="division"
     label="title"
     placeholder="Select..."
-    :fetched="() => divStore.divDDByCommissionerate({
-      commissionerateId: form.data.commissionerate?.id
-    })"
+    :fetched="
+      () =>
+        divStore.divDDByCommissionerate({
+          commissionerateId: form.data.commissionerate?.id,
+        })
+    "
     :reset-key="form.data.commissionerate?.id"
     must />
 </template>
@@ -596,9 +637,12 @@ const form = useGumForm({
     title="division"
     label="title"
     placeholder="Select..."
-    :fetched="() => divStore.divDDByCommissionerate({
-      commissionerateId: form.data.commissionerate?.id
-    })"
+    :fetched="
+      () =>
+        divStore.divDDByCommissionerate({
+          commissionerateId: form.data.commissionerate?.id,
+        })
+    "
     :reset-key="form.data.commissionerate?.id"
     must />
 
@@ -607,10 +651,13 @@ const form = useGumForm({
     title="circle"
     label="title"
     placeholder="Select..."
-    :fetched="() => circleStore.circleDD({
-      commissionerateId: form.data.commissionerate?.id,
-      divisionId: form.data.division?.id
-    })"
+    :fetched="
+      () =>
+        circleStore.circleDD({
+          commissionerateId: form.data.commissionerate?.id,
+          divisionId: form.data.division?.id,
+        })
+    "
     :reset-key="form.data.division?.id"
     must />
 </template>
@@ -621,6 +668,7 @@ const form = useGumForm({
 Use `option` in the returned `FetchPack` to react when selection changes — e.g., clearing dependent dropdowns, reloading child data, or fetching related records.
 
 Single callback:
+
 ```ts
 const fetchUser = () => ({
   url: "/api/auth/user/dropdown/revenue",
@@ -631,20 +679,26 @@ const fetchUser = () => ({
   }),
   option: (selected: any) => {
     // selected is the chosen option object, or null on clear
-    entitySelect.value?.reload();  // clear + reload dependent Select via ref
+    entitySelect.value?.reload(); // clear + reload dependent Select via ref
   },
 });
 ```
 
 Multiple callbacks (array):
+
 ```ts
 const fetchUser = () => ({
   url: "/api/auth/user/dropdown",
   data: "data",
   mapFn: (item: any) => ({ id: item.id, title: item.name }),
   option: [
-    (val: any) => { form.user = val; },
-    (val: any) => { form.entity = null; entitySelect.value?.reload(); },
+    (val: any) => {
+      form.user = val;
+    },
+    (val: any) => {
+      form.entity = null;
+      entitySelect.value?.reload();
+    },
   ],
 });
 ```
@@ -671,7 +725,10 @@ const setForm = async (row: Record<string, any> = {}) => {
   form.data.id = String(row.id || "");
 
   form.data.commissionerate = row.commissionerateId
-    ? { id: Number(row.commissionerateId), title: String(row.commissionerate?.name || "") }
+    ? {
+        id: Number(row.commissionerateId),
+        title: String(row.commissionerate?.name || ""),
+      }
     : null;
   await nextTick(); // let division select reset + reload
 
@@ -787,17 +844,17 @@ import FeatureButton from "@/components/FeatureButton.vue";
 
 ### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `icon` | `string` | Bootstrap icon class (e.g. `bi bi-plus-lg`) |
-| `label` | `string` | Text shown next to the icon |
-| `title` | `string` | Tooltip (falls back to `label`) |
-| `buttonClass` | `string` | CSS class applied to the header button |
+| Prop          | Type     | Description                                 |
+| ------------- | -------- | ------------------------------------------- |
+| `icon`        | `string` | Bootstrap icon class (e.g. `bi bi-plus-lg`) |
+| `label`       | `string` | Text shown next to the icon                 |
+| `title`       | `string` | Tooltip (falls back to `label`)             |
+| `buttonClass` | `string` | CSS class applied to the header button      |
 
 ### Slots
 
-| Slot | Description |
-|------|-------------|
+| Slot      | Description                                                                                                                                                                 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `default` | Custom content. When present, the button is replaced by a slot renderer (wrapped with the same order/class as a normal button) — useful for dropdowns or compound controls. |
 
 ### Usage with role-based visibility

@@ -8,35 +8,35 @@ Parser factories for `multipart/form-data` requests. They wrap `multer` (memory 
 
 ## Functions
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `upload` | `(options: UploadOptions) => RequestHandler` | Parse a single file (or up to `multiple` files) from one form field into `req.file` / `req.files` |
-| `fields` | `(spec: UploadFieldsSpec, options?) => RequestHandler` | Parse multiple labeled file fields into `req.files` (object keyed by field name) |
+| Function | Signature                                              | Description                                                                                       |
+| -------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `upload` | `(options: UploadOptions) => RequestHandler`           | Parse a single file (or up to `multiple` files) from one form field into `req.file` / `req.files` |
+| `fields` | `(spec: UploadFieldsSpec, options?) => RequestHandler` | Parse multiple labeled file fields into `req.files` (object keyed by field name)                  |
 
 ### `UploadOptions`
 
-| Option | Type | Description |
-| --- | --- | --- |
-| `field` | `string` | Form field name that carries the file(s) |
-| `multiple` | `number` | Accept an array of up to N files on the field |
-| `maxSize` | `number` | Max allowed file size in bytes (default unlimited) |
-| `allowedExtensions` | `string[]` | Lowercase extensions with dot, e.g. `[".xlsx"]` |
-| `allowedMimeTypes` | `string[]` | Allowed MIME types; both extension and MIME type must be allowed |
+| Option              | Type       | Description                                                      |
+| ------------------- | ---------- | ---------------------------------------------------------------- |
+| `field`             | `string`   | Form field name that carries the file(s)                         |
+| `multiple`          | `number`   | Accept an array of up to N files on the field                    |
+| `maxSize`           | `number`   | Max allowed file size in bytes (default unlimited)               |
+| `allowedExtensions` | `string[]` | Lowercase extensions with dot, e.g. `[".xlsx"]`                  |
+| `allowedMimeTypes`  | `string[]` | Allowed MIME types; both extension and MIME type must be allowed |
 
 ### `UploadFieldsSpec`
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `name` | `string` | Form field name |
+| Field      | Type     | Description                     |
+| ---------- | -------- | ------------------------------- |
+| `name`     | `string` | Form field name                 |
 | `maxCount` | `number` | Max files for one labeled field |
 
 ### `UploadFieldsOptions`
 
-| Option | Type | Description |
-| --- | --- | --- |
-| `maxSize` | `number` | Max allowed file size in bytes (default unlimited) |
-| `allowedExtensions` | `string[]` | Lowercase extensions with dot, e.g. `[".xlsx"]` |
-| `allowedMimeTypes` | `string[]` | Allowed MIME types; both extension and MIME type must be allowed |
+| Option              | Type       | Description                                                      |
+| ------------------- | ---------- | ---------------------------------------------------------------- |
+| `maxSize`           | `number`   | Max allowed file size in bytes (default unlimited)               |
+| `allowedExtensions` | `string[]` | Lowercase extensions with dot, e.g. `[".xlsx"]`                  |
+| `allowedMimeTypes`  | `string[]` | Allowed MIME types; both extension and MIME type must be allowed |
 
 ## Use cases
 
@@ -50,7 +50,13 @@ import type { Request, Response } from "express";
 
 export default group().api(
   uploadRoute,
-  [upload({ field: "file", maxSize: 2 * 1024 * 1024, allowedExtensions: [".jpg", ".png"] })],
+  [
+    upload({
+      field: "file",
+      maxSize: 2 * 1024 * 1024,
+      allowedExtensions: [".jpg", ".png"],
+    }),
+  ],
   (req: Request, res: Response) => {
     res.json(req.file);
   },

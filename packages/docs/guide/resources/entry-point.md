@@ -23,7 +23,9 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const app = createApp(App);
 const pinia = createPinia();
-const head = createHead({ titleTemplate: (title) => (title ? `${title} | Nexgen` : "Nexgen") });
+const head = createHead({
+  titleTemplate: (title) => (title ? `${title} | Nexgen` : "Nexgen"),
+});
 
 app.use(pinia);
 app.use(router);
@@ -36,15 +38,15 @@ app.mount("#app");
 
 ### Registration order
 
-| Plugin | Source | Purpose |
-|--------|--------|---------|
-| `axios` (side-effect import) | `@/plugins/axios` | Configures axios defaults and 401 interceptor |
-| Pinia | `pinia` | State management via stores |
-| Vue Router | `@/router` | Navigation, guards, lazy routes |
-| `@vueuse/head` | `@vueuse/head` | Reactive `<title>` and `<meta>` management |
-| DialogPlugin | `@/plugins/dialog` | `$dialog.alert()`, `$dialog.confirm()`, `$dialog.prompt()` |
-| GumPlugin | `@/plugins/gum` | Inertia-style page visits and form handling |
-| PulsePlugin | `@/plugins/pulse` | Socket.IO real-time channels |
+| Plugin                       | Source             | Purpose                                                    |
+| ---------------------------- | ------------------ | ---------------------------------------------------------- |
+| `axios` (side-effect import) | `@/plugins/axios`  | Configures axios defaults and 401 interceptor              |
+| Pinia                        | `pinia`            | State management via stores                                |
+| Vue Router                   | `@/router`         | Navigation, guards, lazy routes                            |
+| `@vueuse/head`               | `@vueuse/head`     | Reactive `<title>` and `<meta>` management                 |
+| DialogPlugin                 | `@/plugins/dialog` | `$dialog.alert()`, `$dialog.confirm()`, `$dialog.prompt()` |
+| GumPlugin                    | `@/plugins/gum`    | Inertia-style page visits and form handling                |
+| PulsePlugin                  | `@/plugins/pulse`  | Socket.IO real-time channels                               |
 
 ### CSS imports (in order)
 
@@ -70,15 +72,15 @@ The root component is minimal:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nexgen</title>
-</head>
-<body>
-  <div id="app"></div>
-  <div id="modal-show"></div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexgen</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="modal-show"></div>
+  </body>
 </html>
 ```
 

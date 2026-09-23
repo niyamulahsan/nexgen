@@ -10,8 +10,8 @@ The mail utility provides **transactional email sending** through a configured S
 import { mail } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
+| Method                   | Purpose                                                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mail.sendMail(payload)` | Sends an email. `payload`: `{ to, subject, html?, text?, from?, cc?, bcc? }`. Returns the send result or `null` on failure (when `failSilent: true`). |
 
 ## Usage
@@ -22,7 +22,7 @@ import { mail } from "@/framework/facade.js";
 await mail.sendMail({
   to: "user@example.com",
   subject: "Welcome",
-  html: "<h1>Welcome!</h1><p>Thanks for signing up.</p>"
+  html: "<h1>Welcome!</h1><p>Thanks for signing up.</p>",
 });
 ```
 
@@ -30,20 +30,20 @@ await mail.sendMail({
 
 Mail settings are in `src/config/mail.ts`. Username/password stay in `.env`; the rest are plain literals you can edit directly.
 
-| Setting | Default | Description |
-|---|---|---|
-| `host` | `127.0.0.1` | SMTP host |
-| `port` | `1089` | SMTP port |
-| `encryption` | `"none"` | Connection security: `"ssl"` (implicit TLS, port 465), `"tls"` (STARTTLS, port 587), or `"none"` (plain — MailDev on 1089) |
-| `fromAddress` | `"no-reply@example.com"` | Default from address |
-| `failSilent` | `true` | Swallow send errors when true, rethrow when false |
+| Setting       | Default                  | Description                                                                                                                |
+| ------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `host`        | `127.0.0.1`              | SMTP host                                                                                                                  |
+| `port`        | `1089`                   | SMTP port                                                                                                                  |
+| `encryption`  | `"none"`                 | Connection security: `"ssl"` (implicit TLS, port 465), `"tls"` (STARTTLS, port 587), or `"none"` (plain — MailDev on 1089) |
+| `fromAddress` | `"no-reply@example.com"` | Default from address                                                                                                       |
+| `failSilent`  | `true`                   | Swallow send errors when true, rethrow when false                                                                          |
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `MAIL_USERNAME` | `""` | SMTP username (empty = no auth) |
-| `MAIL_PASSWORD` | `""` | SMTP password |
+| Variable        | Default | Description                     |
+| --------------- | ------- | ------------------------------- |
+| `MAIL_USERNAME` | `""`    | SMTP username (empty = no auth) |
+| `MAIL_PASSWORD` | `""`    | SMTP password                   |
 
 ## Notes
 

@@ -6,8 +6,8 @@ Returns the initialized Drizzle instance for the active dialect, or throws if th
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function   | Signature               | Description                                                           |
+| ---------- | ----------------------- | --------------------------------------------------------------------- |
 | `database` | `() => DrizzleInstance` | Returns the initialized Drizzle instance (throws if not bootstrapped) |
 
 ## Use cases

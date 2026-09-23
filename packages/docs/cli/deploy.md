@@ -26,14 +26,14 @@ bun maker <command> [options]
 
 ## Command Summary
 
-| Command | Purpose |
-|---|---|
-| [`deploy:init`](#deploy-init) | Generate deploy scaffolding (app + server) and both workflow configs |
-| [`deploy:workflow`](#deploy-workflow) | Run the local workflow — infra and/or app, from a config file or flags |
-| [`deploy:workflow:remote`](#deploy-workflow-remote) | Upload the project and deploy on a remote Docker host |
-| [`deploy:workflow:promote`](#deploy-workflow-promote) | Run the local workflow, then the remote workflow |
-| [`deploy:db:import`](#deploy-db-import) | Import a SQL dump into the local Docker container |
-| [`deploy:db:import:remote`](#deploy-db-import-remote) | Import a SQL dump into a remote Docker container via SSH |
+| Command                                               | Purpose                                                                |
+| ----------------------------------------------------- | ---------------------------------------------------------------------- |
+| [`deploy:init`](#deploy-init)                         | Generate deploy scaffolding (app + server) and both workflow configs   |
+| [`deploy:workflow`](#deploy-workflow)                 | Run the local workflow — infra and/or app, from a config file or flags |
+| [`deploy:workflow:remote`](#deploy-workflow-remote)   | Upload the project and deploy on a remote Docker host                  |
+| [`deploy:workflow:promote`](#deploy-workflow-promote) | Run the local workflow, then the remote workflow                       |
+| [`deploy:db:import`](#deploy-db-import)               | Import a SQL dump into the local Docker container                      |
+| [`deploy:db:import:remote`](#deploy-db-import-remote) | Import a SQL dump into a remote Docker container via SSH               |
 
 ### `deploy:init`
 
@@ -130,6 +130,7 @@ bun maker deploy:workflow --config=custom.json --dry-run
 Full remote deploy pipeline — uploads the project via `rsync` (or `scp` as fallback), then runs server infra and/or app on the remote host.
 
 **What happens:**
+
 1. Creates target directory on remote: `ssh mkdir -p <targetPath>`
 2. Uploads project (excludes `node_modules`, `.git`, `dist`, `.env*`)
 3. Creates Docker networks on remote (`nginx-proxy`, `infra`) if missing
@@ -256,23 +257,23 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
 
 ### Shared flags
 
-| Flag | Available on | Purpose |
-|---|---|---|
-| `--force` | `deploy:init` | Overwrite existing deploy files |
-| `--runtime=node\|bun` | `deploy:init` | Choose Dockerfile runtime |
-| `--pm=npm\|pnpm\|yarn\|bun` | `deploy:init` | Package manager for the node runtime (default: auto-detect) |
-| `--app-only` | `deploy:init`, workflows | Skip server infra, only app |
-| `--server-only` | `deploy:init`, workflows | Skip app, only server infra |
-| `--dev` | `deploy:init` | Server infra in dev mode (exposed Redis port) |
-| `--refresh` | `deploy:workflow`, `deploy:workflow:promote` | Regenerate deploy files before running |
-| `--dry-run` | Workflows, `deploy:db:import:remote` | Preview without executing |
-| `--config=<path>` | Workflows | Path to workflow JSON config |
-| `--file=<path>` | `deploy:db:import:*` | Path to the SQL dump file |
-| `--database=<name>` | `deploy:db:import:*` | Target database name |
-| `--container=<name>` | `deploy:db:import:*` | DB container (`mysql-global` or `postgres-global`) |
-| `--user=<name>` | `deploy:db:import:*` | DB user (defaults to server `.env`) |
-| `--password=<password>` | `deploy:db:import:*` | DB password (defaults to server `.env`) |
-| `--no-drop` | `deploy:db:import` (PostgreSQL) | Keep the existing database instead of dropping it for a clean restore |
+| Flag                        | Available on                                 | Purpose                                                               |
+| --------------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| `--force`                   | `deploy:init`                                | Overwrite existing deploy files                                       |
+| `--runtime=node\|bun`       | `deploy:init`                                | Choose Dockerfile runtime                                             |
+| `--pm=npm\|pnpm\|yarn\|bun` | `deploy:init`                                | Package manager for the node runtime (default: auto-detect)           |
+| `--app-only`                | `deploy:init`, workflows                     | Skip server infra, only app                                           |
+| `--server-only`             | `deploy:init`, workflows                     | Skip app, only server infra                                           |
+| `--dev`                     | `deploy:init`                                | Server infra in dev mode (exposed Redis port)                         |
+| `--refresh`                 | `deploy:workflow`, `deploy:workflow:promote` | Regenerate deploy files before running                                |
+| `--dry-run`                 | Workflows, `deploy:db:import:remote`         | Preview without executing                                             |
+| `--config=<path>`           | Workflows                                    | Path to workflow JSON config                                          |
+| `--file=<path>`             | `deploy:db:import:*`                         | Path to the SQL dump file                                             |
+| `--database=<name>`         | `deploy:db:import:*`                         | Target database name                                                  |
+| `--container=<name>`        | `deploy:db:import:*`                         | DB container (`mysql-global` or `postgres-global`)                    |
+| `--user=<name>`             | `deploy:db:import:*`                         | DB user (defaults to server `.env`)                                   |
+| `--password=<password>`     | `deploy:db:import:*`                         | DB password (defaults to server `.env`)                               |
+| `--no-drop`                 | `deploy:db:import` (PostgreSQL)              | Keep the existing database instead of dropping it for a clean restore |
 
 ### Remote config (`deploy/workflow.remote.json`)
 
@@ -296,9 +297,7 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
     "container": "mysql-global",
     "user": "root"
   },
-  "preDeployCommands": [
-    "docker rm -f old-app 2>/dev/null || true"
-  ]
+  "preDeployCommands": ["docker rm -f old-app 2>/dev/null || true"]
 }
 ```
 
@@ -307,10 +306,26 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
 ```json
 {
   "steps": [
-    { "name": "Generate deploy files", "run": "deploy:init --force", "enabled": false },
-    { "name": "Start shared infra", "run": "deploy:workflow --server-only", "enabled": true },
-    { "name": "Start app stack", "run": "deploy:workflow --app-only", "enabled": true },
-    { "name": "Import database dump (optional)", "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen", "enabled": false }
+    {
+      "name": "Generate deploy files",
+      "run": "deploy:init --force",
+      "enabled": false
+    },
+    {
+      "name": "Start shared infra",
+      "run": "deploy:workflow --server-only",
+      "enabled": true
+    },
+    {
+      "name": "Start app stack",
+      "run": "deploy:workflow --app-only",
+      "enabled": true
+    },
+    {
+      "name": "Import database dump (optional)",
+      "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen",
+      "enabled": false
+    }
   ]
 }
 ```
@@ -319,18 +334,18 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
 
 The following commands were merged into the six above and no longer exist:
 
-| Removed command | Replaced by |
-|---|---|
-| `deploy:create` | `deploy:init` |
-| `deploy:create:app` | `deploy:init --app-only` |
-| `deploy:create:server` | `deploy:init --server-only` |
-| `deploy:create:server:dev` | `deploy:init --server-only --dev` |
-| `deploy:server` | `deploy:workflow --server-only` |
-| `deploy:app` | `deploy:workflow --app-only` |
-| `deploy:workflow:init` | `deploy:init` |
-| `deploy:workflow:local` | `deploy:workflow` |
-| `deploy:workflow:remote:init` | `deploy:init` |
-| `deploy:remote:server` | `deploy:workflow:remote --server-only` |
-| `deploy:remote:app` | `deploy:workflow:remote --app-only` |
+| Removed command               | Replaced by                            |
+| ----------------------------- | -------------------------------------- |
+| `deploy:create`               | `deploy:init`                          |
+| `deploy:create:app`           | `deploy:init --app-only`               |
+| `deploy:create:server`        | `deploy:init --server-only`            |
+| `deploy:create:server:dev`    | `deploy:init --server-only --dev`      |
+| `deploy:server`               | `deploy:workflow --server-only`        |
+| `deploy:app`                  | `deploy:workflow --app-only`           |
+| `deploy:workflow:init`        | `deploy:init`                          |
+| `deploy:workflow:local`       | `deploy:workflow`                      |
+| `deploy:workflow:remote:init` | `deploy:init`                          |
+| `deploy:remote:server`        | `deploy:workflow:remote --server-only` |
+| `deploy:remote:app`           | `deploy:workflow:remote --app-only`    |
 
 The old `deploy:create`, `deploy:server`, and `deploy:app` steps are still accepted inside a workflow config file for backward compatibility.

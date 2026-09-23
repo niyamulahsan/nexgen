@@ -6,8 +6,8 @@ Registers an in-memory synchronous handler that `dispatchCommand` can run. Comma
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function  | Signature                 | Description                               |
+| --------- | ------------------------- | ----------------------------------------- |
 | `command` | `(name, handler) => void` | Register an in-memory synchronous handler |
 
 ## Use cases

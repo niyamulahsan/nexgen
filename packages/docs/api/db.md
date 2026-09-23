@@ -6,9 +6,9 @@ The global Drizzle query proxy — resolves the active dialect (`sqlite` / `mysq
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `db` | `Proxy` | Global query surface — forwards every property to the initialized instance |
+| Function | Signature | Description                                                                |
+| -------- | --------- | -------------------------------------------------------------------------- |
+| `db`     | `Proxy`   | Global query surface — forwards every property to the initialized instance |
 
 ## Use cases
 
@@ -43,8 +43,13 @@ import { db, password } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
 
 for (const row of rows) {
-  const existing = await db.query.users.findFirst({ where: (t, { eq }) => eq(t.email, row.email) });
-  if (!existing) await db.insert(users).values({ ...row, password: await password.hashPassword(row.password) });
+  const existing = await db.query.users.findFirst({
+    where: (t, { eq }) => eq(t.email, row.email),
+  });
+  if (!existing)
+    await db
+      .insert(users)
+      .values({ ...row, password: await password.hashPassword(row.password) });
 }
 ```
 

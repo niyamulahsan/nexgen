@@ -6,25 +6,25 @@ Registers named cron tasks run by the `schedule:work` process. Every run is wrap
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function         | Signature                      | Description                                      |
+| ---------------- | ------------------------------ | ------------------------------------------------ |
 | `defineSchedule` | `(schedule: Schedule) => void` | Register a schedule (handler mode or queue mode) |
 
 `Schedule` options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `name` | `string` | — | **Required.** Unique identifier (used as the lock key) |
-| `expression` | `string` | — | **Required.** Cron expression (`* * * * *`) |
-| `handler` | `function` | — | Async task logic (handler mode) |
-| `queue` | `string` | — | Queue mode: dispatch `job` to this queue on each tick |
-| `job` | `string` | `name` | Job name enqueued on each tick (queue mode) |
-| `data` | `any` | — | Static data passed to every enqueued job (queue mode) |
-| `immediately` | `boolean` | `false` | Also dispatch one job immediately at scheduler boot (queue mode) |
-| `timezone` | `string` | server TZ | Cron timezone (e.g. `"America/New_York"`) |
-| `runOnInit` | `boolean` | `false` | Run handler immediately at boot (handler mode) |
-| `enabled` | `boolean` | `true` | `false` disables the task without deleting it |
-| `ttlMs` | `number` | `120000` | Lock TTL — prevents overlap if a run exceeds this |
+| Option        | Type       | Default   | Description                                                      |
+| ------------- | ---------- | --------- | ---------------------------------------------------------------- |
+| `name`        | `string`   | —         | **Required.** Unique identifier (used as the lock key)           |
+| `expression`  | `string`   | —         | **Required.** Cron expression (`* * * * *`)                      |
+| `handler`     | `function` | —         | Async task logic (handler mode)                                  |
+| `queue`       | `string`   | —         | Queue mode: dispatch `job` to this queue on each tick            |
+| `job`         | `string`   | `name`    | Job name enqueued on each tick (queue mode)                      |
+| `data`        | `any`      | —         | Static data passed to every enqueued job (queue mode)            |
+| `immediately` | `boolean`  | `false`   | Also dispatch one job immediately at scheduler boot (queue mode) |
+| `timezone`    | `string`   | server TZ | Cron timezone (e.g. `"America/New_York"`)                        |
+| `runOnInit`   | `boolean`  | `false`   | Run handler immediately at boot (handler mode)                   |
+| `enabled`     | `boolean`  | `true`    | `false` disables the task without deleting it                    |
+| `ttlMs`       | `number`   | `120000`  | Lock TTL — prevents overlap if a run exceeds this                |
 
 ## Use cases
 
@@ -53,8 +53,16 @@ defineSchedule({
   name: "daily-report",
   expression: "0 2 * * *",
   handler: async () => {
-    await dispatchEvent("report.generate", { date: "yesterday" }, { queue: "default" });
-    await dispatchEvent("report.started", { date: "yesterday" }, { broadcast: { roles: ["admin"] } });
+    await dispatchEvent(
+      "report.generate",
+      { date: "yesterday" },
+      { queue: "default" },
+    );
+    await dispatchEvent(
+      "report.started",
+      { date: "yesterday" },
+      { broadcast: { roles: ["admin"] } },
+    );
   },
 });
 ```
@@ -78,24 +86,48 @@ defineSchedule({
     const expiredBinds: { commissionerateId: number; taxPeriod: string }[] = [];
 
     while (true) {
-      const where: any[] = [eq(collectionbinds.last, 1), lt(collectionbinds.endDate, now)];
+      const where: any[] = [
+        eq(collectionbinds.last, 1),
+        lt(collectionbinds.endDate, now),
+      ];
       if (lastId > 0) where.push(gt(collectionbinds.id, lastId));
 
       const rows = await db
-        .select({ id: collectionbinds.id, commissionerateId: collectionbinds.commissionerateId, taxPeriod: collectionbinds.taxPeriod })
+        .select({
+          id: collectionbinds.id,
+          commissionerateId: collectionbinds.commissionerateId,
+          taxPeriod: collectionbinds.taxPeriod,
+        })
         .from(collectionbinds)
         .where(and(...where))
         .orderBy(collectionbinds.id)
         .limit(1000);
 
       if (!rows.length) break;
-      await db.update(collectionbinds).set({ last: 0, updatedAt: now }).where(inArray(collectionbinds.id, rows.map((r) => r.id)));
-      expiredBinds.push(...rows.map((r) => ({ commissionerateId: r.commissionerateId, taxPeriod: r.taxPeriod })));
+      await db
+        .update(collectionbinds)
+        .set({ last: 0, updatedAt: now })
+        .where(
+          inArray(
+            collectionbinds.id,
+            rows.map((r) => r.id),
+          ),
+        );
+      expiredBinds.push(
+        ...rows.map((r) => ({
+          commissionerateId: r.commissionerateId,
+          taxPeriod: r.taxPeriod,
+        })),
+      );
       lastId = rows[rows.length - 1].id;
     }
 
     if (expiredBinds.length) {
-      await dispatchEvent("collection.statusUpdate", { binds: expiredBinds }, { queue: "collection" });
+      await dispatchEvent(
+        "collection.statusUpdate",
+        { binds: expiredBinds },
+        { queue: "collection" },
+      );
     }
   },
 });
@@ -114,7 +146,7 @@ defineSchedule({
   queue: "mail",
   job: "send.reminders",
   data: { template: "daily" },
-  immediately: true,   // dispatch one job now at boot
+  immediately: true, // dispatch one job now at boot
 });
 ```
 
@@ -125,7 +157,7 @@ defineSchedule({
   name: "health-check",
   expression: "*/5 * * * *",
   timezone: "America/New_York",
-  enabled: false,      // keep the definition, skip execution
+  enabled: false, // keep the definition, skip execution
   handler: async () => checkServices(),
 });
 ```

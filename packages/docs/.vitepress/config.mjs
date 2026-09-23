@@ -128,7 +128,16 @@ export default defineConfig({
             { text: mi("clock", "Scheduler"), link: "/guide/scheduler" },
             { text: mi("radio", "Realtime"), link: "/guide/realtime" },
             { text: mi("bell", "Notifications"), link: "/guide/notification" },
-            { text: mi("folder", "Storage"), link: "/guide/storage" },
+            {
+              text: mi("folder", "Storage"),
+              items: [
+                { text: mi("layered", "Overview"), link: "/guide/storage" },
+                { text: mi("film", "Stream Media (MP4/Audio)"), link: "/guide/storage/media-streaming" },
+                { text: mi("fileText", "Read Stored File (PDF/Excel/Text)"), link: "/guide/storage/read-stored-file" },
+                { text: mi("uploadCloud", "Large Excel Import"), link: "/guide/storage/large-import" },
+                { text: mi("download", "Generate & Download (PDF/CSV/Excel)"), link: "/guide/storage/generate-and-download" },
+              ],
+            },
             { text: mi("fingerprint", "Session"), link: "/guide/session" },
             { text: mi("gauge", "Rate Limiter"), link: "/guide/rate-limiter" },
           ],
@@ -209,9 +218,11 @@ export default defineConfig({
         { text: mi("server", "Remote Deploy"), link: "/deploy/remote" },
       ],
       "/api/": [
-        { text: mi("compass", "API Reference"), items: [
-          { text: mi("list", "Overview"), link: "/api/index" },
-        ] },
+        {
+          text: mi("compass", "API Reference"), items: [
+            { text: mi("list", "Overview"), link: "/api/index" },
+          ]
+        },
         {
           text: mi("route", "Routing & OpenAPI"),
           items: [

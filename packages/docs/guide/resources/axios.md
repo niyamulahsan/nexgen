@@ -8,12 +8,12 @@ import "@/plugins/axios";
 
 ## Defaults
 
-| Setting | Value |
-|---------|-------|
-| `baseURL` | `VITE_API_URL` env var (empty by default — proxied by Vite to `APP_URL`) |
-| `withCredentials` | `true` (sends cookies cross-origin) |
-| `Accept` | `application/json` |
-| `X-Requested-With` | `XMLHttpRequest` |
+| Setting            | Value                                                                    |
+| ------------------ | ------------------------------------------------------------------------ |
+| `baseURL`          | `VITE_API_URL` env var (empty by default — proxied by Vite to `APP_URL`) |
+| `withCredentials`  | `true` (sends cookies cross-origin)                                      |
+| `Accept`           | `application/json`                                                       |
+| `X-Requested-With` | `XMLHttpRequest`                                                         |
 
 ## 401 interceptor
 

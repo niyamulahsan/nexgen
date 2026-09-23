@@ -6,9 +6,9 @@ Shorthand for `createRouter().group(...)`, plus the building block when spreadin
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `group` | `(...middlewares) => NexgenRouter` | `createRouter().group(...middlewares)` — applies middleware to routes registered after it |
+| Function | Signature                          | Description                                                                               |
+| -------- | ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| `group`  | `(...middlewares) => NexgenRouter` | `createRouter().group(...middlewares)` — applies middleware to routes registered after it |
 
 ## Use cases
 
@@ -17,14 +17,20 @@ Shorthand for `createRouter().group(...)`, plus the building block when spreadin
 `group(middleware)` applies to all routes; `api(route, [middlewares], handler)` applies per-route:
 
 ```ts
-import { createRouter, createRoute, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+import {
+  createRouter,
+  createRoute,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+} from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import { requireRole } from "@/middlewares/role-middleware.js";
 
 export default createRouter()
-  .group(authMiddleware)                          // all routes require auth
+  .group(authMiddleware) // all routes require auth
   .api(listRoute, index)
-  .api(showRoute, [requireRole("admin")], show);  // only admin role
+  .api(showRoute, [requireRole("admin")], show); // only admin role
 ```
 
 ### Real world — role middleware arrays

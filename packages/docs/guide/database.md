@@ -509,11 +509,11 @@ Drizzle ORM does not include a built-in pagination helper. **nexgen** provides p
 
 ### Which one to use?
 
-| Function          | When to use                                                                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Function          | When to use                                                                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `paginate()`      | **Default choice** — route handlers with joins, WHERE, GROUP BY, HAVING, DISTINCT. Reads `page`/`per_page` from request query.                            |
 | `paginateModel()` | **Relational eager loading** — uses `db.query.table.findMany({ with })` and returns full pagination metadata.                                             |
-| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                          |
+| `paginateTable()` | **Single table** with optional WHERE/ORDER BY. No joins. No request object needed.                                                                        |
 | `paginateQuery()` | **Count and data queries are structurally different** — e.g., count all active users but show only top spenders. Manual `total()` and `data()` callbacks. |
 
 ### `paginate(context, query, perPage)` — From Request (recommended)

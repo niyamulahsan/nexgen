@@ -10,9 +10,9 @@ The URL utility provides helpers for building **absolute application URLs** from
 import { urls } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
-| `urls.appUrl()` | Returns the base application URL with trailing slash removed. Use as a base for absolute links. |
+| Method           | Purpose                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------- |
+| `urls.appUrl()`  | Returns the base application URL with trailing slash removed. Use as a base for absolute links.   |
 | `urls.url(path)` | Builds a full absolute URL by joining `APP_URL` with the given path. Handles slash normalization. |
 
 ## Usage
@@ -36,6 +36,6 @@ urls.url("api/health");
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `APP_URL` | — | **Required.** Base URL of the application |
+| Variable  | Default | Description                               |
+| --------- | ------- | ----------------------------------------- |
+| `APP_URL` | —       | **Required.** Base URL of the application |

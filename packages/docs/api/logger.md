@@ -6,15 +6,15 @@ Guide: [Logger](./../guide/support/logger).
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `logger.trace` | `(message, meta?) => void` | Fine-grained trace information |
-| `logger.debug` | `(message, meta?) => void` | Detailed debugging information |
-| `logger.info` | `(message, meta?) => void` | General operational messages |
-| `logger.warn` | `(message, meta?) => void` | Warning conditions |
-| `logger.error` | `(message, meta?) => void` | Error conditions (also logged to `fatal.log`) |
-| `logger.fatal` | `(message, meta?) => void` | Critical errors (exits process after logging) |
-| `logger.child` | `(bindings) => CompatLogger` | Child logger with added context |
+| Function       | Signature                    | Description                                   |
+| -------------- | ---------------------------- | --------------------------------------------- |
+| `logger.trace` | `(message, meta?) => void`   | Fine-grained trace information                |
+| `logger.debug` | `(message, meta?) => void`   | Detailed debugging information                |
+| `logger.info`  | `(message, meta?) => void`   | General operational messages                  |
+| `logger.warn`  | `(message, meta?) => void`   | Warning conditions                            |
+| `logger.error` | `(message, meta?) => void`   | Error conditions (also logged to `fatal.log`) |
+| `logger.fatal` | `(message, meta?) => void`   | Critical errors (exits process after logging) |
+| `logger.child` | `(bindings) => CompatLogger` | Child logger with added context               |
 
 ## Use cases
 

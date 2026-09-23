@@ -124,11 +124,11 @@ bun maker deploy:init --server-only --dev --force
 
 The `--dev` flag exposes these ports to your host:
 
-| Container | Host Port | Default | Purpose |
-|---|---|---|---|
-| `mysql-global` | 3306 | `0.0.0.0:3306` | Connect via any MySQL client |
-| `postgres-global` | 5432 | `0.0.0.0:5432` | Connect via any Postgres client |
-| `redis-global` | 6379 | `0.0.0.0:6379` | Connect via RedisInsight, redis-cli, etc. |
+| Container         | Host Port | Default        | Purpose                                   |
+| ----------------- | --------- | -------------- | ----------------------------------------- |
+| `mysql-global`    | 3306      | `0.0.0.0:3306` | Connect via any MySQL client              |
+| `postgres-global` | 5432      | `0.0.0.0:5432` | Connect via any Postgres client           |
+| `redis-global`    | 6379      | `0.0.0.0:6379` | Connect via RedisInsight, redis-cli, etc. |
 
 #### Start server infra
 
@@ -305,10 +305,26 @@ You can customize the steps by editing `deploy/workflow.local.json`:
 ```json
 {
   "steps": [
-    { "name": "Generate deploy files", "run": "deploy:init --force", "enabled": false },
-    { "name": "Start shared infra", "run": "deploy:workflow --server-only", "enabled": true },
-    { "name": "Import database dump (optional)", "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen", "enabled": false },
-    { "name": "Start app stack", "run": "deploy:workflow --app-only", "enabled": true }
+    {
+      "name": "Generate deploy files",
+      "run": "deploy:init --force",
+      "enabled": false
+    },
+    {
+      "name": "Start shared infra",
+      "run": "deploy:workflow --server-only",
+      "enabled": true
+    },
+    {
+      "name": "Import database dump (optional)",
+      "run": "deploy:db:import --file=deploy/nexgen.sql --database=nexgen",
+      "enabled": false
+    },
+    {
+      "name": "Start app stack",
+      "run": "deploy:workflow --app-only",
+      "enabled": true
+    }
   ]
 }
 ```
@@ -341,54 +357,54 @@ The workflow config is created automatically by `deploy:init`.
 
 ### App (`deploy/.env`)
 
-| Variable | Auto-detected | Purpose |
-|---|---|---|
-| `APP_ENV` | — | Set to `production` in deploy |
-| `APP_NAME` | — | Container name prefix |
-| `APP_HOST` | — | Bind address (default `localhost`) |
-| `APP_PORT` | — | Port exposed (default `3000`) |
-| `APP_URL` | — | Public URL of your app (links, redirects, CORS) |
-| `DATABASE_URL` | Yes | Database connection string (synced with server) |
-| `AUTO_MIGRATE` | — | `true` to auto-run `db:migrate --seed` on container start |
-| `VIRTUAL_HOST` | — | Domain routed by nginx-proxy (remote only) |
-| `VIRTUAL_PORT` | — | Port nginx-proxy forwards to (default `3000`) |
-| `LETSENCRYPT_HOST` | — | Domain for auto SSL (remote only) |
-| `LETSENCRYPT_EMAIL` | — | Email for SSL certificate notifications |
-| `JWT_ACCESS_SECRET` | — | JWT access token secret (must set before production) |
-| `JWT_REFRESH_SECRET` | — | JWT refresh token secret (must set before production) |
-| `COOKIE_SECRET` | — | Cookie signing secret (must set before production) |
-| `STORAGE_ACCESS_KEY_ID` | — | Object storage key (S3/MinIO) |
-| `STORAGE_SECRET_ACCESS_KEY` | — | Object storage secret (S3/MinIO) |
-| `MAIL_USERNAME` | — | SMTP username |
-| `MAIL_PASSWORD` | — | SMTP password |
-| `REDIS` | Yes | Enable Redis (true/false) |
-| `REDIS_URL` | Yes | Set to `redis://redis-global:6379` when Redis enabled |
-| `REDIS_PREFIX` | — | Key prefix for Redis (multi-tenant isolation) |
-| `UI` | Yes | Enable UI build (true/false, default `true`) |
-| `OPEN_API` | Yes | Enable OpenAPI docs at `/api-docs` (true/false) |
-| `SOCKET` | Yes | Enable Socket.IO realtime (true/false) |
+| Variable                    | Auto-detected | Purpose                                                   |
+| --------------------------- | ------------- | --------------------------------------------------------- |
+| `APP_ENV`                   | —             | Set to `production` in deploy                             |
+| `APP_NAME`                  | —             | Container name prefix                                     |
+| `APP_HOST`                  | —             | Bind address (default `localhost`)                        |
+| `APP_PORT`                  | —             | Port exposed (default `3000`)                             |
+| `APP_URL`                   | —             | Public URL of your app (links, redirects, CORS)           |
+| `DATABASE_URL`              | Yes           | Database connection string (synced with server)           |
+| `AUTO_MIGRATE`              | —             | `true` to auto-run `db:migrate --seed` on container start |
+| `VIRTUAL_HOST`              | —             | Domain routed by nginx-proxy (remote only)                |
+| `VIRTUAL_PORT`              | —             | Port nginx-proxy forwards to (default `3000`)             |
+| `LETSENCRYPT_HOST`          | —             | Domain for auto SSL (remote only)                         |
+| `LETSENCRYPT_EMAIL`         | —             | Email for SSL certificate notifications                   |
+| `JWT_ACCESS_SECRET`         | —             | JWT access token secret (must set before production)      |
+| `JWT_REFRESH_SECRET`        | —             | JWT refresh token secret (must set before production)     |
+| `COOKIE_SECRET`             | —             | Cookie signing secret (must set before production)        |
+| `STORAGE_ACCESS_KEY_ID`     | —             | Object storage key (S3/MinIO)                             |
+| `STORAGE_SECRET_ACCESS_KEY` | —             | Object storage secret (S3/MinIO)                          |
+| `MAIL_USERNAME`             | —             | SMTP username                                             |
+| `MAIL_PASSWORD`             | —             | SMTP password                                             |
+| `REDIS`                     | Yes           | Enable Redis (true/false)                                 |
+| `REDIS_URL`                 | Yes           | Set to `redis://redis-global:6379` when Redis enabled     |
+| `REDIS_PREFIX`              | —             | Key prefix for Redis (multi-tenant isolation)             |
+| `UI`                        | Yes           | Enable UI build (true/false, default `true`)              |
+| `OPEN_API`                  | Yes           | Enable OpenAPI docs at `/api-docs` (true/false)           |
+| `SOCKET`                    | Yes           | Enable Socket.IO realtime (true/false)                    |
 
 ### Server (`deploy/server/.env`)
 
-| Variable | Purpose |
-|---|---|
-| `LETSENCRYPT_EMAIL` | Email for SSL certificate notifications |
-| `PROXY_HTTP_PORT` | nginx-proxy HTTP port (default `80`) |
-| `PROXY_HTTPS_PORT` | nginx-proxy HTTPS port (default `443`) |
-| `MYSQL_ROOT_PASSWORD` | MySQL root password |
-| `MYSQL_DATABASE` | Default MySQL database name |
-| `MYSQL_PORT` | MySQL host port (default `4000`) |
-| `POSTGRES_USER` | Postgres superuser |
-| `POSTGRES_PASSWORD` | Postgres password |
-| `POSTGRES_DB` | Default Postgres database name |
-| `POSTGRES_PORT` | Postgres host port (default `4001`) |
-| `REDIS` | Enable Redis service in server infra |
-| `PHPMYADMIN_DOMAIN` | phpMyAdmin virtual host domain |
-| `PHPMYADMIN_LOCAL_PORT` | phpMyAdmin local port (default `127.0.0.1:8082`) |
-| `PGADMIN_DOMAIN` | pgAdmin virtual host domain |
-| `PGADMIN_DEFAULT_EMAIL` | pgAdmin login email |
-| `PGADMIN_DEFAULT_PASSWORD` | pgAdmin login password |
-| `PGADMIN_LOCAL_PORT` | pgAdmin local port (default `127.0.0.1:8083`) |
+| Variable                   | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `LETSENCRYPT_EMAIL`        | Email for SSL certificate notifications          |
+| `PROXY_HTTP_PORT`          | nginx-proxy HTTP port (default `80`)             |
+| `PROXY_HTTPS_PORT`         | nginx-proxy HTTPS port (default `443`)           |
+| `MYSQL_ROOT_PASSWORD`      | MySQL root password                              |
+| `MYSQL_DATABASE`           | Default MySQL database name                      |
+| `MYSQL_PORT`               | MySQL host port (default `4000`)                 |
+| `POSTGRES_USER`            | Postgres superuser                               |
+| `POSTGRES_PASSWORD`        | Postgres password                                |
+| `POSTGRES_DB`              | Default Postgres database name                   |
+| `POSTGRES_PORT`            | Postgres host port (default `4001`)              |
+| `REDIS`                    | Enable Redis service in server infra             |
+| `PHPMYADMIN_DOMAIN`        | phpMyAdmin virtual host domain                   |
+| `PHPMYADMIN_LOCAL_PORT`    | phpMyAdmin local port (default `127.0.0.1:8082`) |
+| `PGADMIN_DOMAIN`           | pgAdmin virtual host domain                      |
+| `PGADMIN_DEFAULT_EMAIL`    | pgAdmin login email                              |
+| `PGADMIN_DEFAULT_PASSWORD` | pgAdmin login password                           |
+| `PGADMIN_LOCAL_PORT`       | pgAdmin local port (default `127.0.0.1:8083`)    |
 
 ## Troubleshooting
 

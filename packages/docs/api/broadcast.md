@@ -6,19 +6,19 @@ Emits Socket.IO events to targeted audiences. Authenticated sockets are auto-joi
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function    | Signature                            | Description                                               |
+| ----------- | ------------------------------------ | --------------------------------------------------------- |
 | `broadcast` | `(event, payload, options?) => void` | Emit `event` with `payload` to the audiences in `options` |
 
 `BroadcastOptions` (all combinable):
 
-| Option | Type | Targets |
-| --- | --- | --- |
-| `all` | `boolean` | every connected client |
-| `auth` | `boolean` | all authenticated clients (room `"auth"`) |
-| `users` | `(number\|string)[]` | user rooms (`"user:42"`) |
-| `roles` | `string[]` | role rooms (`"role:admin"`) |
-| `rooms` | `string[]` | arbitrary custom rooms |
+| Option  | Type                 | Targets                                   |
+| ------- | -------------------- | ----------------------------------------- |
+| `all`   | `boolean`            | every connected client                    |
+| `auth`  | `boolean`            | all authenticated clients (room `"auth"`) |
+| `users` | `(number\|string)[]` | user rooms (`"user:42"`)                  |
+| `roles` | `string[]`           | role rooms (`"role:admin"`)               |
+| `rooms` | `string[]`           | arbitrary custom rooms                    |
 
 ## Use cases
 
@@ -27,10 +27,10 @@ Emits Socket.IO events to targeted audiences. Authenticated sockets are auto-joi
 ```ts
 import { broadcast } from "@/framework/facade.js";
 
-broadcast("post.published", { postId: 1 }, { all: true });        // all connected clients
-broadcast("notification.new", payload, { auth: true });           // all authenticated users
-broadcast("user.message", payload, { users: [recipientId] });     // specific users
-broadcast("admin.alert", payload, { roles: ["admin"] });          // specific roles
+broadcast("post.published", { postId: 1 }, { all: true }); // all connected clients
+broadcast("notification.new", payload, { auth: true }); // all authenticated users
+broadcast("user.message", payload, { users: [recipientId] }); // specific users
+broadcast("admin.alert", payload, { roles: ["admin"] }); // specific roles
 broadcast("chat.message", payload, { rooms: ["room:chat:general"] }); // custom rooms
 broadcast("order.updated", payload, { users: [userId], roles: ["admin"] }); // combined
 ```
@@ -41,16 +41,20 @@ broadcast("order.updated", payload, { users: [userId], roles: ["admin"] }); // c
 import { broadcast } from "@/framework/facade.js";
 
 await broadcast("post.published", { postId, status: "live" }, { all: true });
-await broadcast("user.notification", { message: "Your post is live!" }, { users: [authorId] });
+await broadcast(
+  "user.notification",
+  { message: "Your post is live!" },
+  { users: [authorId] },
+);
 ```
 
 ### Direct vs `dispatchEvent`
 
-| | `broadcast()` | `dispatchEvent()` |
-| --- | --- | --- |
-| Broadcasts | yes | yes (via `broadcast` option) |
-| Queues a job | no | yes (via `queue` option) |
-| Best for | fire-and-forget socket emit | broadcast + side effects in one call |
+|              | `broadcast()`               | `dispatchEvent()`                    |
+| ------------ | --------------------------- | ------------------------------------ |
+| Broadcasts   | yes                         | yes (via `broadcast` option)         |
+| Queues a job | no                          | yes (via `queue` option)             |
+| Best for     | fire-and-forget socket emit | broadcast + side effects in one call |
 
 ### Real world — keeping clients in sync
 
@@ -58,7 +62,11 @@ Server emits with the channel name embedded in the event name (`<channel>.<actio
 
 ```ts
 // modules/activity/controllers/activity.controller.ts — after a mutation
-await dispatchEvent("activity.changed", { id, name }, { broadcast: { auth: true } });
+await dispatchEvent(
+  "activity.changed",
+  { id, name },
+  { broadcast: { auth: true } },
+);
 ```
 
 ```vue
@@ -69,9 +77,13 @@ import { onMounted, onUnmounted } from "vue";
 
 onMounted(() => {
   let ch = pulse.channel("entity");
-  ch.listen("entity.changed", async () => { await fetchList(); });
+  ch.listen("entity.changed", async () => {
+    await fetchList();
+  });
 });
-onUnmounted(() => { pulse.leave("entity"); });
+onUnmounted(() => {
+  pulse.leave("entity");
+});
 </script>
 ```
 
@@ -79,14 +91,16 @@ Private per-user channels use the `user:<id>` naming and are emitted with `broad
 
 ```ts
 // modules/report/jobs/collectionExaminerExport.ts
-await dispatchEvent("report.collectionexaminerexport.ready", { downloadUrl, authId },
-  { broadcast: { users: [authId] } });
+await dispatchEvent(
+  "report.collectionexaminerexport.ready",
+  { downloadUrl, authId },
+  { broadcast: { users: [authId] } },
+);
 ```
 
 ```vue
-pulse.channel(`user:${authUser.value.id}`).listen("report.collectionexaminerexport.ready", (event) => {
-  status.value = "ready";
-  downloadUrl.value = event.data.downloadUrl;
+pulse.channel(`user:${authUser.value.id}`).listen("report.collectionexaminerexport.ready",
+(event) => { status.value = "ready"; downloadUrl.value = event.data.downloadUrl;
 });
 ```
 

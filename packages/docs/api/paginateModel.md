@@ -12,15 +12,15 @@ Pagination backed by relational eager loading via `db.query.table.findMany({ wit
 
 Options:
 
-| Option    | Type               | Description                                           |
-| --------- | ------------------ | ----------------------------------------------------- |
-| `table`   | `Table`            | The Drizzle table (for building count clauses)        |
-| `query`   | `db.query.<table>` | The relation query builder                            |
-| `where`   | `SQL/boolean`      | Filter clause                                       |
-| `with`    | `object`           | Relation tree for eager loading (nested allowed)      |
-| `columns` | `object`           | Column selection                                      |
-| `orderBy` | `SQL / SQL[]`      | Sort order for the query results                      |
-| `perPage` | `number`           | Items per page (default `15`)                         |
+| Option    | Type               | Description                                                       |
+| --------- | ------------------ | ----------------------------------------------------------------- |
+| `table`   | `Table`            | The Drizzle table (for building count clauses)                    |
+| `query`   | `db.query.<table>` | The relation query builder                                        |
+| `where`   | `SQL/boolean`      | Filter clause                                                     |
+| `with`    | `object`           | Relation tree for eager loading (nested allowed)                  |
+| `columns` | `object`           | Column selection                                                  |
+| `orderBy` | `SQL / SQL[]`      | Sort order for the query results                                  |
+| `perPage` | `number`           | Items per page (default `15`)                                     |
 | `path`    | `string`           | Base path for pagination URLs (default `c.req.path` / `req.path`) |
 
 ## Use cases

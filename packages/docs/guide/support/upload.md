@@ -19,7 +19,14 @@ Attach `upload({ field })` to a route. Multer parses the incoming file into `req
 ```ts
 // src/modules/files/routes/api.ts
 import type { Request, Response } from "express";
-import { createRoute, group, HttpStatusCodes, jsonContent, z, upload } from "@/framework/facade.js";
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+  upload,
+} from "@/framework/facade.js";
 
 const uploadRoute = createRoute({
   path: "/",
@@ -27,7 +34,10 @@ const uploadRoute = createRoute({
   tags: ["Files"],
   request: { body: z.object({ file: z.instanceof(File) }) },
   responses: {
-    [HttpStatusCodes.OK]: jsonContent(z.object({ path: z.string() }), "uploaded"),
+    [HttpStatusCodes.OK]: jsonContent(
+      z.object({ path: z.string() }),
+      "uploaded",
+    ),
   },
 });
 
@@ -89,34 +99,37 @@ export default group().api(
 import type { Request, Response } from "express";
 
 export const storeProfile = (req: Request, res: Response) => {
-  const avatar = (req.files as Record<string, Express.Multer.File[]>)["avatar"]?.[0];
-  const docs = (req.files as Record<string, Express.Multer.File[]>)["docs"] ?? [];
+  const avatar = (req.files as Record<string, Express.Multer.File[]>)[
+    "avatar"
+  ]?.[0];
+  const docs =
+    (req.files as Record<string, Express.Multer.File[]>)["docs"] ?? [];
   res.json({ avatar: avatar?.originalname, docs: docs.length });
 };
 ```
 
 ## Options
 
-| Option                 | Type                              | `upload()` | `fields()` | Description                                                              |
-| ---------------------- | --------------------------------- | ---------- | ---------- | ------------------------------------------------------------------------ |
-| `field`                | `string`                          | ✅          | —          | Form field name holding the file(s)                                      |
-| `multiple`             | `number`                          | ✅          | —          | When set, accept up to N files on the field (arrays into `req.files`)    |
-| `maxSize`              | `number` (bytes)                  | ✅          | ✅          | Max file size; default unlimited                                         |
-| `allowedExtensions`    | `string[]` (lowercase, with dot)  | ✅          | ✅          | e.g. `[".xlsx", ".xlsb"]` — others rejected with 422                     |
-| `allowedMimeTypes`     | `string[]`                        | ✅          | ✅          | e.g. `["application/pdf"]`; when combined with extensions, both must pass |
-| `maxCount` (in `fields()` spec) | `number`                   | —          | ✅          | Max files for one labeled field                                          |
+| Option                          | Type                             | `upload()` | `fields()` | Description                                                               |
+| ------------------------------- | -------------------------------- | ---------- | ---------- | ------------------------------------------------------------------------- |
+| `field`                         | `string`                         | ✅         | —          | Form field name holding the file(s)                                       |
+| `multiple`                      | `number`                         | ✅         | —          | When set, accept up to N files on the field (arrays into `req.files`)     |
+| `maxSize`                       | `number` (bytes)                 | ✅         | ✅         | Max file size; default unlimited                                          |
+| `allowedExtensions`             | `string[]` (lowercase, with dot) | ✅         | ✅         | e.g. `[".xlsx", ".xlsb"]` — others rejected with 422                      |
+| `allowedMimeTypes`              | `string[]`                       | ✅         | ✅         | e.g. `["application/pdf"]`; when combined with extensions, both must pass |
+| `maxCount` (in `fields()` spec) | `number`                         | —          | ✅         | Max files for one labeled field                                           |
 
 ## Error Handling
 
 All failures are normalized to `422` with clear messages, so your controller only runs on a valid upload:
 
-| Condition                        | Message                         |
-| -------------------------------- | ------------------------------- |
-| No file received                 | `File required`                 |
-| Size over `maxSize`              | `File size must be less than 2 MB` |
-| Extension not allowed            | `File must be .jpg or .png`     |
-| MIME type not allowed            | `File type <mime> is not allowed` |
-| More files than `maxCount`       | `Too many files, max 5 allowed` |
+| Condition                  | Message                            |
+| -------------------------- | ---------------------------------- |
+| No file received           | `File required`                    |
+| Size over `maxSize`        | `File size must be less than 2 MB` |
+| Extension not allowed      | `File must be .jpg or .png`        |
+| MIME type not allowed      | `File type <mime> is not allowed`  |
+| More files than `maxCount` | `Too many files, max 5 allowed`    |
 
 ## Notes
 

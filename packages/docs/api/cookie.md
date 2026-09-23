@@ -6,14 +6,14 @@ Guide: [Cookie](./../guide/support/cookie).
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `cookie.setAuth` | `(c, token) => Promise<void>` | Sets the `{name}_access` httpOnly cookie |
-| `cookie.setRefresh` | `(c, token, maxAge?) => Promise<void>` | Sets the `{name}_refresh` httpOnly cookie |
-| `cookie.getAuth` | `(c) => Promise<string|undefined>` | Reads the access cookie |
-| `cookie.getRefresh` | `(c) => Promise<string|undefined>` | Reads the refresh cookie |
-| `cookie.deleteAuth` | `(c) => void` | Clears the access cookie |
-| `cookie.deleteRefresh` | `(c) => void` | Clears the refresh cookie |
+| Function               | Signature                              | Description                               |
+| ---------------------- | -------------------------------------- | ----------------------------------------- | ------------------------ |
+| `cookie.setAuth`       | `(c, token) => Promise<void>`          | Sets the `{name}_access` httpOnly cookie  |
+| `cookie.setRefresh`    | `(c, token, maxAge?) => Promise<void>` | Sets the `{name}_refresh` httpOnly cookie |
+| `cookie.getAuth`       | `(c) => Promise<string                 | undefined>`                               | Reads the access cookie  |
+| `cookie.getRefresh`    | `(c) => Promise<string                 | undefined>`                               | Reads the refresh cookie |
+| `cookie.deleteAuth`    | `(c) => void`                          | Clears the access cookie                  |
+| `cookie.deleteRefresh` | `(c) => void`                          | Clears the refresh cookie                 |
 
 ## Use cases
 
@@ -22,7 +22,8 @@ import { cookie } from "@/framework/facade.js";
 
 cookie.setAuth(c, accessToken);
 cookie.setRefresh(c, refreshToken, 604800); // override refresh maxAge (7 days)
-cookie.deleteAuth(c); cookie.deleteRefresh(c); // logout
+cookie.deleteAuth(c);
+cookie.deleteRefresh(c); // logout
 ```
 
 ### Real world — set after issuing tokens

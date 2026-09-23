@@ -6,21 +6,23 @@ The `zod` namespace augmented with `.openapi()` — which attaches examples/desc
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `z` | `ZodNamespace` | Zod extended with `.openapi()` (both engines) |
-| `z.any().openapi(meta)` | `(meta) => Z` | Attach `{ example, description, ... }` metadata |
-| `z.any().openapi("Name")` | `(name) => Z` | Name the schema in the generated spec |
+| Function                  | Signature      | Description                                     |
+| ------------------------- | -------------- | ----------------------------------------------- |
+| `z`                       | `ZodNamespace` | Zod extended with `.openapi()` (both engines)   |
+| `z.any().openapi(meta)`   | `(meta) => Z`  | Attach `{ example, description, ... }` metadata |
+| `z.any().openapi("Name")` | `(name) => Z`  | Name the schema in the generated spec           |
 
 ## Use cases
 
 ### Schema with examples
 
 ```ts
-const PostSchema = z.object({
-  id: z.number().openapi({ example: 1 }),
-  title: z.string().min(1).openapi({ example: "Hello World" }),
-}).openapi("Post");
+const PostSchema = z
+  .object({
+    id: z.number().openapi({ example: 1 }),
+    title: z.string().min(1).openapi({ example: "Hello World" }),
+  })
+  .openapi("Post");
 ```
 
 ### Request coercion
@@ -29,7 +31,9 @@ const PostSchema = z.object({
 
 ```ts
 // modules/type/controllers/type.schema.ts
-export const TypeIdParamsSchema = z.object({ id: z.coerce.number().int().positive() });
+export const TypeIdParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 export const TypeQuerySchema = z.object({
   search: z.string().optional(),
   page: z.coerce.number().optional(),

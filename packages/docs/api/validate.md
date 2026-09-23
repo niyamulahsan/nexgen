@@ -6,8 +6,8 @@ Runs any Zod schema against untrusted input (request bodies outside OpenAPI rout
 
 ## Functions
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function   | Signature                                                      | Description                                                       |
+| ---------- | -------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `validate` | `(schema: z.ZodTypeAny, data: unknown) => Promise<z.infer<T>>` | Runs `safeParseAsync`; returns typed data or throws a `422` error |
 
 ## Use cases
@@ -71,7 +71,9 @@ Query/params schemas use `z.coerce` so `"?page=3"` arrives as a real number, and
 ```ts
 // modules/type/controllers/type.schema.ts
 export const TypeItemSchema = z.object({ id: z.number(), name: z.string() });
-export const TypeIdParamsSchema = z.object({ id: z.coerce.number().int().positive() });
+export const TypeIdParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
 export const TypeQuerySchema = z.object({
   search: z.string().optional(),
   page: z.coerce.number().optional(),

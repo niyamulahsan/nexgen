@@ -15,7 +15,11 @@ export default createRouter()
   .api(usersIndexRoute, usersIndex);
 
 // Per-route
-export default createRouter().api(userDestroyRoute, [authMiddleware, requireRole("admin")], userDestroy);
+export default createRouter().api(
+  userDestroyRoute,
+  [authMiddleware, requireRole("admin")],
+  userDestroy,
+);
 ```
 
 See [Routing > Middleware](./../guide/routing) for the full middleware API.
@@ -51,10 +55,10 @@ bun maker middleware:make rate-limit --force
 
 :::
 
-| Option | Alias | Description |
-| --- | --- | --- |
-| `--force` | `--yes` | Overwrite an existing middleware file (fails otherwise) |
-| `--dry-run` | — | Validate the name and print what would be created without writing |
+| Option      | Alias   | Description                                                       |
+| ----------- | ------- | ----------------------------------------------------------------- |
+| `--force`   | `--yes` | Overwrite an existing middleware file (fails otherwise)           |
+| `--dry-run` | —       | Validate the name and print what would be created without writing |
 
 ### Generated output
 
@@ -93,7 +97,11 @@ import { db } from "@/framework/facade.js";
  * How: res.locals.auth is populated when authMiddleware ran first; db gives
  *      typed access to your module models. Call next() to continue.
  */
-export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction) {
+export function rateLimitMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   return next();
 }
 ```

@@ -89,25 +89,25 @@ Docker Compose normally creates isolated networks per project. By using pre-crea
 
 ## All Deploy Commands
 
-| Command | Why | When | What it does |
-|---|---|---|---|
-| `deploy:init` | Generate deploy scaffolding + workflow configs | One-time, before first deploy | Creates `deploy/` with Dockerfile, compose files, env stubs, supervisor config, scripts, and both workflow configs |
-| `deploy:workflow` | Local deploy pipeline | Per deploy | Starts server infra and/or app stack locally (config file or flags) |
-| `deploy:workflow:remote` | Full remote deploy | Per deploy | rsyncs project to remote host, runs server + app there |
-| `deploy:workflow:promote` | Test local then deploy remote | Pre-production | Runs local workflow first, then remote workflow |
-| `deploy:db:import` | Import SQL into local DB | Occasional | Streams a `.sql` file into the running MySQL/PostgreSQL container |
-| `deploy:db:import:remote` | Import SQL into remote DB | Occasional | Same as above via SSH |
+| Command                   | Why                                            | When                          | What it does                                                                                                       |
+| ------------------------- | ---------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `deploy:init`             | Generate deploy scaffolding + workflow configs | One-time, before first deploy | Creates `deploy/` with Dockerfile, compose files, env stubs, supervisor config, scripts, and both workflow configs |
+| `deploy:workflow`         | Local deploy pipeline                          | Per deploy                    | Starts server infra and/or app stack locally (config file or flags)                                                |
+| `deploy:workflow:remote`  | Full remote deploy                             | Per deploy                    | rsyncs project to remote host, runs server + app there                                                             |
+| `deploy:workflow:promote` | Test local then deploy remote                  | Pre-production                | Runs local workflow first, then remote workflow                                                                    |
+| `deploy:db:import`        | Import SQL into local DB                       | Occasional                    | Streams a `.sql` file into the running MySQL/PostgreSQL container                                                  |
+| `deploy:db:import:remote` | Import SQL into remote DB                      | Occasional                    | Same as above via SSH                                                                                              |
 
 ## Flags for `deploy:init`
 
-| Flag | Purpose |
-|---|---|
-| `--force` | Overwrite existing files |
-| `--app-only` | Generate only app files, skip server |
-| `--server-only` | Generate only server files, skip app |
-| `--dev` | Server in dev mode (exposes Redis port for local access) |
-| `--runtime=node\|bun` | Dockerfile runtime (default `node`, auto-detected from package.json) |
-| `--pm=npm\|pnpm\|yarn` | Package manager for the node runtime (default `npm`) |
+| Flag                   | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `--force`              | Overwrite existing files                                             |
+| `--app-only`           | Generate only app files, skip server                                 |
+| `--server-only`        | Generate only server files, skip app                                 |
+| `--dev`                | Server in dev mode (exposes Redis port for local access)             |
+| `--runtime=node\|bun`  | Dockerfile runtime (default `node`, auto-detected from package.json) |
+| `--pm=npm\|pnpm\|yarn` | Package manager for the node runtime (default `npm`)                 |
 
 ## What `deploy:init` Generates
 

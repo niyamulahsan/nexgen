@@ -6,16 +6,16 @@ The default pagination helper: reads `page` / `per_page` / `size` from the reque
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function   | Signature                                                             | Description                                                                                             |
+| ---------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `paginate` | `(context, query, perPage?, options?) => Promise<PaginatedResult<T>>` | Request-driven pagination for select queries — `context` is the request (`c` on Hono, `req` on Express) |
 
 Options (4th arg, optional):
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `perPage` | `number` | `15` | Items per page (also `3rd` argument, shorthand) |
-| `path` | `string` | current request path (`c.req.path` / `req.path`) | Base path used in generated URLs |
+| Option    | Type     | Default                                          | Description                                     |
+| --------- | -------- | ------------------------------------------------ | ----------------------------------------------- |
+| `perPage` | `number` | `15`                                             | Items per page (also `3rd` argument, shorthand) |
+| `path`    | `string` | current request path (`c.req.path` / `req.path`) | Base path used in generated URLs                |
 
 Response — same shape as all four pagination helpers:
 
@@ -27,7 +27,12 @@ type PaginatedResult<T> = {
   from: number | null;
   last_page: number;
   last_page_url: string | null;
-  links: Array<{ url: string | null; label: string; page: number | null; active: boolean }>;
+  links: Array<{
+    url: string | null;
+    label: string;
+    page: number | null;
+    active: boolean;
+  }>;
   next_page_url: string | null;
   path: string;
   per_page: number;

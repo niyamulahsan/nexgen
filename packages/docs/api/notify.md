@@ -6,21 +6,21 @@ Creates a user-visible notification row and optionally broadcasts it over Socket
 
 ## Functions
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function | Signature                                    | Description                                             |
+| -------- | -------------------------------------------- | ------------------------------------------------------- |
 | `notify` | `(userId, options) => Promise<Notification>` | Insert a notification row; optionally broadcast + email |
 
 `NotificationOptions`:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `type` | `string` | `"info"` | Category: `info`, `success`, `warning`, `error` |
-| `title` | `string` | — | **Required.** Notification title |
-| `body` | `string` | — | Body text |
-| `link` | `string` | — | Click-through URL |
-| `data` | `object` | — | Arbitrary JSON stored in the `data` column |
-| `broadcast` | `boolean` | `false` | Emit `"notification.created"` to the user's socket room |
-| `mail` | `object` | — | `{ subject?, html? }` — sends email via the `mail` queue |
+| Option      | Type      | Default  | Description                                              |
+| ----------- | --------- | -------- | -------------------------------------------------------- |
+| `type`      | `string`  | `"info"` | Category: `info`, `success`, `warning`, `error`          |
+| `title`     | `string`  | —        | **Required.** Notification title                         |
+| `body`      | `string`  | —        | Body text                                                |
+| `link`      | `string`  | —        | Click-through URL                                        |
+| `data`      | `object`  | —        | Arbitrary JSON stored in the `data` column               |
+| `broadcast` | `boolean` | `false`  | Emit `"notification.created"` to the user's socket room  |
+| `mail`      | `object`  | —        | `{ subject?, html? }` — sends email via the `mail` queue |
 
 ## Use cases
 
@@ -43,7 +43,7 @@ await notify(userId, {
   type: "success",
   title: "Payment Received",
   body: "$50.00 credited.",
-  broadcast: true,   // UI bell badge updates instantly via Pulse
+  broadcast: true, // UI bell badge updates instantly via Pulse
 });
 ```
 
@@ -122,12 +122,12 @@ notify(userId, { broadcast: true, mail: { ... } })
 
 ## `dispatchEvent` vs `notify`
 
-| | `dispatchEvent` | `notify` |
-| --- | --- | --- |
-| **Persistence** | No — fire-and-forget signal | Yes — inserts a row, returns the normalized notification |
-| **Broadcast scope** | Flexible (`all`, `auth`, `roles`, `users`, `rooms`) | Always to a single user (`users: [userId]`) |
-| **Email delivery** | No | Yes — via `mail: { subject, html }` |
-| **Queue option** | Yes | Yes — internally calls `dispatchEvent` with `{ queue: "mail" }` for email |
+|                     | `dispatchEvent`                                     | `notify`                                                                  |
+| ------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Persistence**     | No — fire-and-forget signal                         | Yes — inserts a row, returns the normalized notification                  |
+| **Broadcast scope** | Flexible (`all`, `auth`, `roles`, `users`, `rooms`) | Always to a single user (`users: [userId]`)                               |
+| **Email delivery**  | No                                                  | Yes — via `mail: { subject, html }`                                       |
+| **Queue option**    | Yes                                                 | Yes — internally calls `dispatchEvent` with `{ queue: "mail" }` for email |
 
 ## Notes
 

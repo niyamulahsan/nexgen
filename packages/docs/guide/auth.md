@@ -161,9 +161,9 @@ const match = await password.verifyPassword(plainPassword, hash);
 
 All auth cookies are `httpOnly`, `sameSite: "Lax"` (or `"None"` for cross-origin), `path: "/"`:
 
-| Cookie | Contents | Max-Age |
-| --- | --- | --- |
-| `{cookie.name}_access` | JWT access token | `accessExpirySeconds` (config/jwt.ts) |
+| Cookie                  | Contents          | Max-Age                                |
+| ----------------------- | ----------------- | -------------------------------------- |
+| `{cookie.name}_access`  | JWT access token  | `accessExpirySeconds` (config/jwt.ts)  |
 | `{cookie.name}_refresh` | JWT refresh token | `refreshExpirySeconds` (config/jwt.ts) |
 
 ## Session

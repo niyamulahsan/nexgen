@@ -6,16 +6,16 @@ Runs a handler registered with `command()`. Synchronous in-process by default; w
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function          | Signature                                   | Description                                                    |
+| ----------------- | ------------------------------------------- | -------------------------------------------------------------- |
 | `dispatchCommand` | `(name, payload, options?) => Promise<any>` | Run a registered handler now, or enqueue it when `async: true` |
 
 Options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `async` | `boolean` | `false` | Run through the queue instead of in-process |
-| `queue` | `string` | `"default"` | Target queue when `async: true` |
+| Option  | Type      | Default     | Description                                 |
+| ------- | --------- | ----------- | ------------------------------------------- |
+| `async` | `boolean` | `false`     | Run through the queue instead of in-process |
+| `queue` | `string`  | `"default"` | Target queue when `async: true`             |
 
 ## Use cases
 
@@ -29,7 +29,11 @@ const result = await dispatchCommand("calculate-tax", { subtotal: 100 });
 ### In the background via the queue
 
 ```ts
-await dispatchCommand("calculate-tax", { subtotal: 100 }, { async: true, queue: "default" });
+await dispatchCommand(
+  "calculate-tax",
+  { subtotal: 100 },
+  { async: true, queue: "default" },
+);
 ```
 
 ## Notes

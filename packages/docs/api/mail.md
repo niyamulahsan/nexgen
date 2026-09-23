@@ -6,8 +6,8 @@ Guide: [Mail](./../guide/support/mail).
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function        | Signature                                       | Description                                                      |
+| --------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
 | `mail.sendMail` | `({ to, subject, html?, text? }) => Promise<*>` | Returns send result, or `null` when `failSilent` swallows errors |
 
 ## Use cases

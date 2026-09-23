@@ -4,38 +4,38 @@ Every reusable framework capability is exposed through **one import** — the fa
 
 ```ts
 import {
-  createRouter,   // router builder
-  createRoute,    // OpenAPI route declaration
-  group,          // middleware grouping shorthand
-  z,              // Zod + .openapi() schemas
-  jsonContent,    // JSON media-type wrapper
+  createRouter, // router builder
+  createRoute, // OpenAPI route declaration
+  group, // middleware grouping shorthand
+  z, // Zod + .openapi() schemas
+  jsonContent, // JSON media-type wrapper
   HttpStatusCodes, // status constants
-  validate,       // schema validation outside routes
-  database,       // init/access the Drizzle instance
-  db,             // global query proxy
-  paginate,       // request-driven pagination
-  paginateModel,  // eager-loading pagination
-  paginateQuery,  // custom count/data pagination
-  paginateTable,  // single-table pagination
-  cache,          // Redis key-value cache
-  command,        // register in-process handler
-  dispatchCommand,// run an in-process handler
-  dispatchEvent,  // broadcast and/or enqueue an event
-  queue,          // access a BullMQ queue
-  queueJob,       // enqueue a background job
-  shouldQueue,    // register a job handler
-  broadcast,      // Socket.IO broadcast
+  validate, // schema validation outside routes
+  database, // init/access the Drizzle instance
+  db, // global query proxy
+  paginate, // request-driven pagination
+  paginateModel, // eager-loading pagination
+  paginateQuery, // custom count/data pagination
+  paginateTable, // single-table pagination
+  cache, // Redis key-value cache
+  command, // register in-process handler
+  dispatchCommand, // run an in-process handler
+  dispatchEvent, // broadcast and/or enqueue an event
+  queue, // access a BullMQ queue
+  queueJob, // enqueue a background job
+  shouldQueue, // register a job handler
+  broadcast, // Socket.IO broadcast
   defineSchedule, // named cron schedules
-  session,        // server-side sessions
-  storage,        // file storage
-  notify,         // persisted + realtime notifications
-  password,       // bcrypt hashing
-  jwt,            // token generation/verification
-  cookie,         // auth cookie helpers
-  mail,           // SMTP transport
-  logger,         // structured logging
-  urls,           // absolute URL building
-  lodash,         // full Lodash library
+  session, // server-side sessions
+  storage, // file storage
+  notify, // persisted + realtime notifications
+  password, // bcrypt hashing
+  jwt, // token generation/verification
+  cookie, // auth cookie helpers
+  mail, // SMTP transport
+  logger, // structured logging
+  urls, // absolute URL building
+  lodash, // full Lodash library
 } from "@/framework/facade.js";
 ```
 
@@ -45,41 +45,41 @@ import {
 
 Each facade function has its own page. Every export below is a documented part of the public API.
 
-| Function | Purpose | Guide |
-| --- | --- | --- |
-| [`createRouter`](./createRouter) | Router with group/route/api helpers | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
-| [`createRoute`](./createRoute) | Declare a documented OpenAPI route | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
-| [`group`](./group) | `createRouter().group()` shorthand + role middleware | [Routing](./../guide/routing) |
-| [`z`](./z) | Extended Zod with `.openapi()` | [OpenAPI](./../guide/openapi) |
-| [`jsonContent`](./jsonContent) | Wrap a schema as `application/json` | [OpenAPI](./../guide/openapi) |
-| [`HttpStatusCodes`](./HttpStatusCodes) | Numeric HTTP status constants | [OpenAPI](./../guide/openapi) |
-| [`validate`](./validate) | Run a Zod schema → throws `422` on mismatch | [OpenAPI](./../guide/openapi) |
-| [`database`](./database) | Returns the initialized Drizzle instance | [Database](./../guide/database) |
-| [`db`](./db) | Global Drizzle query proxy | [Database](./../guide/database) |
-| [`paginate`](./paginate) | Request-driven pagination (joins, aggregates) | [Database](./../guide/database) |
-| [`paginateModel`](./paginateModel) | Eager-loading pagination (`db.query…findMany with`) | [Database](./../guide/database) |
-| [`paginateQuery`](./paginateQuery) | Manual `total()`/`data()` pagination | [Database](./../guide/database) |
-| [`paginateTable`](./paginateTable) | Single-table pagination, no request object | [Database](./../guide/database) |
-| [`cache`](./cache) | Redis key-value cache (graceful fallback) | [Cache](./../guide/cache) |
-| [`command`](./command) | Register an in-process synchronous handler | [Events & Queue](./../guide/events-queue) |
-| [`dispatchCommand`](./dispatchCommand) | Run a registered command (async: enqueue) | [Events & Queue](./../guide/events-queue) |
-| [`dispatchEvent`](./dispatchEvent) | Broadcast + enqueue a domain event | [Events & Queue](./../guide/events-queue) |
-| [`queue`](./queue) | Access a BullMQ queue instance | [Events & Queue](./../guide/events-queue) |
-| [`queueJob`](./queueJob) | Enqueue a background job | [Events & Queue](./../guide/events-queue) |
-| [`shouldQueue`](./shouldQueue) | Register a job handler (optionally durable) | [Events & Queue](./../guide/events-queue) |
-| [`broadcast`](./broadcast) | Socket.IO emit to targeted audiences | [Realtime](./../guide/realtime) |
-| [`defineSchedule`](./defineSchedule) | Named cron tasks with distributed locking | [Scheduler](./../guide/scheduler) |
-| [`session`](./session) | Redis-backed server-side sessions | [Session](./../guide/session) |
-| [`storage`](./storage) | Local + S3-compatible file storage | [Storage](./../guide/storage) |
-| [`notify`](./notify) | Persist + broadcast + email notifications | [Notifications](./../guide/notification) |
-| [`password`](./password) | bcrypt hash / verify | [Password](./../guide/support/password) |
-| [`jwt`](./jwt) | HS256 token generation / verification | [JWT](./../guide/support/jwt) |
-| [`cookie`](./cookie) | `{name}_access` / `{name}_refresh` cookie helpers | [Cookie](./../guide/support/cookie) |
-| [`mail`](./mail) | SMTP `sendMail` transport | [Mail](./../guide/support/mail) |
-| [`logger`](./logger) | Leveled structured logging + rotating files | [Logger](./../guide/support/logger) |
-| [`urls`](./urls) | Absolute URL building from `APP_URL` | [URL](./../guide/support/url) |
-| [`upload`](./upload) | File upload middleware (Express only, `multer`) | [Upload](./../guide/support/upload) |
-| [`lodash`](./lodash) | Full Lodash re-export | [libraries](./../guide/others/string) |
+| Function                               | Purpose                                              | Guide                                                         |
+| -------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------- |
+| [`createRouter`](./createRouter)       | Router with group/route/api helpers                  | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
+| [`createRoute`](./createRoute)         | Declare a documented OpenAPI route                   | [Routing](./../guide/routing) · [OpenAPI](./../guide/openapi) |
+| [`group`](./group)                     | `createRouter().group()` shorthand + role middleware | [Routing](./../guide/routing)                                 |
+| [`z`](./z)                             | Extended Zod with `.openapi()`                       | [OpenAPI](./../guide/openapi)                                 |
+| [`jsonContent`](./jsonContent)         | Wrap a schema as `application/json`                  | [OpenAPI](./../guide/openapi)                                 |
+| [`HttpStatusCodes`](./HttpStatusCodes) | Numeric HTTP status constants                        | [OpenAPI](./../guide/openapi)                                 |
+| [`validate`](./validate)               | Run a Zod schema → throws `422` on mismatch          | [OpenAPI](./../guide/openapi)                                 |
+| [`database`](./database)               | Returns the initialized Drizzle instance             | [Database](./../guide/database)                               |
+| [`db`](./db)                           | Global Drizzle query proxy                           | [Database](./../guide/database)                               |
+| [`paginate`](./paginate)               | Request-driven pagination (joins, aggregates)        | [Database](./../guide/database)                               |
+| [`paginateModel`](./paginateModel)     | Eager-loading pagination (`db.query…findMany with`)  | [Database](./../guide/database)                               |
+| [`paginateQuery`](./paginateQuery)     | Manual `total()`/`data()` pagination                 | [Database](./../guide/database)                               |
+| [`paginateTable`](./paginateTable)     | Single-table pagination, no request object           | [Database](./../guide/database)                               |
+| [`cache`](./cache)                     | Redis key-value cache (graceful fallback)            | [Cache](./../guide/cache)                                     |
+| [`command`](./command)                 | Register an in-process synchronous handler           | [Events & Queue](./../guide/events-queue)                     |
+| [`dispatchCommand`](./dispatchCommand) | Run a registered command (async: enqueue)            | [Events & Queue](./../guide/events-queue)                     |
+| [`dispatchEvent`](./dispatchEvent)     | Broadcast + enqueue a domain event                   | [Events & Queue](./../guide/events-queue)                     |
+| [`queue`](./queue)                     | Access a BullMQ queue instance                       | [Events & Queue](./../guide/events-queue)                     |
+| [`queueJob`](./queueJob)               | Enqueue a background job                             | [Events & Queue](./../guide/events-queue)                     |
+| [`shouldQueue`](./shouldQueue)         | Register a job handler (optionally durable)          | [Events & Queue](./../guide/events-queue)                     |
+| [`broadcast`](./broadcast)             | Socket.IO emit to targeted audiences                 | [Realtime](./../guide/realtime)                               |
+| [`defineSchedule`](./defineSchedule)   | Named cron tasks with distributed locking            | [Scheduler](./../guide/scheduler)                             |
+| [`session`](./session)                 | Redis-backed server-side sessions                    | [Session](./../guide/session)                                 |
+| [`storage`](./storage)                 | Local + S3-compatible file storage                   | [Storage](./../guide/storage)                                 |
+| [`notify`](./notify)                   | Persist + broadcast + email notifications            | [Notifications](./../guide/notification)                      |
+| [`password`](./password)               | bcrypt hash / verify                                 | [Password](./../guide/support/password)                       |
+| [`jwt`](./jwt)                         | HS256 token generation / verification                | [JWT](./../guide/support/jwt)                                 |
+| [`cookie`](./cookie)                   | `{name}_access` / `{name}_refresh` cookie helpers    | [Cookie](./../guide/support/cookie)                           |
+| [`mail`](./mail)                       | SMTP `sendMail` transport                            | [Mail](./../guide/support/mail)                               |
+| [`logger`](./logger)                   | Leveled structured logging + rotating files          | [Logger](./../guide/support/logger)                           |
+| [`urls`](./urls)                       | Absolute URL building from `APP_URL`                 | [URL](./../guide/support/url)                                 |
+| [`upload`](./upload)                   | File upload middleware (Express only, `multer`)      | [Upload](./../guide/support/upload)                           |
+| [`lodash`](./lodash)                   | Full Lodash re-export                                | [libraries](./../guide/others/string)                         |
 
 ## When do I use which?
 
@@ -104,7 +104,11 @@ The auth flow composes hashing, persistence, and dispatch:
 import { db, password, dispatchEvent, notify } from "@/framework/facade.js";
 import * as schema from "@/database/schema.js";
 
-export const register = async (input: { name: string; email: string; password: string }) => {
+export const register = async (input: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
   const user = await db.insert(schema.users).values({
     name: input.name,
     email: input.email,
@@ -119,7 +123,11 @@ export const register = async (input: { name: string; email: string; password: s
     mail: { subject: "Welcome to nexgen" },
   });
 
-  await dispatchEvent("user.registered", { userId: user.id }, { broadcast: { roles: ["admin"] } });
+  await dispatchEvent(
+    "user.registered",
+    { userId: user.id },
+    { broadcast: { roles: ["admin"] } },
+  );
 
   return user;
 };
@@ -129,7 +137,7 @@ export const register = async (input: { name: string; email: string; password: s
 
 Route + controller compose routing, querying, and pagination:
 
-```ts
+````ts
 import { createRoute, createRouter, group, HttpStatusCodes, jsonContent, db, paginate, z } from "@/framework/facade.js";
 import { desc } from "drizzle-orm";
 import { posts } from "@/modules/blog/database/models/post.js";
@@ -150,17 +158,20 @@ export default createRouter().group().api(listRoute, async (c) => {
   const query = db.select().from(posts).orderBy(desc(posts.id));
   return c.json(await paginate(c, query, 15));
 });
-```
+````
 
 ```ts [Express]
-export default createRouter().group().api(listRoute, async (req: Request, res: Response) => {
-  const query = db.select().from(posts).orderBy(desc(posts.id));
-  return res.json(await paginate(req, query, 15));
-});
+export default createRouter()
+  .group()
+  .api(listRoute, async (req: Request, res: Response) => {
+    const query = db.select().from(posts).orderBy(desc(posts.id));
+    return res.json(await paginate(req, query, 15));
+  });
 ```
 
 :::
-```
+
+````
 
 ### Throttle background work and broadcast the result
 
@@ -177,7 +188,7 @@ shouldQueue("process-image", "images", async (job) => {
   const url = await processImage(job.data.path);
   broadcast("image.processed", { url }, { users: [job.data.userId] });
 });
-```
+````
 
 ## Rules of the facade
 

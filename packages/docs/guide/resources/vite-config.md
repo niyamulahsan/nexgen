@@ -15,34 +15,37 @@ const socketEnabled = process.env.SOCKET !== "false";
 const proxy: Record<string, any> = {
   "/api": { target: apiUrl, changeOrigin: true },
   "/health": { target: apiUrl, changeOrigin: true },
-  "/storage": { target: apiUrl, changeOrigin: true }
+  "/storage": { target: apiUrl, changeOrigin: true },
 };
 
 proxy["/socket.io"] = { target: apiUrl, changeOrigin: true, ws: true };
 
 export default defineConfig({
-  define: { __SOCKET_ENABLED__: socketEnabled, __API_URL__: JSON.stringify(apiUrl) },
+  define: {
+    __SOCKET_ENABLED__: socketEnabled,
+    __API_URL__: JSON.stringify(apiUrl),
+  },
   root: "src/resources",
   cacheDir: path.join(cacheBase, "nexgen", "vite-cache", "resources"),
   plugins: [vue()],
   css: {
     preprocessorOptions: {
-      scss: { quietDeps: true }
-    }
+      scss: { quietDeps: true },
+    },
   },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url))
-    }
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
   },
   build: {
     outDir: "../../public",
-    emptyOutDir: true
+    emptyOutDir: true,
   },
   server: {
     port: 5173,
-    proxy
-  }
+    proxy,
+  },
 });
 ```
 
@@ -72,22 +75,22 @@ Then rewrite `src/main.ts` for your framework's entry point.
 
 ## Key settings
 
-| Setting | Value | Notes |
-|---------|-------|-------|
-| `root` | `src/resources` | Vite serves from the resources directory |
-| `@` alias | `src/` | Maps to `src/resources/src/` |
-| `outDir` | `../../public` | Build output goes to the framework's public directory |
-| `server.port` | `5173` | Dev server port |
-| `__SOCKET_ENABLED__` | `process.env.SOCKET` | Compile-time constant for Pulse availability (set via `SOCKET` in `.env`) |
-| `cacheDir` | `%LOCALAPPDATA%/nexgen/vite-cache/resources` | Offloads cache from project directory |
+| Setting              | Value                                        | Notes                                                                     |
+| -------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| `root`               | `src/resources`                              | Vite serves from the resources directory                                  |
+| `@` alias            | `src/`                                       | Maps to `src/resources/src/`                                              |
+| `outDir`             | `../../public`                               | Build output goes to the framework's public directory                     |
+| `server.port`        | `5173`                                       | Dev server port                                                           |
+| `__SOCKET_ENABLED__` | `process.env.SOCKET`                         | Compile-time constant for Pulse availability (set via `SOCKET` in `.env`) |
+| `cacheDir`           | `%LOCALAPPDATA%/nexgen/vite-cache/resources` | Offloads cache from project directory                                     |
 
 ## Proxy
 
 All backend requests are proxied to `env.APP_URL` to avoid CORS issues during development:
 
-| Path | Target | WebSocket |
-|------|--------|-----------|
-| `/api/*` | `env.APP_URL` | — |
-| `/health` | `env.APP_URL` | — |
-| `/storage/*` | `env.APP_URL` | — |
+| Path         | Target        | WebSocket       |
+| ------------ | ------------- | --------------- |
+| `/api/*`     | `env.APP_URL` | —               |
+| `/health`    | `env.APP_URL` | —               |
+| `/storage/*` | `env.APP_URL` | —               |
 | `/socket.io` | `env.APP_URL` | Yes (for Pulse) |

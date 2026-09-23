@@ -51,11 +51,11 @@ The UI uses a custom SCSS theme engine with three modes:
 
 Theme is managed by the `admin-ui` Pinia store and toggled via `useAdminUiStore().toggleTheme()`. The theme class is applied to `<html>`:
 
-| Class | Mode |
-|-------|------|
-| `.theme-light` | Light mode |
-| `.theme-dark` | Dark mode |
-| `.theme-auto` | Follows OS preference |
+| Class          | Mode                  |
+| -------------- | --------------------- |
+| `.theme-light` | Light mode            |
+| `.theme-dark`  | Dark mode             |
+| `.theme-auto`  | Follows OS preference |
 
 ### Customization
 
@@ -76,16 +76,16 @@ $primary: #4f46e5;
 
 The theme exposes a set of `--app-*` custom properties plus the Bootstrap runtime variables. Useful ones for your own styles:
 
-| Variable | Purpose |
-|---|---|
-| `--app-bg` | Page background |
-| `--app-text` | Default text color |
-| `--app-primary` | Brand primary color |
-| `--app-backdrop` | Overlay/dialog backdrop color |
-| `--app-hover` | Hover background |
-| `--app-skeleton` | Skeleton loader base color |
-| `--app-skeleton-hi` | Skeleton loader highlight color |
+| Variable                   | Purpose                                        |
+| -------------------------- | ---------------------------------------------- |
+| `--app-bg`                 | Page background                                |
+| `--app-text`               | Default text color                             |
+| `--app-primary`            | Brand primary color                            |
+| `--app-backdrop`           | Overlay/dialog backdrop color                  |
+| `--app-hover`              | Hover background                               |
+| `--app-skeleton`           | Skeleton loader base color                     |
+| `--app-skeleton-hi`        | Skeleton loader highlight color                |
 | `--bs-secondary-bg-subtle` | Subtle secondary background (e.g. table hover) |
-| `.fs-7` | Small helper class (12px font-size) |
+| `.fs-7`                    | Small helper class (12px font-size)            |
 
 Both `--app-skeleton` and `--app-skeleton-hi` are used by the `DataTableSkeleton` loading state and adapt to light/dark mode.

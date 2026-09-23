@@ -6,18 +6,20 @@ Creates the module router every module route file exports — an `OpenAPIHono` i
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `createRouter` | `() => NexgenRouter` | Creates the engine's router with `group()`, `api()`, and `route()` helpers |
-| `router.group` | `(...middlewares) => NexgenRouter` | Applies middleware to every route registered after it |
-| `router.api` | `(route, handlerOrMiddlewares?, handler?) => NexgenRouter` | Registers a `createRoute`; accepts an optional middleware array |
+| Function       | Signature                                                  | Description                                                                |
+| -------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `createRouter` | `() => NexgenRouter`                                       | Creates the engine's router with `group()`, `api()`, and `route()` helpers |
+| `router.group` | `(...middlewares) => NexgenRouter`                         | Applies middleware to every route registered after it                      |
+| `router.api`   | `(route, handlerOrMiddlewares?, handler?) => NexgenRouter` | Registers a `createRoute`; accepts an optional middleware array            |
 
 ## Use cases
 
 ### Public vs protected groups
 
 ```ts
-const publicRoutes = createRouter().group(loginLimiter).api(registerRoute, register);
+const publicRoutes = createRouter()
+  .group(loginLimiter)
+  .api(registerRoute, register);
 const protectedRoutes = createRouter().group(authMiddleware).api(meRoute, me);
 
 export default createRouter()
@@ -36,10 +38,16 @@ const publicRoute = createRouter()
 
 const protectedRoute = createRouter()
   .group(authMiddleware)
-  .api(usersIndexRoute, [requireRole("supreme", "superadmin", "admin")], usersIndex)
+  .api(
+    usersIndexRoute,
+    [requireRole("supreme", "superadmin", "admin")],
+    usersIndex,
+  )
   .api(userDestroyRoute, [requireRole("supreme", "superadmin")], userDestroy);
 
-export default createRouter().route("/", publicRoute).route("/", protectedRoute);
+export default createRouter()
+  .route("/", publicRoute)
+  .route("/", protectedRoute);
 ```
 
 ### Plain routes without OpenAPI

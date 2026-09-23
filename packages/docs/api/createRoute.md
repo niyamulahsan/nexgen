@@ -6,15 +6,15 @@ Declares a fully documented route — path, method, tags, request (`params`/`que
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function      | Signature                            | Description                                            |
+| ------------- | ------------------------------------ | ------------------------------------------------------ |
 | `createRoute` | `(args: RouteConfig) => RouteConfig` | Declare an OpenAPI route with request/response schemas |
 
 ## Use cases
 
 ### Basic route
 
-```ts
+````ts
 import { createRoute, group, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
 
 const listRoute = createRoute({
@@ -31,14 +31,17 @@ const listRoute = createRoute({
 
 ```ts [Hono]
 export default group().api(listRoute, async (c) => c.json(await listPosts()));
-```
+````
 
 ```ts [Express]
-export default group().api(listRoute, async (_req, res) => res.json(await listPosts()));
+export default group().api(listRoute, async (_req, res) =>
+  res.json(await listPosts()),
+);
 ```
 
 :::
-```
+
+````
 
 ### Request bodies & params
 
@@ -61,7 +64,7 @@ const showRoute = createRoute({
     [HttpStatusCodes.NOT_FOUND]: { description: "Post not found" },
   },
 });
-```
+````
 
 ### Real world — the auth router
 
@@ -72,7 +75,9 @@ const loginRoute = createRoute({
   method: "post",
   tags: ["Auth"],
   request: { body: jsonContent(LoginSchema, "Login payload") },
-  responses: { [HttpStatusCodes.OK]: jsonContent(AuthResponseSchema, "Logged in") },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(AuthResponseSchema, "Logged in"),
+  },
 });
 ```
 

@@ -6,14 +6,14 @@ Registers a worker handler for `queue:job`. Add `{ durable: true }` for checkpoi
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function      | Signature                                 | Description                                                                            |
+| ------------- | ----------------------------------------- | -------------------------------------------------------------------------------------- |
 | `shouldQueue` | `(job, queue, handler, options?) => void` | Register a handler for `queue:job` (add `{ durable: true }` for checkpointed handlers) |
 
 Options:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
+| Option    | Type      | Default | Description                                                                          |
+| --------- | --------- | ------- | ------------------------------------------------------------------------------------ |
 | `durable` | `boolean` | `false` | Use `(job, ctx)` signature with `ctx.step()` checkpoints that persist across crashes |
 
 ## Use cases
@@ -34,10 +34,15 @@ shouldQueue("post.publish", "default", async (job) => {
 Duration-aware handlers use `{ durable: true }` with a `(job, ctx)` signature and `ctx.step(...)` checkpoints:
 
 ```ts
-shouldQueue("export.report", "default", async (job, ctx) => {
-  await ctx.step("download", () => downloadRows(job.data.query));   // checkpoints persist
-  await ctx.step("write", (rows) => generateSpreadsheet(rows));
-}, { durable: true });
+shouldQueue(
+  "export.report",
+  "default",
+  async (job, ctx) => {
+    await ctx.step("download", () => downloadRows(job.data.query)); // checkpoints persist
+    await ctx.step("write", (rows) => generateSpreadsheet(rows));
+  },
+  { durable: true },
+);
 ```
 
 ### Real world — a mail handler
@@ -57,7 +62,11 @@ shouldQueue("user:signup", "mail", async (job) => {
     html: `<p>Hello ${name},</p><p>Your account was created.</p>`,
   });
 
-  await dispatchEvent("user.changed", { id: userId }, { broadcast: { auth: true } });
+  await dispatchEvent(
+    "user.changed",
+    { id: userId },
+    { broadcast: { auth: true } },
+  );
   return { ok: true, userId };
 });
 ```
@@ -69,22 +78,33 @@ Long-running reports read with eager loading, build an `ExcelJS` workbook, stage
 ```ts
 // modules/report/jobs/collectionExaminerExport.ts
 shouldQueue("report.collectionexaminerexport", "default", async (job) => {
-  const { authId, role, commissionerateId, userId, areaId, taxPeriod, search } = job.data;
+  const { authId, role, commissionerateId, userId, areaId, taxPeriod, search } =
+    job.data;
 
   const rows = await db.query.collections.findMany({
-    where: buildExaminerWhere({ id: authId, role, commissionerateId }, { userId, areaId, taxPeriod, search }),
+    where: buildExaminerWhere(
+      { id: authId, role, commissionerateId },
+      { userId, areaId, taxPeriod, search },
+    ),
     with: collectionExaminerWith,
     orderBy: desc(collections.id),
   });
 
   const buffer = Buffer.from(await new ExcelJS.Workbook().xlsx.writeBuffer());
 
-  const token = await storage.generateForDownload({ prefix: `collectionexaminer_${authId}`, extension: "xlsx", data: buffer });
+  const token = await storage.generateForDownload({
+    prefix: `collectionexaminer_${authId}`,
+    extension: "xlsx",
+    data: buffer,
+  });
 
   await dispatchEvent(
     "report.collectionexaminerexport.ready",
-    { downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`, authId },
-    { broadcast: { users: [authId] } }
+    {
+      downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`,
+      authId,
+    },
+    { broadcast: { users: [authId] } },
   );
 
   return { ok: true };

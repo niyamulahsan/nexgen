@@ -6,10 +6,10 @@ Guide: [URL](./../guide/support/url).
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `urls.appUrl` | `() => string` | `APP_URL` without trailing slash |
-| `urls.url` | `(path?) => string` | Join `APP_URL` with a path (slash-normalized) |
+| Function      | Signature           | Description                                   |
+| ------------- | ------------------- | --------------------------------------------- |
+| `urls.appUrl` | `() => string`      | `APP_URL` without trailing slash              |
+| `urls.url`    | `(path?) => string` | Join `APP_URL` with a path (slash-normalized) |
 
 ## Use cases
 

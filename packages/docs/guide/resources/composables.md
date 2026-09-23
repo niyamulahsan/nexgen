@@ -12,12 +12,12 @@ import { useAuth } from "@/composables/useAuth";
 
 ### Return values
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `user` | `Readonly<Ref<AuthUser \| null>>` | Current authenticated user (readonly) |
-| `isAuthenticated` | `ComputedRef<boolean>` | `true` when a user is logged in |
-| `setUser` | `(user: AuthUser \| null) => void` | Set the user (called by auth store) |
-| `clearUser` | `() => void` | Clear the user (called by auth store) |
+| Property          | Type                               | Description                           |
+| ----------------- | ---------------------------------- | ------------------------------------- |
+| `user`            | `Readonly<Ref<AuthUser \| null>>`  | Current authenticated user (readonly) |
+| `isAuthenticated` | `ComputedRef<boolean>`             | `true` when a user is logged in       |
+| `setUser`         | `(user: AuthUser \| null) => void` | Set the user (called by auth store)   |
+| `clearUser`       | `() => void`                       | Clear the user (called by auth store) |
 
 ### Types
 
@@ -47,12 +47,8 @@ const { user, isAuthenticated } = useAuth();
 </script>
 
 <template>
-  <div v-if="isAuthenticated">
-    Welcome, {{ user?.name }}
-  </div>
-  <div v-else>
-    Please log in.
-  </div>
+  <div v-if="isAuthenticated">Welcome, {{ user?.name }}</div>
+  <div v-else>Please log in.</div>
 </template>
 ```
 
@@ -95,9 +91,9 @@ import { authUser } from "@/composables/useAuth";
 
 The following composables were previously re-exports and have been removed. Import directly from their plugin files instead:
 
-| Removed | Replace with |
-|---------|-------------|
-| `@/composables/useGum` | `import { useGum, useGumForm } from "@/plugins/gum"` |
-| `@/composables/usePulse` | `import { pulse } from "@/plugins/pulse"` |
-| `@/composables/useDialog` | `import { dialog } from "@/plugins/dialog"` |
+| Removed                          | Replace with                                              |
+| -------------------------------- | --------------------------------------------------------- |
+| `@/composables/useGum`           | `import { useGum, useGumForm } from "@/plugins/gum"`      |
+| `@/composables/usePulse`         | `import { pulse } from "@/plugins/pulse"`                 |
+| `@/composables/useDialog`        | `import { dialog } from "@/plugins/dialog"`               |
 | `@/composables/useBrowserDetect` | `import { browserDetect } from "@/plugins/browserDetect"` |

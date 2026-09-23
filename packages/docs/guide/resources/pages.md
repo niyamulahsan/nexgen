@@ -103,7 +103,7 @@ function queryParams() {
   return {
     page: Number(route.query.page || 1),
     size: Number(route.query.size || 10),
-    search: String(route.query.search || "")
+    search: String(route.query.search || ""),
   };
 }
 
@@ -114,7 +114,7 @@ watch(
   async () => {
     await store.fetchPosts(queryParams());
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {
@@ -132,7 +132,7 @@ async function remove(ids: number[]) {
     preserveState: true,
     onSuccess: async () => {
       await store.fetchPosts(queryParams());
-    }
+    },
   });
 }
 

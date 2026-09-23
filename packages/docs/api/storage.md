@@ -6,37 +6,37 @@ Unified API for **local disk** and **S3-compatible** storage (AWS S3, DigitalOce
 
 ## Disks
 
-| Disk | Purpose | Local path |
-| --- | --- | --- |
-| `public` | Public files (avatars, uploads) | `src/storage/app/public/` |
+| Disk      | Purpose                         | Local path                 |
+| --------- | ------------------------------- | -------------------------- |
+| `public`  | Public files (avatars, uploads) | `src/storage/app/public/`  |
 | `private` | User-specific / sensitive files | `src/storage/app/private/` |
-| `tmp` | Ephemeral generated files | `src/storage/app/tmp/` |
+| `tmp`     | Ephemeral generated files       | `src/storage/app/tmp/`     |
 
 ## Functions
 
 Top-level methods operate on the **default disk**; `disk()` targets a specific disk with the same API.
 
-| Function | Signature | Description |
-| --- | --- | --- |
-| `storage.put` | `(file, data) => Promise<string>` | Write a file (string, Buffer, Uint8Array, ArrayBuffer, Blob, File) |
-| `storage.putFile` | `(directory, file, name?) => Promise<string>` | Store a browser `File` with unique naming |
-| `storage.get` | `(file) => Promise<Buffer>` | Read file content |
-| `storage.delete` | `(file) => Promise<void>` | Remove a file |
-| `storage.copy` | `(from, to) => Promise<string>` | Duplicate within the same disk |
-| `storage.move` | `(from, to) => Promise<string>` | Rename or relocate |
-| `storage.exists` / `missing` | `(file) => Promise<boolean>` | Presence check (and its inverse) |
-| `storage.files` / `directories` | `(directory?) => Promise<string[]>` | List files / subdirectories |
-| `storage.makeDirectory` / `deleteDirectory` | `(directory) => Promise<boolean>` | Create / remove a directory tree |
-| `storage.size` / `mimeType` / `lastModified` | `(file) => Promise<number|string>` | Metadata |
-| `storage.readStream` / `writeStream` | `(file[, stream]) => Promise<Readable>` | Stream a file in/out |
-| `storage.url` | `(file) => string` | Public URL |
-| `storage.temporaryUrl` | `(file, ttl?) => Promise<string>` | Signed URL (S3) or local proxy URL |
-| `storage.path` | `(file) => string` | Absolute local path (local driver only) |
-| `storage.setVisibility` / `getVisibility` | `(file, visibility?) => Promise<boolean>` | Toggle / read `"public"` \| `"private"` ACL |
-| `storage.disk` | `(disk) => DiskAPI` | Disk-scoped API with every method above |
-| `storage.download` | `(c, file, filename?) => Promise<Response>` | Attachment download response for controllers |
-| `storage.generateForDownload` | `({ prefix, extension, data }) => Promise<string>` | Write a temp file for deferred download |
-| `storage.consumeGenerated` | `(file) => Promise<Buffer>` | Read **and delete** a temp file (one-time download) |
+| Function                                     | Signature                                          | Description                                                        |
+| -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| `storage.put`                                | `(file, data) => Promise<string>`                  | Write a file (string, Buffer, Uint8Array, ArrayBuffer, Blob, File) |
+| `storage.putFile`                            | `(directory, file, name?) => Promise<string>`      | Store a browser `File` with unique naming                          |
+| `storage.get`                                | `(file) => Promise<Buffer>`                        | Read file content                                                  |
+| `storage.delete`                             | `(file) => Promise<void>`                          | Remove a file                                                      |
+| `storage.copy`                               | `(from, to) => Promise<string>`                    | Duplicate within the same disk                                     |
+| `storage.move`                               | `(from, to) => Promise<string>`                    | Rename or relocate                                                 |
+| `storage.exists` / `missing`                 | `(file) => Promise<boolean>`                       | Presence check (and its inverse)                                   |
+| `storage.files` / `directories`              | `(directory?) => Promise<string[]>`                | List files / subdirectories                                        |
+| `storage.makeDirectory` / `deleteDirectory`  | `(directory) => Promise<boolean>`                  | Create / remove a directory tree                                   |
+| `storage.size` / `mimeType` / `lastModified` | `(file) => Promise<number                          | string>`                                                           | Metadata |
+| `storage.readStream` / `writeStream`         | `(file[, stream]) => Promise<Readable>`            | Stream a file in/out                                               |
+| `storage.url`                                | `(file) => string`                                 | Public URL                                                         |
+| `storage.temporaryUrl`                       | `(file, ttl?) => Promise<string>`                  | Signed URL (S3) or local proxy URL                                 |
+| `storage.path`                               | `(file) => string`                                 | Absolute local path (local driver only)                            |
+| `storage.setVisibility` / `getVisibility`    | `(file, visibility?) => Promise<boolean>`          | Toggle / read `"public"` \| `"private"` ACL                        |
+| `storage.disk`                               | `(disk) => DiskAPI`                                | Disk-scoped API with every method above                            |
+| `storage.download`                           | `(c, file, filename?) => Promise<Response>`        | Attachment download response for controllers                       |
+| `storage.generateForDownload`                | `({ prefix, extension, data }) => Promise<string>` | Write a temp file for deferred download                            |
+| `storage.consumeGenerated`                   | `(file) => Promise<Buffer>`                        | Read **and delete** a temp file (one-time download)                |
 
 ## Use cases
 
@@ -70,10 +70,15 @@ The request-parsing step is the only engine difference — the `storage` calls a
 export const upload: Handler = async (c) => {
   const body = await c.req.parseBody();
   const file = body.file;
-  if (!(file instanceof File)) return c.json({ message: "File is required" }, 422);
+  if (!(file instanceof File))
+    return c.json({ message: "File is required" }, 422);
 
   const path = await storage.disk("public").putFile("uploads", file);
-  return c.json({ message: "File uploaded successfully", path, url: storage.disk("public").url(path) });
+  return c.json({
+    message: "File uploaded successfully",
+    path,
+    url: storage.disk("public").url(path),
+  });
 };
 ```
 
@@ -82,12 +87,16 @@ import { upload } from "@/framework/facade.js";
 
 export default group().api(
   uploadRoute,
-  [upload({ field: "file" })],              // multer wrapper → in-memory buffer
+  [upload({ field: "file" })], // multer wrapper → in-memory buffer
   async (req: Request, res: Response) => {
     if (!req.file) return res.status(422).json({ message: "File is required" });
 
     const path = await storage.disk("public").putFile("uploads", req.file);
-    return res.json({ message: "File uploaded successfully", path, url: storage.disk("public").url(path) });
+    return res.json({
+      message: "File uploaded successfully",
+      path,
+      url: storage.disk("public").url(path),
+    });
   },
 );
 ```
@@ -100,7 +109,11 @@ export default group().api(
 
 ```ts
 // Create a temp file (CSV, PDF, XLSX, …)
-const token = await storage.generateForDownload({ prefix: "report", extension: "csv", data: csvText });
+const token = await storage.generateForDownload({
+  prefix: "report",
+  extension: "csv",
+  data: csvText,
+});
 
 // Serve once — read then delete
 const file = await storage.consumeGenerated(token);
@@ -118,17 +131,27 @@ Upload writes to storage first, then the DB row; if the insert fails the stored 
 // modules/report/controllers/files.controller.ts (condensed)
 const body = await c.req.parseBody();
 const file = body?.file as File | undefined;
-if (!file) return c.json({ message: "File required" }, HttpStatusCodes.UNPROCESSABLE_ENTITY);
+if (!file)
+  return c.json(
+    { message: "File required" },
+    HttpStatusCodes.UNPROCESSABLE_ENTITY,
+  );
 
 const ext = file.name.split(".").pop()?.toLowerCase() || "";
-if (!["xlsx", "xlsb"].includes(ext)) return c.json({ message: "File must be .xlsx or .xlsb" }, HttpStatusCodes.UNPROCESSABLE_ENTITY);
+if (!["xlsx", "xlsb"].includes(ext))
+  return c.json(
+    { message: "File must be .xlsx or .xlsb" },
+    HttpStatusCodes.UNPROCESSABLE_ENTITY,
+  );
 
 const buffer = Buffer.from(await file.arrayBuffer());
 const path = `uploads/${Date.now()}-${file.name}`;
 await storage.put(path, buffer);
 
 try {
-  await db.insert(reports).values({ name: file.name, path, size: formatSize(file.size) });
+  await db
+    .insert(reports)
+    .values({ name: file.name, path, size: formatSize(file.size) });
 } catch (error) {
   await storage.delete(path).catch(() => {});
   throw error;
@@ -141,16 +164,29 @@ import { upload } from "@/framework/facade.js";
 
 export default group().api(
   uploadRoute,
-  [upload({ field: "file", maxSize: 2 * 1024 * 1024, allowedExtensions: [".xlsx", ".xlsb"] })],
+  [
+    upload({
+      field: "file",
+      maxSize: 2 * 1024 * 1024,
+      allowedExtensions: [".xlsx", ".xlsb"],
+    }),
+  ],
   async (req: Request, res: Response) => {
-    if (!req.file) return res.status(HttpStatusCodes.UNPROCESSABLE_ENTITY).json({ message: "File required" });
+    if (!req.file)
+      return res
+        .status(HttpStatusCodes.UNPROCESSABLE_ENTITY)
+        .json({ message: "File required" });
 
     const buffer = req.file.buffer;
     const path = `uploads/${Date.now()}-${req.file.originalname}`;
     await storage.put(path, buffer);
 
     try {
-      await db.insert(reports).values({ name: req.file.originalname, path, size: formatSize(req.file.size) });
+      await db.insert(reports).values({
+        name: req.file.originalname,
+        path,
+        size: formatSize(req.file.size),
+      });
     } catch (error) {
       await storage.delete(path).catch(() => {});
       throw error;
@@ -176,26 +212,37 @@ Export jobs are the ideal `generateForDownload` + `consumeGenerated` pairing: th
 
 ```ts
 // modules/report/jobs/collectionExaminerExport.ts (worker)
-const token = await storage.generateForDownload({ prefix: `collectionexaminer_${authId}`, extension: "xlsx", data: buffer });
-await dispatchEvent("report.collectionexaminerexport.ready",
-  { downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`, authId },
-  { broadcast: { users: [authId] } });
+const token = await storage.generateForDownload({
+  prefix: `collectionexaminer_${authId}`,
+  extension: "xlsx",
+  data: buffer,
+});
+await dispatchEvent(
+  "report.collectionexaminerexport.ready",
+  {
+    downloadUrl: `/api/report/collection-examiner-excel/download/${encodeURIComponent(token)}`,
+    authId,
+  },
+  { broadcast: { users: [authId] } },
+);
 ```
 
 ```ts
 // modules/report/controllers/entity-analysis.controller.ts (download route)
 export const download: Handler = async (c: any) => {
   const { token } = c.req.valid("param");
-  const buffer = await storage.consumeGenerated(token);       // read and delete — one-time link
-  return c.newResponse(buffer, 200, { "Content-Type": "application/octet-stream" });
+  const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
+  return c.newResponse(buffer, 200, {
+    "Content-Type": "application/octet-stream",
+  });
 };
 ```
 
 ```ts
 // Express engine version of the same controller
 export const download = async (req: Request, res: Response) => {
-  const token = req.params.token;                             // validated in place
-  const buffer = await storage.consumeGenerated(token);       // read and delete — one-time link
+  const token = req.params.token; // validated in place
+  const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
   return res
     .status(200)
     .set("Content-Type", "application/octet-stream")
@@ -207,14 +254,18 @@ export const download = async (req: Request, res: Response) => {
 
 ```ts
 const stream = await storage.disk("public").readStream("videos/tutorial.mp4");
-return new Response(stream as any, { headers: { "content-type": "video/mp4" } }); // Hono
+return new Response(stream as any, {
+  headers: { "content-type": "video/mp4" },
+}); // Hono
 // Express: res.set("content-type", "video/mp4"); stream.pipe(res);
 ```
 
 ### Move / copy across disks
 
 ```ts
-const finalPath = await storage.disk("public").move("uploads/temp.jpg", "images/processed.jpg");
+const finalPath = await storage
+  .disk("public")
+  .move("uploads/temp.jpg", "images/processed.jpg");
 
 // Cross-disk copy (manual)
 const data = await storage.disk("tmp").get("exports/report.csv");

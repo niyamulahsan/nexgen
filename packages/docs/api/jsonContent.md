@@ -6,8 +6,8 @@ Wraps a Zod schema as an `application/json` media type with a description — us
 
 ## Signature
 
-| Function | Signature | Description |
-| --- | --- | --- |
+| Function      | Signature                              | Description                                         |
+| ------------- | -------------------------------------- | --------------------------------------------------- |
 | `jsonContent` | `(schema, description) => { content }` | Wrap a schema as a JSON media type with description |
 
 ## Use cases

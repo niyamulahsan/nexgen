@@ -10,9 +10,9 @@ The password utility provides **bcrypt hashing and verification** for user passw
 import { password } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
-| `password.hashPassword(input)` | Hashes a plaintext password with bcrypt (cost 10). Returns the hash string. Use before storing in the database. |
+| Method                                 | Purpose                                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `password.hashPassword(input)`         | Hashes a plaintext password with bcrypt (cost 10). Returns the hash string. Use before storing in the database.         |
 | `password.verifyPassword(input, hash)` | Compares a plaintext password against a stored hash. Returns `true` if they match, `false` otherwise. Use during login. |
 
 ## Usage

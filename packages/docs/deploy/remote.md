@@ -91,45 +91,45 @@ The `deploy:init` command already created `deploy/workflow.remote.json`. Edit it
     "container": "mysql-global",
     "user": "root"
   },
-  "preDeployCommands": [
-    "docker rm -f old-app 2>/dev/null || true"
-  ],
+  "preDeployCommands": ["docker rm -f old-app 2>/dev/null || true"],
   "rsyncPath": "rsync",
   "rsyncSshPath": "ssh",
   "rsyncSshOptions": ["-o", "StrictHostKeyChecking=no"]
 }
 ```
 
-| Field | Purpose |
-|---|---|
-| `remote.host` | Server IP or hostname |
-| `remote.user` | SSH user |
-| `remote.port` | SSH port (default `22`) |
-| `remote.keyPath` | Path to your SSH private key |
-| `remote.targetPath` | Directory on the remote server where the project will be uploaded |
-| `upload.source` | Local directory to upload (default `.`) |
-| `upload.targetSubPath` | Subdirectory under `targetPath` for the upload |
-| `databaseImport.enabled` | Whether to import a SQL dump after deploy |
-| `databaseImport.file` | Path to the SQL dump file |
-| `databaseImport.database` | Target database name |
-| `databaseImport.container` | Docker container name (`mysql-global` or `postgres-global`) |
-| `databaseImport.user` | Database user (`root` / `postgres`) |
-| `preDeployCommands` | Commands run on the remote host before starting the app |
-| `rsyncPath` | Path to the rsync binary (e.g. `"rsync"`). When set, rsync is used instead of scp |
-| `rsyncSshPath` | Path to the SSH binary used by rsync (e.g. `"ssh"`) |
-| `rsyncSshOptions` | Extra SSH flags passed to rsync (e.g. `["-o", "StrictHostKeyChecking=no"]`) |
+| Field                      | Purpose                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `remote.host`              | Server IP or hostname                                                             |
+| `remote.user`              | SSH user                                                                          |
+| `remote.port`              | SSH port (default `22`)                                                           |
+| `remote.keyPath`           | Path to your SSH private key                                                      |
+| `remote.targetPath`        | Directory on the remote server where the project will be uploaded                 |
+| `upload.source`            | Local directory to upload (default `.`)                                           |
+| `upload.targetSubPath`     | Subdirectory under `targetPath` for the upload                                    |
+| `databaseImport.enabled`   | Whether to import a SQL dump after deploy                                         |
+| `databaseImport.file`      | Path to the SQL dump file                                                         |
+| `databaseImport.database`  | Target database name                                                              |
+| `databaseImport.container` | Docker container name (`mysql-global` or `postgres-global`)                       |
+| `databaseImport.user`      | Database user (`root` / `postgres`)                                               |
+| `preDeployCommands`        | Commands run on the remote host before starting the app                           |
+| `rsyncPath`                | Path to the rsync binary (e.g. `"rsync"`). When set, rsync is used instead of scp |
+| `rsyncSshPath`             | Path to the SSH binary used by rsync (e.g. `"ssh"`)                               |
+| `rsyncSshOptions`          | Extra SSH flags passed to rsync (e.g. `["-o", "StrictHostKeyChecking=no"]`)       |
 
 ### rsync Version Requirement
 
 rsync version compatibility matters — using a very different version (e.g. major version mismatch) between local and remote can cause protocol handshake failures. Check both versions before deploying:
 
 Check both versions before deploying:
+
 ```bash
 rsync --version      # local
 ssh user@host "rsync --version"   # remote
 ```
 
 If versions differ, you have two options:
+
 1. **Match the versions** — install the same rsync build on both sides (e.g. `choco install rsync` on Windows, `sudo apt install rsync` on the remote)
 2. **Fall back to scp** — remove `rsyncPath` from `workflow.remote.json` (or set it to `""`). The deploy system will automatically use `scp` instead of `rsync`
 
@@ -227,6 +227,7 @@ bun maker deploy:db:import:remote --file=deploy/nexgen.sql --database=nexgen
 The server infra includes `jrcs/letsencrypt-nginx-proxy-companion` for automatic SSL certificates. To use it:
 
 1. Set your domain in `deploy/.env`:
+
    ```
    VIRTUAL_HOST=app.example.com
    LETSENCRYPT_HOST=app.example.com
@@ -234,6 +235,7 @@ The server infra includes `jrcs/letsencrypt-nginx-proxy-companion` for automatic
    ```
 
 2. Configure the nginx vhost override in `deploy/server/nginx-vhost/app.example.com`:
+
    ```
    # This file is mounted into nginx-proxy
    # Customize proxy settings if needed
