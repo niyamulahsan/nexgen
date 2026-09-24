@@ -40,3 +40,5 @@ export const securityConfig = {
   hstsMaxAge: "max-age=31536000; includeSubDomains",
   xFrame: "DENY"
 };
+
+export type SecurityConfig = typeof securityConfig;

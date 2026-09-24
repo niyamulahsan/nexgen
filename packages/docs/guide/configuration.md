@@ -308,6 +308,8 @@ export const securityConfig = {
   hstsMaxAge: "max-age=31536000; includeSubDomains",
   xFrame: "DENY"
 };
+
+export type SecurityConfig = typeof securityConfig;
 ```
 
 - **CSP** (`csp`): Content Security Policy. Strict in prod and blocks `unsafe-inline`; lax in dev so HMR / inline bootstrap work. The **Scalar CDN hosts** (`cdn.jsdelivr.net` for the UI bundle, `fonts.scalar.com` for fonts, `api.scalar.com` for the spec registry) are allowlisted in both branches — edit `src/config/security.ts` to add/remove hosts, no middleware changes needed.

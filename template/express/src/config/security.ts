@@ -27,7 +27,7 @@ const csp = isProd
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
       "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-      "img-src 'self' data: data: blob: https://cdn.jsdelivr.net",
+      "img-src 'self' data: blob: https://cdn.jsdelivr.net",
       "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.scalar.com",
       "connect-src 'self' ws: wss: https://cdn.jsdelivr.net https://api.scalar.com",   // HMR websocket + Scalar
       "frame-ancestors 'none'"
@@ -40,3 +40,5 @@ export const securityConfig = {
   hstsMaxAge: "max-age=31536000; includeSubDomains",
   xFrame: "DENY"
 };
+
+export type SecurityConfig = typeof securityConfig;
