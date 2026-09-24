@@ -71,6 +71,7 @@ export default {
     layout: "classic", // "classic" | "modern"
     theme: "moon", // "default" | "moon" | "purple" | "solarized" | "bluePlanet" | "fastify" | "kepler" | "mars" | "nebula" | "none"
     pageTitle: "nexgen API",
+    favicon: "src/resources/src/assets/images/favicon/favicon.ico", // served at /favicon.ico for the docs page
     defaultHttpClient: {
       targetKey: "js",
       clientKey: "fetch",

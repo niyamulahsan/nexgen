@@ -37,6 +37,9 @@ export const openApiConfig = {
     /** HTML page title for the /api-docs page */
     pageTitle: `${appConfig.name} API`,
 
+    /** Favicon file (project-relative) served at /favicon.ico for the /api-docs page */
+    favicon: "src/resources/src/assets/images/favicon/favicon.ico",
+
     /** Default HTTP client shown in code examples */
     defaultHttpClient: {
       targetKey: "js" as const,

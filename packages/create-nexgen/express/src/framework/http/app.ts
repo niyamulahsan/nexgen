@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import cookieParser from "cookie-parser";
 import express from "express";
 import { z } from "zod";
@@ -71,12 +69,6 @@ export function createHttpApp() {
       `http_errors_total ${m.errorCount}`
     ].join("\n");
     res.type("text/plain").status(200).send(output);
-  });
-
-  app.get("/favicon.ico", (_req, res) => {
-    const faviconPath = path.join(process.cwd(), "src/resources/src/assets/images/favicon/favicon.ico");
-    if (!fs.existsSync(faviconPath)) return res.status(404).end();
-    res.type("image/x-icon").sendFile(faviconPath);
   });
 
   if (loggingConfig.httpRequests) {

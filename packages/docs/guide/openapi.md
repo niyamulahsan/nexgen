@@ -391,6 +391,7 @@ export const openApiConfig = {
     layout: "classic", // "classic" or "modern"
     theme: "moon", // "default" | "moon" | "purple" | "solarized" | "bluePlanet" | "fastify" | "kepler" | "mars" | "nebula" | "none"
     pageTitle: "My API Documentation",
+    favicon: "src/resources/src/assets/images/favicon/favicon.ico", // served at /favicon.ico for the docs page
     defaultHttpClient: {
       targetKey: "js",
       clientKey: "fetch",
@@ -400,7 +401,7 @@ export const openApiConfig = {
 } as const;
 ```
 
-The framework reads this config automatically — no code changes needed.
+The framework reads this config automatically — no code changes needed. Set `scalar.favicon` to a project-relative icon path to change the favicon served at `/favicon.ico`; set it to `""` to disable the route.
 
 ## Toggling in Deploy
 
