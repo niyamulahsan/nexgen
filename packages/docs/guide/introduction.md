@@ -239,7 +239,7 @@ The CORS middleware automatically allows your `FRONTEND_URL`, so there's no extr
 
 ## Cache
 
-Redis-backed caching with a cache-aside pattern. If Redis is down, every operation silently falls back to the database — no crashes, no errors.
+Redis-backed caching with a cache-aside pattern. The cache is Redis-only — if Redis is down, caching silently disables itself: `get` returns `null`, `put`/`forget` become no-ops, and `remember` recomputes the fresh value on every call (typically a database query). No crashes, no errors — but without Redis there is no caching, so reads hit the source every time.
 
 ```ts
 import { cache } from "@/framework/facade.js";

@@ -19,6 +19,8 @@
 
 - **`src/config/security.ts` exported no `SecurityConfig` type** — `config/index.ts` imported `type SecurityConfig` from `./security.js`, but the template file never exported it (TS2724 on the scaffolded app). Added `export type SecurityConfig = typeof securityConfig;` and fixed a stray `data: data: blob:` duplicated source in the dev CSP `img-src` on the express template. Both templates were also re-synced into `packages/create-nexgen` (which still had the pre-CSP skeleton), so all four copies are byte-identical. Byte-identical across **express** and **hono** engines.
 
+- **Guide intro claimed cache "falls back to the database" when Redis is down** — it does not: the cache is Redis-only. When Redis is unavailable, `cache.get` returns `null`, `put`/`forget` become no-ops, and `remember` recomputes the fresh value on every call. Corrected `guide/introduction.md` to say caching disables itself gracefully instead of suggesting a database cache layer.
+
 ### Changed
 
 - **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.
