@@ -13,6 +13,8 @@
 
 - **`forgetPassword.vue` `onSuccess` now consumes the submitted response** — the callback takes the AxiosResponse (`res`) and displays `res.data.message` from the API instead of a hardcoded "reset link has been sent" text, so the UI reflects the server's actual reply. Byte-identical across **express** and **hono** engines.
 
+- **`resetPassword.vue` `onSuccess` now consumes the submitted response** — the callback takes the AxiosResponse (`res`) and displays `res.data.message` from the API before redirecting to login. Byte-identical across **express** and **hono** engines.
+
 ### Changed
 
 - **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.

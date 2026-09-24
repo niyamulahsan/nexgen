@@ -104,9 +104,9 @@ const onSubmit = async () => {
       password_confirmation: form.data.password_confirmation
     },
     {
-      onSuccess: () => {
+      onSuccess: (res) => {
         isError.value = false;
-        message.value = "Password reset successfully. Redirecting to login...";
+        message.value = res.data.message;
         router.push("/login");
       },
       onError: (_errors, error) => {

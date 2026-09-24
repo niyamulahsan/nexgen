@@ -40,7 +40,7 @@
           <Button
             type="submit"
             label="Reset Password"
-            class="btn btn-primary d-grid w-100"
+            class="btn btn-primary w-100"
             icon="bi bi-key ms-2"
             :disabled="processing" />
         </form>
@@ -104,9 +104,9 @@ const onSubmit = async () => {
       password_confirmation: form.data.password_confirmation
     },
     {
-      onSuccess: () => {
+      onSuccess: (res) => {
         isError.value = false;
-        message.value = "Password reset successfully. Redirecting to login...";
+        message.value = res.data.message;
         router.push("/login");
       },
       onError: (_errors, error) => {
