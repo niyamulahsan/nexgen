@@ -15,10 +15,11 @@ Routes still work when disabled — only the documentation endpoints are removed
 
 ## Endpoints
 
-| Endpoint    | Description                                 |
-| ----------- | ------------------------------------------- |
-| `/api-docs` | Scalar interactive API docs UI (moon theme) |
-| `/doc`      | OpenAPI 3.0.0 JSON spec                     |
+| Endpoint         | Description                                   |
+| ---------------- | --------------------------------------------- |
+| `/api-docs`      | Scalar interactive API docs UI (moon theme)   |
+| `/doc`           | OpenAPI 3.0.0 JSON spec                       |
+| `/favicon.ico`   | API favicon (from `src/resources/src/assets/images/favicon/favicon.ico`) |
 
 ## How It Works
 

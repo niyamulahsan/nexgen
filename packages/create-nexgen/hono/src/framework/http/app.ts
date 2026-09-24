@@ -1,5 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createRoute, z } from "@hono/zod-openapi";
-import { serveEmojiFavicon } from "stoker/middlewares";
 import { appConfig, redisConfig } from "@/config/index.js";
 import { database } from "@/framework/database/connection.js";
 import { corsMiddleware } from "@/framework/http/cors.js";
@@ -53,7 +54,12 @@ export function createHttpApp() {
   app.use("*", loggerMiddleware);
   app.use("*", rateLimiterMiddleware);
   app.use("/storage/*", storageStaticMiddleware);
-  app.use(serveEmojiFavicon("🚀"));
+
+  app.get("/favicon.ico", (c) => {
+    const faviconPath = path.join(process.cwd(), "src/resources/src/assets/images/favicon/favicon.ico");
+    if (!fs.existsSync(faviconPath)) return c.json({ message: "Not Found" }, 404);
+    return c.body(fs.readFileSync(faviconPath), 200, { "content-type": "image/x-icon" });
+  });
 
   app.get("/ready", (c) => {
     const checks: Record<string, string> = {};

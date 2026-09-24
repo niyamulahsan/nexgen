@@ -15,6 +15,8 @@
 
 - **`resetPassword.vue` `onSuccess` now consumes the submitted response** — the callback takes the AxiosResponse (`res`) and displays `res.data.message` from the API before redirecting to login. Byte-identical across **express** and **hono** engines.
 
+- **`/api-docs` served no favicon on the API origin** — the Scalar docs page ships without a `<link rel="icon">`, so browsers requested `/favicon.ico` from the API server. The **express** engine had no `/favicon.ico` route (404, empty tab icon) and **hono** returned Stoker's rocket-emoji SVG instead of the real icon. Both engines now serve `src/resources/src/assets/images/favicon/favicon.ico` at `/favicon.ico` (`image/x-icon`), matching the SPA favicon; hono's `serveEmojiFavicon` middleware was removed. Byte-identical across **express** and **hono** engines.
+
 ### Changed
 
 - **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.
