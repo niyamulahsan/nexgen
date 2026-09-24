@@ -306,7 +306,7 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
       setTimeout(() => {
         recentlySuccessful.value = false;
       }, config.recentlySuccessfulDuration);
-      await onSuccess?.();
+      await onSuccess?.(response!);
       return response;
     } catch (error) {
       const err = error as AxiosError<ValidationErrorPayload>;

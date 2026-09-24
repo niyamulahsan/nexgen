@@ -7,6 +7,8 @@
 
 - **Scaffolder maker-cli runtime injects the dev UI origin into the spawned API** -- `create-nexgen`'s maker-cli runtime (`express`/`hono` `framework/maker-cli/runtime/core.mjs` and `core.mts`, line 214) sets `NEXGEN_FRONTEND_URL: "http://localhost:5173"` on the API child process it spawns when the UI is enabled but the built SPA is absent (Vite dev server still running) -- this is the dev-without-build branch the URL resolver consumes. Byte-identical across both engines; shipped via `create-nexgen@latest` / `nexgen@latest`.
 
+- **`useGumForm` dropped the Axios response from the `onSuccess` callback** — `form.post/put/patch/delete` (`submit()`) called `onSuccess` with no argument, so the callback's `e` was `undefined` (no `e.response`, no `e.data`). The `visit()` path passed `response!` correctly; now `submit()` does too — `onSuccess` in **both** paths receives the full **AxiosResponse** (`e.data` / `e.status` / `e.headers`). Byte-identical across **express** and **hono** engines.
+
 - **Dev reset/verify links pointed at the API origin instead of the Vite dev server** — `urls.url()` in dev with UI enabled but **no UI build yet** (Vite dev server still running) resolved to `APP_URL` (port 3000) instead of the SPA dev origin (port 5173). The resolver now consumes the `NEXGEN_FRONTEND_URL` that maker-cli injects when the built SPA is absent, so reset/verify email links point at the **Vite dev server** (e.g., `http://localhost:5173/reset-password`) in dev-without-build, and at the **app origin** (single port, e.g., `http://localhost:3000/reset-password`) when the framework serves the built SPA — matching browser behavior in production and dev-with-build. Byte-identical across **express** and **hono** engines.
 
 ### Changed
