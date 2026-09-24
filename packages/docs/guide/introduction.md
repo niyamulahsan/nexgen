@@ -483,9 +483,12 @@ const hash = await password.hashPassword("user-password");
 // Verify
 const valid = await password.verifyPassword("user-password", hash);
 
-// Generate tokens
-const access = await jwt.generateToken({ userId: 1 }, "access", 3600);
-const refresh = await jwt.generateToken({ userId: 1 }, "refresh", 604800);
+// Generate tokens — defaults: access 15 min, refresh 1 hour (config/jwt.ts)
+const access = await jwt.generateToken({ userId: 1 }, "access");
+const refresh = await jwt.generateToken({ userId: 1 }, "refresh");
+
+// "Remember me" — refresh token lives 30 days
+const remember = await jwt.generateToken({ userId: 1 }, "refresh", 2592000);
 
 // Set cookies (handles SameSite automatically for cross-origin)
 
@@ -502,9 +505,12 @@ const hash = await password.hashPassword("user-password");
 // Verify
 const valid = await password.verifyPassword("user-password", hash);
 
-// Generate tokens
-const access = await jwt.generateToken({ userId: 1 }, "access", 3600);
-const refresh = await jwt.generateToken({ userId: 1 }, "refresh", 604800);
+// Generate tokens — defaults: access 15 min, refresh 1 hour (config/jwt.ts)
+const access = await jwt.generateToken({ userId: 1 }, "access");
+const refresh = await jwt.generateToken({ userId: 1 }, "refresh");
+
+// "Remember me" — refresh token lives 30 days
+const remember = await jwt.generateToken({ userId: 1 }, "refresh", 2592000);
 
 // Set cookies (handles SameSite automatically for cross-origin)
 

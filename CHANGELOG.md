@@ -21,6 +21,8 @@
 
 - **Guide intro claimed cache "falls back to the database" when Redis is down** — it does not: the cache is Redis-only. When Redis is unavailable, `cache.get` returns `null`, `put`/`forget` become no-ops, and `remember` recomputes the fresh value on every call. Corrected `guide/introduction.md` to say caching disables itself gracefully instead of suggesting a database cache layer.
 
+- **Guide intro auth examples used the wrong token expiries** — the `jwt.generateToken` snippets passed `3600` for access and `604800` (7 days) for refresh, contradicting the actual config (`900` = 15 min access, `3600` = 1 hour refresh, `2592000` = 30 days "remember me"). Fixed the examples to use the defaults and show the remember-me tier. The expiry logic in `auth.helpers.ts`/`jwt.ts`/`cookie.ts` was verified correct and engine-consistent.
+
 ### Changed
 
 - **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.
