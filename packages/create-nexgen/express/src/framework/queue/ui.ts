@@ -151,7 +151,7 @@ export async function setupQueueDashboard() {
   if (!redisClientIfReady()) {
     const route = (app: any) => {
       app.get(BASE_PATH, (_req: Request, res: Response) => res.status(200).send(unavailableHtml()));
-      app.get(`${BASE_PATH}/*`, (_req: Request, res: Response) => res.redirect(BASE_PATH));
+      app.get(new RegExp(`^${BASE_PATH.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/.*$`), (_req: Request, res: Response) => res.redirect(BASE_PATH));
     };
 
     return { basePath: BASE_PATH, enabled: false, route };

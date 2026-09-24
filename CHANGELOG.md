@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.2.1] — 2026-09-24
+
+### Fixed
+- **Queue dashboard email gate** — `ui.ts` (`allowedEmails`): empty allowlist keeps the dashboard open to everyone; otherwise only the listed emails (JWT-verified) pass. The BullMQ worker and mail delivery paths are never gated — gating is strictly UI-only.
+
+- **Scaffolder maker-cli runtime injects the dev UI origin into the spawned API** -- `create-nexgen`'s maker-cli runtime (`express`/`hono` `framework/maker-cli/runtime/core.mjs` and `core.mts`, line 214) sets `NEXGEN_FRONTEND_URL: "http://localhost:5173"` on the API child process it spawns when the UI is enabled but the built SPA is absent (Vite dev server still running) -- this is the dev-without-build branch the URL resolver consumes. Byte-identical across both engines; shipped via `create-nexgen@latest` / `nexgen@latest`.
+
+- **Dev reset/verify links pointed at the API origin instead of the Vite dev server** — `urls.url()` in dev with UI enabled but **no UI build yet** (Vite dev server still running) resolved to `APP_URL` (port 3000) instead of the SPA dev origin (port 5173). The resolver now consumes the `NEXGEN_FRONTEND_URL` that maker-cli injects when the built SPA is absent, so reset/verify email links point at the **Vite dev server** (e.g., `http://localhost:5173/reset-password`) in dev-without-build, and at the **app origin** (single port, e.g., `http://localhost:3000/reset-password`) when the framework serves the built SPA — matching browser behavior in production and dev-with-build. Byte-identical across **express** and **hono** engines.
+
+### Changed
+
+- **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.
+
 ## [3.2.0] — 2026-09-22
 
 ### Added

@@ -27,7 +27,7 @@
           <Button
             type="submit"
             label="Send Reset Link"
-            class="btn btn-primary d-grid w-100"
+            class="btn btn-primary w-100"
             icon="bi bi-send ms-2"
             :disabled="processing" />
         </form>

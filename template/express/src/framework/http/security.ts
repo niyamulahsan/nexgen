@@ -16,6 +16,8 @@ export const securityMiddleware = (req: Request, res: Response, next: NextFuncti
       res.set("Strict-Transport-Security", securityConfig.hstsMaxAge);
     }
     res.set("X-Frame-Options", securityConfig.xFrame);
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("Referrer-Policy", "strict-origin-when-cross-origin");
   }
   next();
 };
