@@ -31,8 +31,10 @@ type FormMethod = "post" | "put" | "patch" | "delete";
 type FormErrors<T> = Partial<Record<keyof T | string, string>>;
 type NormalizedErrors = Record<string, string[] | string>;
 type FormSubmitOptions = {
+  onBefore?: () => boolean | undefined | Promise<boolean | undefined>;
   onStart?: () => void | Promise<void>;
-  onSuccess?: () => void | Promise<void>;
+  onProgress?: (event: AxiosProgressEvent) => void | Promise<void>;
+  onSuccess?: (response: AxiosResponse) => void | Promise<void>;
   onError?: (errors: NormalizedErrors, error: AxiosError) => void | Promise<void>;
   onFinish?: () => void | Promise<void>;
 };
@@ -284,7 +286,11 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
    * Where: useGumForm internal request executor.
    */
   async function submit(method: FormMethod, url: string, payload?: Record<string, unknown>, options: FormSubmitOptions = {}) {
-    const { onStart, onSuccess, onError, onFinish } = options;
+    const { onBefore, onStart, onProgress, onSuccess, onError, onFinish } = options;
+
+    const allow = await onBefore?.();
+    if (allow === false) return;
+
     wasSuccessful.value = false;
     clearErrors();
     processing.value = true;
@@ -296,6 +302,7 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
         url,
         data: payload ?? toRaw(data),
         onUploadProgress: (event) => {
+          onProgress?.(event);
           if (!event.total) return;
           progress.value = Math.round((event.loaded * 100) / event.total);
         }

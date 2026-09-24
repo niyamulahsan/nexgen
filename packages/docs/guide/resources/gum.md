@@ -65,7 +65,7 @@ Options:
 | `skipFetch`      | `boolean`                                           | `false`                               | Skip the API call — only navigate and preserve scroll/state. Used by datatable components (page watcher handles the data fetch)                                |
 | `onBefore`       | `() => boolean \| void \| Promise<boolean \| void>` | —                                     | Return `false` to cancel                                                                                                                                       |
 | `onStart`        | `() => void \| Promise<void>`                       | —                                     | Runs before request                                                                                                                                            |
-| `onProgress`     | `(event: AxiosProgressEvent) => void`               | —                                     | Upload progress callback (only `useGum()`, not `useGumForm()`)                                                                                                 |
+| `onProgress`     | `(event: AxiosProgressEvent) => void`               | —                                     | Upload progress callback (`useGum` and `useGumForm`; forms also track `form.progress`)                                                                         |
 | `onSuccess`      | `(response) => void \| Promise<void>`               | —                                     | Runs on successful response                                                                                                                                    |
 | `onError`        | `(errors, error) => void \| Promise<void>`          | —                                     | Runs on failed response with normalized validation errors and the raw Axios error. Error is **not** rethrown when `onError` is provided — no try/catch needed. |
 | `onFinish`       | `() => void \| Promise<void>`                       | —                                     | Always runs after request                                                                                                                                      |
@@ -415,6 +415,28 @@ async function submit() {
     <Button type="submit" label="Save" :loading="form.processing" />
   </form>
 </template>
+```
+
+Form submission accepts the same lifecycle hooks as visits — `onBefore`, `onStart`, `onProgress`, `onSuccess`, `onError`, `onFinish`:
+
+| Option       | Type                                                                     | Purpose                                                          |
+| ------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `onBefore`   | `() => boolean \| void \| Promise<boolean \| void>`                       | Return `false` to cancel                                         |
+| `onStart`    | `() => void \| Promise<void>`                                            | Runs before the request                                          |
+| `onProgress` | `(event: AxiosProgressEvent) => void \| Promise<void>`                    | Upload progress callback; `form.progress` is updated internally   |
+| `onSuccess`  | `(response: AxiosResponse) => void \| Promise<void>`                      | Runs on the full **AxiosResponse** — use `e.data` / `e.status`   |
+| `onError`    | `(errors, error) => void \| Promise<void>`                               | Runs on failed response with normalized errors; not rethrown      |
+| `onFinish`   | `() => void \| Promise<void>`                                            | Always runs after the request                                    |
+
+```ts
+async function submit() {
+  await form.post("/api/posts", undefined, {
+    onSuccess: (e) => {
+      // e is the full AxiosResponse: e.data, e.status, e.headers
+      form.reset();
+    },
+  });
+}
 ```
 
 When the request payload differs from the form's data shape, pass it explicitly as the second argument:

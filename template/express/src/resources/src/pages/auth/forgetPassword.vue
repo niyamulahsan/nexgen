@@ -65,9 +65,9 @@ const onSubmit = async () => {
       email: String(form.data.email || "").trim()
     },
     {
-      onSuccess: () => {
+      onSuccess: (res) => {
         isError.value = false;
-        message.value = "If this email exists, a reset link has been sent.";
+        message.value = res.data.message;
         form.reset();
       },
       onError: (_errors, error) => {
