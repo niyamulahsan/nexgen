@@ -158,6 +158,7 @@ notify(userId, { broadcast: true, mail: { ... } })
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
 import { notify } from "@/framework/facade.js";
 
 export const createComment: Handler = async (c: any) => {
@@ -178,8 +179,8 @@ export const createComment: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
-import { notify } from "@/framework/facade.js";
 import type { Request, Response } from "express";
+import { notify } from "@/framework/facade.js";
 
 export const createComment = async (req: Request, res: Response) => {
   const { postId, content } = req.body;

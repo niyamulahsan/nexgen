@@ -67,6 +67,8 @@ The `auth` object is available in all protected handlers:
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
+
 export const me: Handler = async (c: any) => {
   const auth = c.get("auth");
   // auth.id, auth.email, auth.roleId, auth.role
@@ -74,6 +76,8 @@ export const me: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 export const me = (req: Request, res: Response) => {
   const auth = res.locals.auth;
   // auth.id, auth.email, auth.roleId, auth.role

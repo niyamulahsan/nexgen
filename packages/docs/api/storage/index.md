@@ -69,7 +69,11 @@ The request-parsing step is the only engine difference — the `storage` calls a
 ::: code-group
 
 ```ts [Hono]
-export const upload: Handler = async (c) => {
+// unser the controller folder *.controller.ts
+
+import type { Handler } from "hono";
+
+export const upload: Handler = async (c: any) => {
   const body = await c.req.parseBody();
   const file = body.file;
   if (!(file instanceof File))
@@ -85,6 +89,9 @@ export const upload: Handler = async (c) => {
 ```
 
 ```ts [Express]
+// unser the api folder *.ts
+
+import type { Request, Response } from "express";
 import { upload } from "@/framework/facade.js";
 
 export default group().api(

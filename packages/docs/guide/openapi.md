@@ -15,11 +15,11 @@ Routes still work when disabled — only the documentation endpoints are removed
 
 ## Endpoints
 
-| Endpoint         | Description                                   |
-| ---------------- | --------------------------------------------- |
-| `/api-docs`      | Scalar interactive API docs UI (moon theme)   |
-| `/doc`           | OpenAPI 3.0.0 JSON spec                       |
-| `/favicon.ico`   | API favicon (from `src/resources/src/assets/images/favicon/favicon.ico`) |
+| Endpoint       | Description                                                              |
+| -------------- | ------------------------------------------------------------------------ |
+| `/api-docs`    | Scalar interactive API docs UI (moon theme)                              |
+| `/doc`         | OpenAPI 3.0.0 JSON spec                                                  |
+| `/favicon.ico` | API favicon (from `src/resources/src/assets/images/favicon/favicon.ico`) |
 
 ## How It Works
 
@@ -97,7 +97,7 @@ export default group()
   .delete("/:id", destroy);
 ```
 
-No documentation is generated, but the routes still work exactly the same way.
+No documentation is generated, but the routes still work exactly the same way. If you want to test the api, in this case you can use postman or requestly.
 
 ## Defining Schemas
 
@@ -126,8 +126,13 @@ export const CreatePostSchema = z.object({
 Each route specifies path, method, tags, request schemas, and response schemas:
 
 ```ts
-import { createRoute, z } from "@/framework/facade.js";
-import { HttpStatusCodes, jsonContent } from "@/framework/facade.js";
+import {
+  createRoute,
+  z,
+  HttpStatusCodes,
+  jsonContent,
+} from "@/framework/facade.js";
+import { PostSchema } from "@/modules/post/controllers/post.schema.js";
 
 // List route
 const listRoute = createRoute({
@@ -219,6 +224,7 @@ import {
 } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import { requireRole } from "@/middlewares/role-middleware.js";
+import { RoleSchema } from "@/modules/auth/controllers/auth.schema.js";
 
 const listRoute = createRoute({
   path: "/",
@@ -262,6 +268,10 @@ import {
   HttpStatusCodes,
   jsonContent,
 } from "@/framework/facade.js";
+import {
+  RegisterSchema,
+  UserSchema,
+} from "@/modules/auth/controllers/auth.schema.js";
 import { loginLimiter } from "@/framework/http/ratelimiter.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
@@ -324,7 +334,9 @@ With OpenAPI enabled, request validation is automatic. The handler receives type
 ::: code-group
 
 ```ts [Hono]
-export const store = async (c) => {
+import type { Handler } from "hono";
+
+export const store: Handler = async (c: any) => {
   const body = c.req.valid("json"); // validated against CreatePostSchema
   // body is typed — no manual validation needed
 };
@@ -346,14 +358,16 @@ Without OpenAPI, use the `validate()` helper manually:
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
 import { validate } from "@/framework/facade.js";
 
-export const store = async (c) => {
+export const store: Handler = async (c: any) => {
   const body = await validate(CreatePostSchema, await c.req.json());
 };
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
 import { validate } from "@/framework/facade.js";
 
 export const store = async (req: Request, res: Response) => {

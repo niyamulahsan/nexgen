@@ -23,6 +23,10 @@
 
 - **Guide intro auth examples used the wrong token expiries** — the `jwt.generateToken` snippets passed `3600` for access and `604800` (7 days) for refresh, contradicting the actual config (`900` = 15 min access, `3600` = 1 hour refresh, `2592000` = 30 days "remember me"). Fixed the examples to use the defaults and show the remember-me tier. The expiry logic in `auth.helpers.ts`/`jwt.ts`/`cookie.ts` was verified correct and engine-consistent.
 
+- **Guide intro "Self Deploy to VPS" showed only npm commands** — converted both deploy command blocks (init/remote and promote/import) into `::: code-group` tabs for **npm**, **pnpm**, **yarn**, and **bun**, matching the other guides. `--file=` flag syntax per package manager (`npm run maker` uses `-- --file=…`; direct `maker` calls use `--file=…`).
+
+- **Docs examples imported `Handler` as a value from `hono`** — `Handler` is a type-only export, so all 9 occurrences across 7 docs pages (`api/validate.md`, `api/storage/index.md`, `guide/auth.md`, `guide/notification.md`, `guide/openapi.md` ×2, `guide/routing.md`, `guide/storage.md` ×2) now use `import type { Handler } from "hono"`, matching the hono engine's own controller stubs. **express** docs use their engine-native express imports, which are unrelated — docs live in the single shared `packages/docs` tree (not per-engine mirror).
+
 ### Changed
 
 - **URL origin resolution is now three-knob and byte-identical across engines** — the origin decision in `framework/support/url.ts` (both engines) is: `frontendUrl` (explicit SPA origin — wins) → `uiEnabled` + built SPA (`hasUiBuild()`) (framework serves it — same/`APP_URL` origin) → `uiEnabled` + no build (dev Vite dev server still running — `process.env.NEXGEN_FRONTEND_URL`, injected by maker-cli, falls back to `APP_URL`) → API-only (`APP_URL`). Comment docs updated to document all three branches.

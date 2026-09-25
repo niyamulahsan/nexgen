@@ -17,18 +17,20 @@ Runs any Zod schema against untrusted input (request bodies outside OpenAPI rout
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
 import { validate } from "@/framework/facade.js";
 
-export const store = async (c) => {
+export const store: Handler = async (c: any) => {
   const body = await validate(CreatePostSchema, await c.req.json());
   // body is inferred from CreatePostSchema — no casts needed
 };
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
 import { validate } from "@/framework/facade.js";
 
-export const store = async (req, res) => {
+export const store = async (req: Request, res: Response) => {
   const body = await validate(CreatePostSchema, req.body);
   // body is inferred from CreatePostSchema — no casts needed
 };

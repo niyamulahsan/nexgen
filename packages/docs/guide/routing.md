@@ -313,9 +313,13 @@ Multipart parsing is engine-specific:
 - **Hono** — `await c.req.parseBody()` returns the raw body; files arrive as `File` instances.
 - **Express** — attach the `upload({ field })` / `fields()` facade middlewares to the route; files arrive as in-memory buffers on `req.file` / `req.files`.
 
-```ts
+::: code-group
+
+```ts [Hono]
+import type { Handler } from "hono";
+
 // Hono controller file
-export const upload: Handler = async (c) => {
+export const upload: Handler = async (c: any) => {
   const body = await c.req.parseBody();
   const file = body.file;
   if (!(file instanceof File))
@@ -326,7 +330,7 @@ export const upload: Handler = async (c) => {
 };
 ```
 
-```ts
+```ts [Express]
 // Express api file
 import { upload } from "@/framework/facade.js";
 import type { Request, Response } from "express";
@@ -341,6 +345,8 @@ export default group().api(
   },
 );
 ```
+
+:::
 
 See [Upload — Express only](/guide/support/upload) and [Storage: Multipart File Upload](/guide/storage#multipart-file-upload) for the full detail.
 

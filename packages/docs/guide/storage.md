@@ -134,7 +134,11 @@ await disk.exists("invoices/42.pdf");
 ::: code-group
 
 ```ts [Hono]
-export const upload: Handler = async (c) => {
+// under controller folder *.controller.ts file
+
+import { Hanlder } from "hono";
+
+export const upload: Handler = async (c: any) => {
   const body = await c.req.parseBody();
   const file = body.file;
 
@@ -153,8 +157,10 @@ export const upload: Handler = async (c) => {
 ```
 
 ```ts [Express]
-import { upload } from "@/framework/facade.js";
+// under route folder *.ts file
+
 import type { Request, Response } from "express";
+import { upload } from "@/framework/facade.js";
 
 export default group().api(
   uploadRoute,
@@ -188,7 +194,9 @@ export default group().api(
 ::: code-group
 
 ```ts [Hono]
-export const importExcel: Handler = async (c) => {
+import type { Handler } from "hono";
+
+export const importExcel: Handler = async (c: any) => {
   const ExcelJS = (await import("exceljs")).default;
 
   const body = await c.req.parseBody();
@@ -225,6 +233,8 @@ export const importExcel: Handler = async (c) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 export const importExcel = async (req: Request, res: Response) => {
   const ExcelJS = (await import("exceljs")).default;
 
@@ -263,6 +273,8 @@ export const importExcel = async (req: Request, res: Response) => {
 ### Stream a File
 
 ```ts
+import type { Handler } from "hono";
+
 export const streamVideo: Handler = async (c: any) => {
   const stream = await storage.disk("public").readStream("videos/tutorial.mp4");
   return new Response(stream as any, {
