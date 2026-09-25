@@ -3,7 +3,7 @@
 ## [3.2.1] — 2026-09-24
 
 ### Fixed
-- **Queue dashboard email gate** — `ui.ts` (`allowedEmails`): empty allowlist keeps the dashboard open to everyone; otherwise only the listed emails (JWT-verified) pass. The BullMQ worker and mail delivery paths are never gated — gating is strictly UI-only.
+- **Storage docs "Real world — deferred export download" and "Large Import — Multipart → tmp → Queue Import"** — the hono-only upload/export examples are now paired `::: code-group` tabs with an Express twin each, using `import type { Handler } from "hono"`; the large-import page also documents that the import route only enqueues and the actual work runs engine-agnostically under the `shouldQueue`-registered job. The BullMQ worker and mail delivery paths are never gated — gating is strictly UI-only.
 
 - **Scaffolder maker-cli runtime injects the dev UI origin into the spawned API** -- `create-nexgen`'s maker-cli runtime (`express`/`hono` `framework/maker-cli/runtime/core.mjs` and `core.mts`, line 214) sets `NEXGEN_FRONTEND_URL: "http://localhost:5173"` on the API child process it spawns when the UI is enabled but the built SPA is absent (Vite dev server still running) -- this is the dev-without-build branch the URL resolver consumes. Byte-identical across both engines; shipped via `create-nexgen@latest` / `nexgen@latest`.
 

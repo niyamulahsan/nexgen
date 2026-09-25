@@ -104,7 +104,10 @@ async function onSubmit() {
 
 The upload route stores the file on the **tmp** disk (streaming, no buffering), then enqueues the import job:
 
-```ts
+::: code-group
+
+```ts [Hono]
+import type { Handler } from "hono";
 // Hono — POST /import/excel
 export const importExcelUpload: Handler = async (c: any) => {
   const body = await c.req.parseBody()
@@ -116,6 +119,23 @@ export const importExcelUpload: Handler = async (c: any) => {
   return c.json({ requestId, status: "queued" })
 }
 ```
+
+```ts [Express]
+import type { Request, Response, NextFunction } from "express";
+// Express — POST /import/excel
+export const importExcelUpload = async (req: Request, res: Response, next: NextFunction) => {
+  const file = req.file; // multer — configured with `tmp` storage and size limits
+  if (!file) return res.status(422).json({ message: "File is required" });
+
+  const path = await storage.disk("tmp").putFile("imports", file); // streamed to tmp
+  const requestId = await dispatchEvent("report.import", { filePath: path, disk: "tmp" });
+  return res.json({ requestId, status: "queued" });
+};
+```
+
+:::
+
+> **Same-page note — it will run under `shouldQueue`:** the upload only enqueues. The actual import work lives in the worker registered with `shouldQueue("report.import", …)` (see the `importExcelJob` worker at the top of this page) — the upload route never reads the workbook itself.
 
 ## Rule of Thumb
 
