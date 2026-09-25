@@ -11,6 +11,8 @@ The scheduler can do anything a controller can: dispatch events, queue backgroun
 Create files under `src/modules/<module>/console/*.ts`:
 
 ```ts
+// under console folder *.ts file
+
 import { defineSchedule } from "@/framework/facade.js";
 
 defineSchedule({
@@ -39,12 +41,12 @@ Expressions support the **5-field** cron format, with an optional leading **seco
 
 Examples:
 
-| Expression      | Meaning                                        |
-| --------------- | ---------------------------------------------- |
-| `0 */6 * * *`   | Every 6 hours                                  |
-| `0 2 * * *`     | Every day at 02:00                             |
-| `*/5 * * * *`   | Every 5 minutes                                |
-| `0 0 2 * * *`   | Every day at 02:00:00 (seconds field included) |
+| Expression    | Meaning                                        |
+| ------------- | ---------------------------------------------- |
+| `0 */6 * * *` | Every 6 hours                                  |
+| `0 2 * * *`   | Every day at 02:00                             |
+| `*/5 * * * *` | Every 5 minutes                                |
+| `0 0 2 * * *` | Every day at 02:00:00 (seconds field included) |
 
 The scheduler runs on **Croner** (`croner` ^10), which also accepts an optional leading **seconds** field for second-level precision — a 6-field expression: `SECOND MINUTE HOUR DAY-OF-MONTH MONTH DAY-OF-WEEK` (e.g. `0 0 2 * * *` runs every day at 02:00:00). Both the 5-field and 6-field forms are valid, so the 6-field cron strings used in existing apps work as-is.
 
@@ -136,6 +138,8 @@ If a lock is held (another instance already running the task), the handler is sk
 A schedule handler can dispatch events, queue jobs, and broadcast — same API as controllers:
 
 ```ts
+// under console folder *.ts file
+
 import { defineSchedule, dispatchEvent } from "@/framework/facade.js";
 
 // Every night at 2am: generate reports, then notify admins
@@ -210,6 +214,8 @@ Scheduler (every day at 2am)
 ```
 
 ```ts
+// under console folder *.ts file
+
 import { defineSchedule, dispatchEvent } from "@/framework/facade.js";
 
 defineSchedule({
@@ -235,6 +241,8 @@ defineSchedule({
 ```
 
 ```ts
+// under console folder *.ts file
+
 import { dispatchEvent, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("report.generate", "default", async (job) => {

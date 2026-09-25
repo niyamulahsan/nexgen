@@ -57,13 +57,13 @@ Works with any package manager: `pnpm`, `yarn`, or `bun`.
 
 All examples use `npm` as the default. nexgen works with any major package manager:
 
-| Manager  | Create project                    | Run commands          |
-| -------- | --------------------------------- | --------------------- |
-| **npm**  | `npm create nexgen@latest my-app` | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen@latest my-app`| `pnpm maker <cmd>`    |
-| **yarn** | `yarn create nexgen@latest my-app`| `yarn maker <cmd>`    |
-| **bun**  | `bun create nexgen@latest my-app` | `bun maker <cmd>`     |
-| **all**  | `npm create nexgen@latest .`      | current directory     |
+| Manager  | Create project                     | Run commands          |
+| -------- | ---------------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest my-app`  | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen@latest my-app` | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen@latest my-app` | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen@latest my-app`  | `bun maker <cmd>`     |
+| **all**  | `npm create nexgen@latest .`       | current directory     |
 
 ### Runtime
 
@@ -203,27 +203,6 @@ Complete documentation is available at **[nexgen.dev](https://niyamulahsan.githu
 ## Contributing
 
 Contributions are welcome. Open an issue or pull request on [GitHub](https://github.com/niyamulahsan/nexgen).
-
-## Donate
-
-If nexgen helps you build faster, consider supporting the project:
-
-<p>
-  <a href="https://www.supportkori.com/niyam" target="_blank">
-    <img src="https://img.shields.io/badge/Support-Kori-ff6f00?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Kori">
-  </a>
-  <a href="https://github.com/sponsors/niyamulahsan">
-    <img src="https://img.shields.io/badge/GitHub-Sponsors-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors">
-  </a>
-</p>
-
-## Security Vulnerabilities
-
-We take framework security seriously. If you discover a security vulnerability, please **do not open a public issue**. Email the maintainer directly at `niyamulahsan@gmail.com` — all security vulnerabilities will be addressed promptly and credited responsibly once disclosed.
-
-## Code of Conduct
-
-Please note that nexus is part of the broader open-source community. All contributors and participants are expected to follow the [Nexus Code of Conduct](https://niyamulahsan.github.io/nexgen/code-of-conduct) to keep collaboration welcoming, inclusive, and respectful. Reported violations are handled in accordance with that policy.
 
 ## License
 

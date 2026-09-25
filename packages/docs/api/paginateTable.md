@@ -13,11 +13,11 @@ Pagination for a single table with optional `WHERE`/`ORDER BY` — no request ob
 Options:
 
 | Option    | Type     | Default | Description                           |
-| --------- | -------- | ------- | ------------------------------------- | --------------------------- |
+| --------- | -------- | ------- | ------------------------------------- |
 | `page`    | `number` | `1`     | Page number                           |
 | `perPage` | `number` | `15`    | Items per page                        |
 | `where`   | `SQL`    | —       | Filter clause (e.g. `or(...clauses)`) |
-| `orderBy` | `SQL     | SQL[]`  | —                                     | Sort (`[desc(reports.id)]`) |
+| `orderBy` | `SQL`    | `SQL[]` | Sort (`[desc(reports.id)]`)           |
 | `path`    | `string` | `""`    | Base path for pagination URLs         |
 
 ## Use cases

@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { HttpStatusCodes } from "@/framework/facade.js";
 
 /**
  * Why: Returns collection response shape for list pages.
@@ -24,7 +25,7 @@ export const show = async (req: Request, res: Response) => {
  * Where: POST /{{controller}} route.
  */
 export const store = async (_req: Request, res: Response) => {
-  res.status(201).json({ message: "{{controller}} created successfully" });
+  res.status(HttpStatusCodes.CREATED).json({ message: "{{controller}} created successfully" });
 };
 
 /**

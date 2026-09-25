@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { type NextFunction, type Request, type Response } from "express";
-import { cookie, db, jwt } from "@/framework/facade.js";
+import { cookie, db, jwt, HttpStatusCodes } from "@/framework/facade.js";
 import { refreshTokens, users } from "@/modules/auth/database/models/user.js";
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -18,7 +18,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       if (!user) {
         cookie.deleteAuth(res);
         cookie.deleteRefresh(res);
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
       }
 
       res.locals.auth = {
@@ -37,7 +37,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (!refreshToken) {
     cookie.deleteAuth(res);
     cookie.deleteRefresh(res);
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
   }
 
   const refreshPayload = await jwt.verifyToken(refreshToken, "refresh");
@@ -45,7 +45,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (!refreshPayload?.jti) {
     cookie.deleteAuth(res);
     cookie.deleteRefresh(res);
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid token" });
   }
 
   const storedToken = await db.query.refreshTokens.findFirst({
@@ -55,14 +55,14 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (!storedToken || storedToken.revoked) {
     cookie.deleteAuth(res);
     cookie.deleteRefresh(res);
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid token" });
   }
 
   if (storedToken.expiresAt.getTime() < Date.now()) {
     await db.delete(refreshTokens).where(eq(refreshTokens.id, storedToken.id));
     cookie.deleteAuth(res);
     cookie.deleteRefresh(res);
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid token" });
   }
 
   const user = await db.query.users.findFirst({
@@ -73,7 +73,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (!user) {
     cookie.deleteAuth(res);
     cookie.deleteRefresh(res);
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
   }
 
   const newAccessToken = await jwt.generateToken(

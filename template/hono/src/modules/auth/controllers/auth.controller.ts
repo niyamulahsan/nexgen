@@ -109,10 +109,7 @@ export const register: Handler = async (c: any) => {
 export const login: Handler = async (c: any) => {
   try {
     const body = c.req.valid("json");
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, body.email),
-      with: { role: true }
-    });
+    const user = await db.query.users.findFirst({ where: eq(users.email, body.email), with: { role: true } });
 
     if (!user || !(await password.verifyPassword(body.password, user.password))) {
       return c.json({ message: "Invalid credentials" }, HttpStatusCodes.UNAUTHORIZED);

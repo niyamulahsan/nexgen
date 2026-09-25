@@ -26,25 +26,25 @@ The framework **gracefully degrades** — if Redis is unavailable, `queueJob()` 
 
 ## Environment Variables
 
-| Variable        | Default                     | Description                                          |
-| --------------- | --------------------------- | ---------------------------------------------------- |
-| `REDIS`         | `false`                     | Master toggle for all Redis-backed features          |
-| `REDIS_URL`     | `redis://127.0.0.1:6379`    | Redis connection string                              |
-| `REDIS_PREFIX`  | `nexgen`                    | Key prefix for BullMQ queues in Redis                |
+| Variable       | Default                  | Description                                 |
+| -------------- | ------------------------ | ------------------------------------------- |
+| `REDIS`        | `false`                  | Master toggle for all Redis-backed features |
+| `REDIS_URL`    | `redis://127.0.0.1:6379` | Redis connection string                     |
+| `REDIS_PREFIX` | `nexgen`                 | Key prefix for BullMQ queues in Redis       |
 
 ## Queue Configuration
 
 Queue settings live in `src/config/queue.ts`:
 
-| Setting          | Default                                  | Description                                    |
-| ---------------- | ---------------------------------------- | ---------------------------------------------- |
-| `queues`         | `["default", "mail", "maintenance"]`     | Queue names                                    |
-| `concurrency`    | `10`                                     | Worker concurrency per queue                   |
-| `autoPruneQueues`| `true`                                   | Auto-remove stale key values                   |
-| `prefix`         | `{redisConfig.prefix}:queue`             | Redis key prefix for queues                    |
-| `durablePrefix`  | `{redisConfig.prefix}:durable`           | Redis key prefix for durable queues            |
-| `queueUi`        | `/queues`                                | BullBoard dashboard URL                        |
-| `allowedEmails`  | `""`                                     | Comma-separated emails for dashboard access    |
+| Setting           | Default                              | Description                                 |
+| ----------------- | ------------------------------------ | ------------------------------------------- |
+| `queues`          | `["default", "mail", "maintenance"]` | Queue names                                 |
+| `concurrency`     | `10`                                 | Worker concurrency per queue                |
+| `autoPruneQueues` | `true`                               | Auto-remove stale key values                |
+| `prefix`          | `{redisConfig.prefix}:queue`         | Redis key prefix for queues                 |
+| `durablePrefix`   | `{redisConfig.prefix}:durable`       | Redis key prefix for durable queues         |
+| `queueUi`         | `/queues`                            | BullBoard dashboard URL                     |
+| `allowedEmails`   | `""`                                 | Comma-separated emails for dashboard access |
 
 Set `REDIS=true` in `.env` to enable queues, caching, sessions, and the Socket.IO Redis adapter.
 
@@ -323,6 +323,8 @@ A complete flow: route → controller → queue → handler → broadcast.
 When `OPEN_API=true`, schemas use the extended Zod (with `.openapi()` metadata) from the facade:
 
 ```ts
+// under controller folder *.schema.ts file
+
 import { z } from "@/framework/facade.js";
 
 export const PublishPostSchema = z.object({
@@ -335,6 +337,8 @@ export const PublishPostSchema = z.object({
 When `OPEN_API=false`, use plain Zod from the facade:
 
 ```ts
+// under controller folder *.schema.ts file
+
 import { z } from "@/framework/facade.js";
 
 export const PublishPostSchema = z.object({
@@ -347,6 +351,8 @@ export const PublishPostSchema = z.object({
 ::: code-group
 
 ```ts [Hono]
+// under controller folder *.controller.ts file
+
 import type { Handler } from "hono";
 import { dispatchEvent } from "@/framework/facade.js";
 
@@ -387,6 +393,8 @@ export const notifyUser: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+// under controller folder *.controller.ts file
+
 import type { Request, Response } from "express";
 import { dispatchEvent } from "@/framework/facade.js";
 
@@ -431,6 +439,8 @@ export const notifyUser = (req: Request, res: Response) => {
 ### 2. Route
 
 ```ts
+// under route folder *.api.ts file
+
 import {
   createRoute,
   createRouter,
@@ -491,6 +501,8 @@ export default createRouter()
 ### 3. Queue Handler
 
 ```ts
+// under jobs folder *.ts file
+
 import { dispatchEvent, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("post.publish", "default", async (job) => {

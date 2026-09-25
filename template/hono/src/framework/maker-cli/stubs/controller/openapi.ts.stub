@@ -1,4 +1,5 @@
 import type { Handler } from "hono";
+import { HttpStatusCodes } from "@/framework/facade.js";
 
 /**
  * Why: Returns collection response shape for list pages.
@@ -28,7 +29,7 @@ export const show: Handler = async (c: any) => {
 export const store: Handler = async (c: any) => {
   c.req.valid("json");
 
-  return c.json({ message: "{{controller}} created successfully" }, 201);
+  return c.json({ message: "{{controller}} created successfully" }, HttpStatusCodes.CREATED);
 };
 
 /**

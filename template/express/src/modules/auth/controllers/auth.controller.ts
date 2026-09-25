@@ -98,10 +98,7 @@ export const register = async (req: Request, res: Response, _next: NextFunction)
 export const login = async (req: Request, res: Response, _next: NextFunction) => {
   try {
     const body = req.body;
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, body.email),
-      with: { role: true }
-    });
+    const user = await db.query.users.findFirst({ where: eq(users.email, body.email), with: { role: true } });
 
     if (!user || !(await password.verifyPassword(body.password, user.password))) {
       return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid credentials" });

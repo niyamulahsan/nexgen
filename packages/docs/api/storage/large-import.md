@@ -33,7 +33,10 @@ export async function importExcelJob(input: {
   const sheet = workbook.first?.worksheet;
   if (!sheet) throw new Error("No worksheet found");
 
-  const headerRow = sheet.getRow(1).values.slice(1).map((v: unknown) => String(v || "").trim());
+  const headerRow = sheet
+    .getRow(1)
+    .values.slice(1)
+    .map((v: unknown) => String(v || "").trim());
 
   const rows: Record<string, any>[] = [];
   for await (const row of sheet.eachRow({ includeEmpty: false })) {
@@ -66,33 +69,41 @@ The Vue uploads the file via the multipart route (see [Multipart File Upload](./
 
 ```vue
 <script setup lang="ts">
-const file = ref<File | null>(null)
-const progress = ref(0)
-const status = ref<"idle" | "running" | "done">("idle")
+const file = ref<File | null>(null);
+const progress = ref(0);
+const status = ref<"idle" | "running" | "done">("idle");
 
 async function onSubmit() {
-  if (!file.value) return
-  const formData = new FormData()
-  formData.append("file", file.value)
+  if (!file.value) return;
+  const formData = new FormData();
+  formData.append("file", file.value);
   const { data } = await axios.post("/api/import/excel", formData, {
     onUploadProgress: (e) => {
-      progress.value = e.total ? Math.round((e.loaded / e.total) * 100) : 0
+      progress.value = e.total ? Math.round((e.loaded / e.total) * 100) : 0;
     },
-  })
-  const requestId = data.requestId
-  status.value = "running"
+  });
+  const requestId = data.requestId;
+  status.value = "running";
   // poll every 2s
   const poll = setInterval(async () => {
-    const { data: st } = await axios.get(`/api/import/status/${requestId}`)
-    status.value = st.status === "ready" ? "done" : st.status === "failed" ? "failed" : "running"
-    if (st.status !== "running") clearInterval(poll)
-  }, 2000)
+    const { data: st } = await axios.get(`/api/import/status/${requestId}`);
+    status.value =
+      st.status === "ready"
+        ? "done"
+        : st.status === "failed"
+          ? "failed"
+          : "running";
+    if (st.status !== "running") clearInterval(poll);
+  }, 2000);
 }
 </script>
 
 <template>
   <form @submit.prevent="onSubmit">
-    <input type="file" accept=".xlsx" @change="file = $event.target.files?.[0] ?? null" />
+    <input
+      type="file"
+      accept=".xlsx"
+      @change="file = $event.target.files?.[0] ?? null" />
     <button type="submit" :disabled="status === 'running'">Import</button>
     <div v-if="status === 'running'">Importing… {{ progress }}%</div>
     <div v-if="status === 'done'">Import complete</div>
@@ -110,25 +121,36 @@ The upload route stores the file on the **tmp** disk (streaming, no buffering), 
 import type { Handler } from "hono";
 // Hono — POST /import/excel
 export const importExcelUpload: Handler = async (c: any) => {
-  const body = await c.req.parseBody()
-  const file = body.file
-  if (!(file instanceof File)) return c.json({ message: "File is required" }, 422)
+  const body = await c.req.parseBody();
+  const file = body.file;
+  if (!(file instanceof File))
+    return c.json({ message: "File is required" }, 422);
 
-  const path = await storage.disk("tmp").putFile("imports", file) // streamed to tmp
-  const requestId = await dispatchEvent("report.import", { filePath: path, disk: "tmp" })
-  return c.json({ requestId, status: "queued" })
-}
+  const path = await storage.disk("tmp").putFile("imports", file); // streamed to tmp
+  const requestId = await dispatchEvent("report.import", {
+    filePath: path,
+    disk: "tmp",
+  });
+  return c.json({ requestId, status: "queued" });
+};
 ```
 
 ```ts [Express]
 import type { Request, Response, NextFunction } from "express";
 // Express — POST /import/excel
-export const importExcelUpload = async (req: Request, res: Response, next: NextFunction) => {
+export const importExcelUpload = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const file = req.file; // multer — configured with `tmp` storage and size limits
   if (!file) return res.status(422).json({ message: "File is required" });
 
   const path = await storage.disk("tmp").putFile("imports", file); // streamed to tmp
-  const requestId = await dispatchEvent("report.import", { filePath: path, disk: "tmp" });
+  const requestId = await dispatchEvent("report.import", {
+    filePath: path,
+    disk: "tmp",
+  });
   return res.json({ requestId, status: "queued" });
 };
 ```
@@ -139,9 +161,9 @@ export const importExcelUpload = async (req: Request, res: Response, next: NextF
 
 ## Rule of Thumb
 
-| Scenario | Pattern |
-| --- | --- |
-| Small Excel (< 10k rows) | `upload()` → buffer → `ExcelJS.Workbook` → `db.insert().values(rows)` |
-| Large Excel (10k+ rows) | Multipart → `tmp` → `ExcelJS.stream.xlsx.WorkbookReader` → batches of 500 |
+| Scenario                 | Pattern                                                                   |
+| ------------------------ | ------------------------------------------------------------------------- |
+| Small Excel (< 10k rows) | `upload()` → buffer → `ExcelJS.Workbook` → `db.insert().values(rows)`     |
+| Large Excel (10k+ rows)  | Multipart → `tmp` → `ExcelJS.stream.xlsx.WorkbookReader` → batches of 500 |
 
 > **Same-disk pairing:** the upload wrote to `tmp`. The import worker reads from `tmp`. After importing, move the file to a permanent disk with `storage.disk("tmp").move(path, "exports/...")` or delete it.

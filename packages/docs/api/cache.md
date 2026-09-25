@@ -6,13 +6,13 @@ Redis-backed JSON caching with graceful fallback — every method becomes a no-o
 
 ## Functions
 
-| Function            | Signature                                | Description                                                                        |
-| ------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `cache.get`         | `(key, fallback?) => Promise<T \| null>`                                                                             | Read a cached JSON value; returns `fallback` (default `null`) on miss or when Redis is off |
-| `cache.put`         | `(key, value, ttl?) => Promise<boolean>` | Store a value with TTL (default from `config/cache.ts`); `false` when Redis is off |
-| `cache.forget`      | `(key) => Promise<boolean>`              | Delete a cached key (invalidate)                                                   |
-| `cache.remember`    | `(key, ttl, callback) => Promise<T>`     | Cache-aside — `get` first, on miss run `callback` and `put`                        |
-| `cache.isAvailable` | `() => boolean`                          | `true` when Redis is configured and connected                                      |
+| Function            | Signature                                | Description                                                                                |
+| ------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `cache.get`         | `(key, fallback?) => Promise<T \| null>` | Read a cached JSON value; returns `fallback` (default `null`) on miss or when Redis is off |
+| `cache.put`         | `(key, value, ttl?) => Promise<boolean>` | Store a value with TTL (default from `config/cache.ts`); `false` when Redis is off         |
+| `cache.forget`      | `(key) => Promise<boolean>`              | Delete a cached key (invalidate)                                                           |
+| `cache.remember`    | `(key, ttl, callback) => Promise<T>`     | Cache-aside — `get` first, on miss run `callback` and `put`                                |
+| `cache.isAvailable` | `() => boolean`                          | `true` when Redis is configured and connected                                              |
 
 ## Use cases
 

@@ -115,7 +115,7 @@ Each facade function has its own page. Every export below is a documented part o
 | [`broadcast`](./broadcast)             | Socket.IO emit to targeted audiences                 | [Realtime](./../guide/realtime)                               |
 | [`defineSchedule`](./defineSchedule)   | Named cron tasks with distributed locking            | [Scheduler](./../guide/scheduler)                             |
 | [`session`](./session)                 | Redis-backed server-side sessions                    | [Session](./../guide/session)                                 |
-| [`storage`](./storage/)                 | Local + S3-compatible file storage                   | [Storage](/guide/storage)                                       |
+| [`storage`](./storage/)                | Local + S3-compatible file storage                   | [Storage](/guide/storage)                                     |
 | [`notify`](./notify)                   | Persist + broadcast + email notifications            | [Notifications](./../guide/notification)                      |
 | [`password`](./password)               | bcrypt hash / verify                                 | [Password](./../guide/support/password)                       |
 | [`jwt`](./jwt)                         | HS256 token generation / verification                | [JWT](./../guide/support/jwt)                                 |
@@ -182,8 +182,19 @@ export const register = async (input: {
 
 Route + controller compose routing, querying, and pagination:
 
-````ts
-import { createRoute, createRouter, group, HttpStatusCodes, jsonContent, db, paginate, z } from "@/framework/facade.js";
+::: code-group
+
+```ts [Hono]
+import {
+  createRoute,
+  createRouter,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+  db,
+  paginate,
+  z,
+} from "@/framework/facade.js";
 import { desc } from "drizzle-orm";
 import { posts } from "@/modules/blog/database/models/post.js";
 
@@ -196,16 +207,38 @@ const listRoute = createRoute({
   },
 });
 
-::: code-group
-
-```ts [Hono]
-export default createRouter().group().api(listRoute, async (c) => {
-  const query = db.select().from(posts).orderBy(desc(posts.id));
-  return c.json(await paginate(c, query, 15));
-});
-````
+export default createRouter()
+  .group()
+  .api(listRoute, async (c) => {
+    const query = db.select().from(posts).orderBy(desc(posts.id));
+    return c.json(await paginate(c, query, 15));
+  });
+```
 
 ```ts [Express]
+import {
+  createRoute,
+  createRouter,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+  db,
+  paginate,
+  z,
+} from "@/framework/facade.js";
+import type { Request, Response } from "express";
+import { desc } from "drizzle-orm";
+import { posts } from "@/modules/blog/database/models/post.js";
+
+const listRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["Posts"],
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list of posts"),
+  },
+});
+
 export default createRouter()
   .group()
   .api(listRoute, async (req: Request, res: Response) => {
@@ -215,8 +248,6 @@ export default createRouter()
 ```
 
 :::
-
-````
 
 ### Throttle background work and broadcast the result
 
@@ -233,7 +264,7 @@ shouldQueue("process-image", "images", async (job) => {
   const url = await processImage(job.data.path);
   broadcast("image.processed", { url }, { users: [job.data.userId] });
 });
-````
+```
 
 ## Rules of the facade
 

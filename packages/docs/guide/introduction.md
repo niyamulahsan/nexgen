@@ -550,7 +550,9 @@ Logs rotate at 10MB — 5 app log files and 3 fatal log files are kept.
 
 Deploy directly from your terminal to any Linux VPS — no GitHub Actions, no CI/CD platform, no third-party service. Just SSH + Docker. Works on **Windows**, **Linux**, and **macOS** — the CLI uses `rsync` when available and falls back to `scp` automatically (including Windows with Git Bash / WSL).
 
-```bash
+::: code-group
+
+```bash [npm]
 # One-time: generate all Docker files
 npm run maker deploy:init
 
@@ -558,6 +560,35 @@ npm run maker deploy:init
 # Then deploy:
 npm run maker deploy:workflow:remote
 ```
+
+```bash [pnpm]
+# One-time: generate all Docker files
+pnpm maker deploy:init
+
+# Edit deploy/workflow.remote.json with your server IP + SSH key
+# Then deploy:
+pnpm maker deploy:workflow:remote
+```
+
+```bash [yarn]
+# One-time: generate all Docker files
+yarn maker deploy:init
+
+# Edit deploy/workflow.remote.json with your server IP + SSH key
+# Then deploy:
+yarn maker deploy:workflow:remote
+```
+
+```bash [bun]
+# One-time: generate all Docker files
+bun maker deploy:init
+
+# Edit deploy/workflow.remote.json with your server IP + SSH key
+# Then deploy:
+bun maker deploy:workflow:remote
+```
+
+:::
 
 That single command uploads your project via rsync, creates Docker networks, starts the database + Redis + nginx proxy, builds your app image, runs migrations, and starts the server — all over SSH.
 
@@ -572,13 +603,41 @@ What you get on the remote server:
 | **app container**        | Your app with supervisor managing API + queue worker + scheduler |
 | **auto-migrate**         | Runs `db:migrate --seed` on first deploy (one-shot)              |
 
-```bash
+::: code-group
+
+```bash [npm]
 # Promote: test locally first, then deploy remote
 npm run maker deploy:workflow:promote
 
 # Import a database dump
 npm run maker deploy:db:import:remote -- --file=deploy/nexgen.sql
 ```
+
+```bash [pnpm]
+# Promote: test locally first, then deploy remote
+pnpm maker deploy:workflow:promote
+
+# Import a database dump
+pnpm maker deploy:db:import:remote --file=deploy/nexgen.sql
+```
+
+```bash [yarn]
+# Promote: test locally first, then deploy remote
+yarn maker deploy:workflow:promote
+
+# Import a database dump
+yarn maker deploy:db:import:remote --file=deploy/nexgen.sql
+```
+
+```bash [bun]
+# Promote: test locally first, then deploy remote
+bun maker deploy:workflow:promote
+
+# Import a database dump
+bun maker deploy:db:import:remote --file=deploy/nexgen.sql
+```
+
+:::
 
 The system auto-detects your database dialect, package manager, and runtime — the generated Dockerfile works with npm, pnpm, yarn, and Bun. See [Deploy Overview](/deploy/overview) for the full architecture.
 

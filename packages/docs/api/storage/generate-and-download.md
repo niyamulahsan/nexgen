@@ -3,6 +3,8 @@
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
+
 // POST /generate — create temp file
 export const generateCsv: Handler = async (c: any) => {
   const csv = ["id,title", "1,nexgen report", "2,temporary file"].join("\n");
@@ -35,6 +37,8 @@ export const downloadCsv: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 // POST /generate — create temp file
 export const generateCsv = async (req: Request, res: Response) => {
   const csv = ["id,title", "1,nexgen report", "2,temporary file"].join("\n");
@@ -70,7 +74,11 @@ export const downloadCsv = async (req: Request, res: Response) => {
 
 ### Generate Styled Excel
 
-```ts
+::: code-group
+
+```ts [Hono]
+import type { Handler } from "hono";
+
 export const generateExcel: Handler = async (c: any) => {
   const ExcelJS = (await import("exceljs")).default;
   const body = c.req.valid("json") as { title: string };
@@ -123,6 +131,65 @@ export const generateExcel: Handler = async (c: any) => {
   });
 };
 ```
+
+```ts [Express]
+// modules/report/controllers/report-export.controller.ts (generate route)
+import type { Request, Response } from "express";
+
+export const generateExcel = async (req: Request, res: Response) => {
+  const ExcelJS = (await import("exceljs")).default;
+  const body = req.body as { title: string }; // validated in place
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Data");
+
+  // Title row
+  sheet.mergeCells("A1:C1");
+  sheet.getCell("A1").value = body.title;
+  sheet.getCell("A1").font = { bold: true, size: 14 };
+
+  // Header row
+  sheet.addRow(["ID", "Title", "Length"]);
+  sheet.getRow(2).font = { bold: true };
+
+  // Data rows
+  const rows = [
+    { id: 1, title: "nexgen framework" },
+    { id: 2, title: "file generation" },
+  ];
+  for (const row of rows) {
+    sheet.addRow([row.id, row.title, row.title.length]);
+  }
+
+  // Totals
+  sheet.addRow([
+    "Subtotal",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
+  sheet.addRow([
+    "Grand Total",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
+
+  sheet.columns = [{ width: 10 }, { width: 38 }, { width: 14 }];
+
+  const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+  const token = await storage.generateForDownload({
+    prefix: "report",
+    extension: "xlsx",
+    data: buffer,
+  });
+
+  res.json({
+    token,
+    downloadUrl: `/download/excel/${encodeURIComponent(token)}`,
+  });
+};
+```
+
+:::
 
 ### Stream Excel for Very Large Data (`generateForDownloadStream`)
 
@@ -200,7 +267,11 @@ export const exportReport = async (req: Request, res: Response) => {
 
 ### Generate PDF with Playwright (HTML → PDF)
 
-```ts
+::: code-group
+
+```ts [Hono]
+import type { Handler } from "hono";
+
 export const generatePdf: Handler = async (c: any) => {
   const { chromium } = await import("playwright");
   const body = c.req.valid("json") as { title: string; rows: number };
@@ -226,11 +297,46 @@ export const generatePdf: Handler = async (c: any) => {
 };
 ```
 
+```ts [Express]
+// modules/report/controllers/report-export.controller.ts (generate PDF route)
+import type { Request, Response } from "express";
+
+export const generatePdf = async (req: Request, res: Response) => {
+  const { chromium } = await import("playwright");
+  const body = req.body as { title: string; rows: number }; // validated in place
+
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(buildHtml(body), { waitUntil: "networkidle" });
+    const pdf = await page.pdf({ format: "A4", printBackground: true });
+
+    const token = await storage.generateForDownload({
+      prefix: "report",
+      extension: "pdf",
+      data: pdf,
+    });
+    res.json({
+      token,
+      downloadUrl: `/download/pdf/${encodeURIComponent(token)}`,
+    });
+  } finally {
+    await browser.close();
+  }
+};
+```
+
+:::
+
 ### Large PDF Generation (Queued + Status Polling)
 
 For heavy reports, generate in a background worker and poll for the result:
+::: code-group
 
-```ts
+```ts [Hono]
+import type { Handler } from "hono";
+import crypto from "node:crypto";
+
 // Controller: queue the work
 export const generatePdfQueued: Handler = async (c: any) => {
   const body = c.req.valid("json");
@@ -257,7 +363,7 @@ export const generatePdfQueued: Handler = async (c: any) => {
 };
 
 // Controller: poll status, then serve
-export const downloadPdf: Handler = async (c) => {
+export const downloadPdf: Handler = async (c: any) => {
   const requestId = c.req.param("requestId");
   const status = await cache.get(`pdf:status:${requestId}`);
 
@@ -275,7 +381,59 @@ export const downloadPdf: Handler = async (c) => {
     },
   });
 };
+```
 
+```ts [Express]
+// modules/report/controllers/report-export.controller.ts
+import type { Request, Response } from "express";
+import crypto from "node:crypto";
+
+// Controller: queue the work
+export const generatePdfQueued = async (req: Request, res: Response) => {
+  const body = req.body; // validated in place
+  const requestId = crypto.randomUUID();
+
+  await cache.put(`pdf:status:${requestId}`, { state: "pending" }, 1800);
+  await dispatchCommand(
+    "report.pdf.generate",
+    { requestId, ...body },
+    {
+      async: true,
+      queue: "default",
+    },
+  );
+
+  res.status(202).json({
+    requestId,
+    statusUrl: `/pdf/${requestId}`,
+    downloadUrl: `/pdf/${requestId}`,
+  });
+};
+
+// Controller: poll status, then serve
+export const downloadPdf = async (req: Request, res: Response) => {
+  const requestId = req.params.requestId;
+  const status = await cache.get(`pdf:status:${requestId}`);
+
+  if (!status) return res.status(404).json({ message: "Unknown request" });
+  if (status.state === "pending")
+    return res.status(202).json({ state: "pending" });
+  if (status.state === "failed")
+    return res.status(500).json({ message: status.message });
+
+  const file = await storage.consumeGenerated(status.token);
+  await cache.forget(`pdf:status:${requestId}`);
+  res
+    .status(200)
+    .set("content-type", "application/pdf")
+    .set("content-disposition", "attachment; filename=report.pdf")
+    .send(file);
+};
+```
+
+:::
+
+```ts
 // Worker
 shouldQueue("report.pdf.generate", "default", async (job) => {
   const { requestId, title, rows } = job.data;
@@ -291,4 +449,3 @@ shouldQueue("report.pdf.generate", "default", async (job) => {
   }
 });
 ```
-

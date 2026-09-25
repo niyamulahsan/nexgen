@@ -6,11 +6,11 @@
 
 Every nexgen storage entry knows its file's MIME from the **extension** — that's the "Content-Type is set from the file" you see in the download helpers. This is exactly what `generateForDownload` / `consumeGenerated` do internally with the `extension` you pass. When you stream the file yourself, reproduce it with the same lookup so `Content-Type` is correct and the browser renders it (instead of offering to download):
 
-| Your need | Facade call to get the MIME |
-| --- | --- |
-| Buffered read + MIME, one go | `const buf = await disk.read(path); const t = await disk.mime(path);` |
+| Your need                              | Facade call to get the MIME                                               |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| Buffered read + MIME, one go           | `const buf = await disk.read(path); const t = await disk.mime(path);`     |
 | Streaming read + MIME, media/PDF force | `const t = await disk.mime(path); const s = await disk.readStream(path);` |
-| Inline vs download | `Content-Disposition: inline` → show; `attachment; filename=…` → download |
+| Inline vs download                     | `Content-Disposition: inline` → show; `attachment; filename=…` → download |
 
 ## Read Back an Uploaded PDF (Inline Preview)
 
@@ -33,7 +33,7 @@ export const getStoredPdf: Handler = async (c: any) => {
   return new Response(stream as any, {
     headers: {
       "content-type": mime,
-      "content-disposition": `inline`,  // show, don't download
+      "content-disposition": `inline`, // show, don't download
       "content-length": String(await disk.size(path)),
     },
   });
@@ -70,6 +70,8 @@ For uploads you want to display as text (logs, `.txt`, JSON, generated code), th
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
+
 export const getStoredText: Handler = async (c: any) => {
   const path = "imports/" + c.req.param("file");
   const disk = storage.disk("private");
@@ -81,6 +83,8 @@ export const getStoredText: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 export const getStoredText = async (req: Request, res: Response) => {
   const path = "imports/" + req.params.file;
   const disk = storage.disk("private");
@@ -117,6 +121,8 @@ There's no first-party .xlsx viewer — **the browser cannot inline-render Excel
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
+
 export const getStoredWorkbook: Handler = async (c: any) => {
   const path = "uploads/" + c.req.param("file"); // e.g. uploads/store-list.xlsx
   const disk = storage.disk("public");
@@ -132,6 +138,8 @@ export const getStoredWorkbook: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 export const getStoredWorkbook = async (req: Request, res: Response) => {
   const path = "uploads/" + req.params.file;
   const disk = storage.disk("public");
@@ -157,6 +165,8 @@ Same idea, `inline` disposition — used for avatars, galleries, anything the cl
 ::: code-group
 
 ```ts [Hono]
+import type { Handler } from "hono";
+
 export const getStoredImage: Handler = async (c: any) => {
   const path = "avatars/" + c.req.param("file");
   const disk = storage.disk("public");
@@ -169,6 +179,8 @@ export const getStoredImage: Handler = async (c: any) => {
 ```
 
 ```ts [Express]
+import type { Request, Response } from "express";
+
 export const getStoredImage = async (req: Request, res: Response) => {
   const path = "avatars/" + req.params.file;
   const disk = storage.disk("public");
@@ -188,11 +200,11 @@ export const getStoredImage = async (req: Request, res: Response) => {
 
 ## Rule of Thumb — Which Server Helper For What
 
-| Scenario | Helper | Disposition |
-| --- | --- | --- |
-| Inline browser view — PDF / image / audio / video | `disk.mime` + `disk.readStream` | `inline` |
-| Inline text — `.txt` / `.json` / `.log` | `disk.mime` + `disk.read` | `inline` |
-| Re-downloadable stored file (Excel / CSV / whatever) | `disk.mime` + `disk.readStream` | `attachment` |
+| Scenario                                               | Helper                                                                   | Disposition  |
+| ------------------------------------------------------ | ------------------------------------------------------------------------ | ------------ |
+| Inline browser view — PDF / image / audio / video      | `disk.mime` + `disk.readStream`                                          | `inline`     |
+| Inline text — `.txt` / `.json` / `.log`                | `disk.mime` + `disk.read`                                                | `inline`     |
+| Re-downloadable stored file (Excel / CSV / whatever)   | `disk.mime` + `disk.readStream`                                          | `attachment` |
 | One-time generated temp (PDF report, export CSV/Excel) | `generateForDownload` / `generateForDownloadStream` + `consumeGenerated` | `attachment` |
 
 > **Same-disk pairing:** the read-back controller must target the **same disk** the upload wrote to. If the upload route used `storage.disk("tmp").writeStream(...)` and the read-back route uses `storage.disk("public").readStream(...)`, the file silently 404s — the two disks are different directories. Keep them paired (upload → `public`, read → `public`), or move the tmp file to the permanent disk after processing before exposing it.

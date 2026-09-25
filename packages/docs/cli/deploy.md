@@ -261,7 +261,7 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
 | --------------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
 | `--force`                   | `deploy:init`                                | Overwrite existing deploy files                                       |
 | `--runtime=node\|bun`       | `deploy:init`                                | Choose Dockerfile runtime                                             |
-| `--pm=npm\|pnpm\|yarn\|bun` | `deploy:init`                                | Package manager for the node runtime (default: auto-detect)           |
+| `--pm=npm\|pnpm\|yarn` | `deploy:init`                                | Package manager for the node runtime (default: auto-detect)           |
 | `--app-only`                | `deploy:init`, workflows                     | Skip server infra, only app                                           |
 | `--server-only`             | `deploy:init`, workflows                     | Skip app, only server infra                                           |
 | `--dev`                     | `deploy:init`                                | Server infra in dev mode (exposed Redis port)                         |

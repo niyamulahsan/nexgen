@@ -16,6 +16,8 @@ export const securityMiddleware: MiddlewareHandler = async (c, next) => {
       c.header("Strict-Transport-Security", securityConfig.hstsMaxAge);
     }
     c.header("X-Frame-Options", securityConfig.xFrame);
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("Referrer-Policy", "strict-origin-when-cross-origin");
   }
   await next();
 };

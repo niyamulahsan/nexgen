@@ -237,8 +237,12 @@ await dispatchEvent(
 );
 ```
 
-```ts
+::: code-group
+
+```ts [Hono]
 // modules/report/controllers/report-export.controller.ts (download route)
+import type { Handler } from "hono";
+
 export const download: Handler = async (c: any) => {
   const { token } = c.req.valid("param");
   const auth = c.get("auth"); // Express: const auth = res.locals.auth
@@ -251,17 +255,22 @@ export const download: Handler = async (c: any) => {
 };
 ```
 
-```ts
+```ts [Express]
 // Express engine version of the same controller
+import type { Request, Response } from "express";
+
 export const download = async (req: Request, res: Response) => {
   const token = req.params.token; // validated in place
   const auth = res.locals.auth;
-  if (!token.includes(`report_${auth.id}`))
+  if (!token.includes(`report_${auth.id}`)) {
     return res.status(403).json({ message: "Unauthorized" });
+  }
   const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
   res.status(200).set("Content-Type", "application/octet-stream").send(buffer);
 };
 ```
+
+:::
 
 ### Stream a file
 

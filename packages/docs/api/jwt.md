@@ -7,9 +7,9 @@ Guide: [JWT](./../guide/support/jwt).
 ## Signature
 
 | Function            | Signature                                                          | Description                                                    |
-| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------- |
+| ------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
 | `jwt.generateToken` | `(payload, type, expirySeconds?) => Promise<{ token, jti?, exp }>` | Sign HS256 access/refresh token with `iat`/`exp`/`type` claims |
-| `jwt.verifyToken`   | `(token, type) => Promise<object \| null>`                                                         | Verify signature/expiry and enforce token type |
+| `jwt.verifyToken`   | `(token, type) => Promise<object \| null>`                         | Verify signature/expiry and enforce token type                 |
 
 ## Use cases
 
@@ -25,7 +25,9 @@ const payload = await jwt.verifyToken(token, "access"); // null if invalid
 
 ### Real world — issue access + refresh
 
-```ts
+::: code-group
+
+```ts [Hono]
 const accessToken = await jwt.generateToken(
   { id: user.id, email: user.email, remember },
   "access",
@@ -49,9 +51,37 @@ await cookie.setAuth(c, accessToken.token);
 await cookie.setRefresh(c, refreshToken.token, refreshExpiry);
 ```
 
+```ts [Express]
+const accessToken = await jwt.generateToken(
+  { id: user.id, email: user.email, remember },
+  "access",
+);
+const refreshToken = await jwt.generateToken(
+  { id: user.id, email: user.email, remember },
+  "refresh",
+  refreshExpiry,
+);
+
+if (refreshToken.jti) {
+  await db.insert(refreshTokens).values({
+    userId: user.id,
+    jti: refreshToken.jti,
+    revoked: 0,
+    expiresAt: new Date(refreshToken.exp * 1000),
+  });
+}
+
+cookie.setAuth(res, accessToken.token);
+cookie.setRefresh(res, refreshToken.token, refreshExpiry);
+```
+
+:::
+
 ### Real world — revoke on logout
 
-```ts
+::: code-group
+
+```ts [Hono]
 const token = await cookie.getRefresh(c);
 if (token) {
   const payload = await jwt.verifyToken(token, "refresh");
@@ -63,6 +93,21 @@ if (token) {
 cookie.deleteAuth(c);
 cookie.deleteRefresh(c);
 ```
+
+```ts [Express]
+const token = cookie.getRefresh(req);
+if (token) {
+  const payload = await jwt.verifyToken(token, "refresh");
+  if (payload?.jti)
+    await db
+      .delete(refreshTokens)
+      .where(eq(refreshTokens.jti, payload.jti as string));
+}
+cookie.deleteAuth(res);
+cookie.deleteRefresh(res);
+```
+
+:::
 
 ## Notes
 

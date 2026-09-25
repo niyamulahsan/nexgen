@@ -14,8 +14,16 @@ Declares a fully documented route — path, method, tags, request (`params`/`que
 
 ### Basic route
 
-````ts
-import { createRoute, group, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
+::: code-group
+
+```ts [Hono]
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+} from "@/framework/facade.js";
 
 const listRoute = createRoute({
   path: "/",
@@ -27,21 +35,34 @@ const listRoute = createRoute({
   },
 });
 
-::: code-group
-
-```ts [Hono]
 export default group().api(listRoute, async (c) => c.json(await listPosts()));
-````
+```
 
 ```ts [Express]
+import {
+  createRoute,
+  group,
+  HttpStatusCodes,
+  jsonContent,
+  z,
+} from "@/framework/facade.js";
+
+const listRoute = createRoute({
+  path: "/",
+  method: "get",
+  tags: ["Posts"],
+  summary: "List all posts",
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(z.array(PostSchema), "list of posts"),
+  },
+});
+
 export default group().api(listRoute, async (_req, res) =>
   res.json(await listPosts()),
 );
 ```
 
 :::
-
-````
 
 ### Request bodies & params
 
@@ -51,20 +72,24 @@ const storeRoute = createRoute({
   method: "post",
   tags: ["Posts"],
   request: { body: jsonContent(CreatePostSchema, "post data") },
-  responses: { [HttpStatusCodes.CREATED]: jsonContent(PostSchema, "created post") },
+  responses: {
+    [HttpStatusCodes.CREATED]: jsonContent(PostSchema, "created post"),
+  },
 });
 
 const showRoute = createRoute({
   path: "/{id}",
   method: "get",
   tags: ["Posts"],
-  request: { params: z.object({ id: z.coerce.number().openapi({ example: 1 }) }) },
+  request: {
+    params: z.object({ id: z.coerce.number().openapi({ example: 1 }) }),
+  },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(PostSchema, "post details"),
     [HttpStatusCodes.NOT_FOUND]: { description: "Post not found" },
   },
 });
-````
+```
 
 ### Real world — the auth router
 

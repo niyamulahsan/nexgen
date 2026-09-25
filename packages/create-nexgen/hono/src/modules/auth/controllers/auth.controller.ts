@@ -109,10 +109,7 @@ export const register: Handler = async (c: any) => {
 export const login: Handler = async (c: any) => {
   try {
     const body = c.req.valid("json");
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, body.email),
-      with: { role: true }
-    });
+    const user = await db.query.users.findFirst({ where: eq(users.email, body.email), with: { role: true } });
 
     if (!user || !(await password.verifyPassword(body.password, user.password))) {
       return c.json({ message: "Invalid credentials" }, HttpStatusCodes.UNAUTHORIZED);
@@ -205,7 +202,8 @@ export const forgotPassword: Handler = async (c: any) => {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email)
     });
-    if (!user) return c.json({ message: "If this email exists, a reset link has been sent" }, HttpStatusCodes.OK);
+
+    if (!user) return c.json({ message: "Reset link has been sent" }, HttpStatusCodes.OK);
 
     const plainToken = makeResetToken();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -221,7 +219,7 @@ export const forgotPassword: Handler = async (c: any) => {
     const resetUrl = urls.url(`/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
     await dispatchEvent("user:forget-password", { email: user.email, name: user.name, resetUrl }, { queue: "mail" });
 
-    return c.json({ message: "If this email exists, a reset link has been sent" }, HttpStatusCodes.OK);
+    return c.json({ message: "Reset link passed" }, HttpStatusCodes.OK);
   } catch (error) {
     console.error("Forgot password error:", error);
     return c.json({ message: "Failed to process forgot password request" }, HttpStatusCodes.INTERNAL_SERVER_ERROR);

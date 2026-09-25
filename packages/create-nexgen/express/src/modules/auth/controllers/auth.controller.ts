@@ -98,10 +98,7 @@ export const register = async (req: Request, res: Response, _next: NextFunction)
 export const login = async (req: Request, res: Response, _next: NextFunction) => {
   try {
     const body = req.body;
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, body.email),
-      with: { role: true }
-    });
+    const user = await db.query.users.findFirst({ where: eq(users.email, body.email), with: { role: true } });
 
     if (!user || !(await password.verifyPassword(body.password, user.password))) {
       return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Invalid credentials" });
@@ -131,7 +128,7 @@ export const login = async (req: Request, res: Response, _next: NextFunction) =>
 
 export const me = async (_req: Request, res: Response, _next: NextFunction) => {
   try {
-    const auth = res.locals.auth as { id: number } | undefined;
+    const auth = res.locals.auth as { id: number; } | undefined;
     const user = await db.query.users.findFirst({
       where: eq(users.id, auth.id),
       with: { role: true }
@@ -173,7 +170,8 @@ export const forgotPassword = async (req: Request, res: Response, _next: NextFun
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email)
     });
-    if (!user) return res.status(HttpStatusCodes.OK).json({ message: "If this email exists, a reset link has been sent" });
+
+    if (!user) return res.status(HttpStatusCodes.OK).json({ message: "Reset link has been sent" });
 
     const plainToken = makeResetToken();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
@@ -189,7 +187,7 @@ export const forgotPassword = async (req: Request, res: Response, _next: NextFun
     const resetUrl = urls.url(`/reset-password?token=${plainToken}&email=${encodeURIComponent(user.email)}`);
     await dispatchEvent("user:forget-password", { email: user.email, name: user.name, resetUrl }, { queue: "mail" });
 
-    return res.status(HttpStatusCodes.OK).json({ message: "If this email exists, a reset link has been sent" });
+    return res.status(HttpStatusCodes.OK).json({ message: "Reset link passed" });
   } catch (error) {
     console.error("Forgot password error:", error);
     return res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Failed to process forgot password request" });
@@ -342,7 +340,7 @@ export const refreshToken = async (req: Request, res: Response, _next: NextFunct
 
 export const logoutAllDevices = async (_req: Request, res: Response, _next: NextFunction) => {
   try {
-    const auth = res.locals.auth as { id: number } | undefined;
+    const auth = res.locals.auth as { id: number; } | undefined;
 
     if (!auth) return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
 

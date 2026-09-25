@@ -47,36 +47,36 @@ server.ts
   │
   ├─ 1. createKernel()
   │       │
-  │       ├─ storage.init()                    Initialize storage driver (local/S3)
+  │       ├─ storage.init()                           Initialize storage driver (local/S3)
   │       │
-  │       ├─ initRedis()                      Connect Redis (if REDIS=true)
+  │       ├─ initRedis()                              Connect Redis (if REDIS=true)
   │       │
-  │       ├─ createHttpApp()                   Build the HTTP app with middleware stack
+  │       ├─ createHttpApp()                          Build the HTTP app with middleware stack
   │       │    │
-  │       │    ├─ createRouter()               Create the engine router instance
-  │       │    ├─ configureOpenApi()           Setup OpenAPI/Scalar UI (if OPEN_API=true)
-  │       │    ├─ app.use("*", sessionMiddleware)      Session cookie + Redis
-  │       │    ├─ app.use("*", corsMiddleware)         CORS headers
-  │       │    ├─ app.use("*", loggerMiddleware)       Request logging
-  │       │    ├─ app.use("*", rateLimiterMiddleware)  Rate limiting
-  │       │    ├─ app.use("/storage/*", static)        Serve uploaded files
-  │       │    ├─ app.get("/health")                   Health endpoint
+  │       │    ├─ createRouter()                      Create the engine router instance
+  │       │    ├─ configureOpenApi()                  Setup OpenAPI/Scalar UI (if OPEN_API=true)
+  │       │    ├─ app.use("*", sessionMiddleware)     Session cookie + Redis
+  │       │    ├─ app.use("*", corsMiddleware)        CORS headers
+  │       │    ├─ app.use("*", loggerMiddleware)      Request logging
+  │       │    ├─ app.use("*", rateLimiterMiddleware) Rate limiting
+  │       │    ├─ app.use("/storage/*", static)       Serve uploaded files
+  │       │    ├─ app.get("/health")                  Health endpoint
   │       │    ├─ app.notFound(notFound)              404 handler
-  │       │    └─ app.onError(onError)                 Error handler
+  │       │    └─ app.onError(onError)                Error handler
   │       │
-  │       ├─ initDatabase()                   Connect database (SQLite/MySQL/Postgres)
-  │       ├─ bootQueueJobs()                  Register queue job handlers
-  │       ├─ registerModuleRoutes(app)        Auto-discover & register module routes
-  │       ├─ setupQueueDashboard()                 Setup BullMQ dashboard UI
+  │       ├─ initDatabase()                           Connect database (SQLite/MySQL/Postgres)
+  │       ├─ bootQueueJobs()                          Register queue job handlers
+  │       ├─ registerModuleRoutes(app)                Auto-discover & register module routes
+  │       ├─ setupQueueDashboard()                    Setup BullMQ dashboard UI
   │       └─ UI static (if UI=true & build exists)
   │
-  ├─ 2. serve(app)                           Start HTTP listener on APP_PORT
-  │                                            (Hono via @hono/node-server, Express via app.listen)
+  ├─ 2. serve(app)                                    Start HTTP listener on APP_PORT
+  │                                                   (Hono via @hono/node-server, Express via app.listen)
   │
-  ├─ 3. initRealtime(server)                  Attach Socket.IO to HTTP server
-  ├─ 4. setupSocketAdminUI()                  Socket.IO admin dashboard
+  ├─ 3. initRealtime(server)                          Attach Socket.IO to HTTP server
+  ├─ 4. setupSocketAdminUI()                          Socket.IO admin dashboard
   │
-  └─ 5. registerShutdownSignals(shutdown)     Graceful cleanup on SIGINT/SIGTERM
+  └─ 5. registerShutdownSignals(shutdown)             Graceful cleanup on SIGINT/SIGTERM
 ```
 
 ### Stage 1 — HTTP App (`http/app.ts`)
@@ -85,7 +85,7 @@ server.ts
 
 ```
 Request → sessionMiddleware → corsMiddleware → loggerMiddleware
-  → rateLimiterMiddleware → [module routes] → response
+→ rateLimiterMiddleware → [module routes] → response
 ```
 
 Stack details:

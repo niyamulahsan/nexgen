@@ -4,6 +4,24 @@ import type { Request, Response } from "express";
 import { jwtConfig } from "@/config/index.js";
 import { cookie, db, jwt } from "@/framework/facade.js";
 import { refreshTokens } from "@/modules/auth/database/models/user.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+export function hasRole(auth: any, rolesToMatch: string[]) {
+  const role = String(auth?.role || "").toLowerCase();
+  return rolesToMatch.includes(role);
+}
+
+export async function getCurrentUser(auth: any) {
+  if (!auth?.id) return null;
+  return db.query.users.findFirst({
+    where: eq(users.id, Number(auth.id)),
+    with: { role: true },
+    columns: {
+      password: false,
+      rememberToken: false,
+    }
+  });
+}
 
 export function sanitizeUser(user: any) {
   return {
@@ -44,7 +62,7 @@ export async function revokeCurrentRefreshToken(req: Request, _res: Response) {
   }
 }
 
-export async function issueTokens(_req: Request, res: Response, user: any, options?: { remember?: boolean }) {
+export async function issueTokens(_req: Request, res: Response, user: any, options?: { remember?: boolean; }) {
   const remember = !!options?.remember;
   const refreshExpiry = remember ? jwtConfig.refreshRememberExpirySeconds : jwtConfig.refreshExpirySeconds;
   const role = user.role || null;

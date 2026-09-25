@@ -84,6 +84,21 @@ function dashboardAuth() {
   const allowedEmails = allowedQueueDashboardEmails();
 
   return async (req: Request, res: Response, next: NextFunction) => {
+    /**
+     * Why: The email allowlist is the ONLY gate on the queue dashboard UI.
+     * When: No `allowedEmails` configured → the dashboard is open to everyone
+     *      in both dev and production (no login required). When configured,
+     *      only the listed email(s) pass — everyone else is blocked.
+     * Where: BullMQ dashboard route middleware.
+     * How: An empty allowlist short-circuits straight through; otherwise the
+     *      requester's email (from the validated access token) must be in the
+     *      set. This keeps BullMQ workers (mail delivery etc.) always running
+     *      and gating strictly UI-only.
+     */
+    if (allowedEmails.size === 0) {
+      return next();
+    }
+
     const rawToken = await cookie.getAuth(req);
     if (!rawToken) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -99,7 +114,7 @@ function dashboardAuth() {
       .trim()
       .toLowerCase();
 
-    if (allowedEmails.size > 0 && !allowedEmails.has(email)) {
+    if (!allowedEmails.has(email)) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 

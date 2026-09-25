@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { HttpStatusCodes } from "@/framework/facade.js";
 import { validate } from "@/framework/facade.js";
 import { Create{{ClassName}}Schema, Update{{ClassName}}Schema, {{ClassName}}IdParamsSchema } from "@/modules/{{module}}/controllers/{{controller}}.schema.js";
 
@@ -28,7 +29,7 @@ export const show = async (req: Request, res: Response) => {
  */
 export const store = async (req: Request, res: Response) => {
   await validate(Create{{ClassName}}Schema, req.body);
-  res.status(201).json({ message: "{{controller}} created successfully" });
+  res.status(HttpStatusCodes.CREATED).json({ message: "{{controller}} created successfully" });
 };
 
 /**

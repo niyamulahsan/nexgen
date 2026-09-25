@@ -28,8 +28,8 @@ The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, 
 const publicRoute = createRouter()
   .group(loginLimiter)
   .api(registerRoute, register)
-  .api(loginRoute, login)
-  // ...
+  .api(loginRoute, login);
+// ...
 ```
 
 It uses **IP-based** keying so a single IP cannot exceed the login limit regardless of how many sessions it opens.
@@ -42,16 +42,16 @@ Edit `src/config/rateLimit.ts`:
 
 ```ts
 export const rateLimitConfig = {
-  windowMs: 60000,       // 1 minute window
-  maxRequests: 500,      // per window (global)
-  loginMaxRequests: 60,  // per window (login, per IP)
+  windowMs: 60000, // 1 minute window
+  maxRequests: 500, // per window (global)
+  loginMaxRequests: 60, // per window (login, per IP)
   keyPrefix: `${redisConfig.prefix}:rl`,
 };
 ```
 
 ### Per-route customization
 
-To apply a different limit to a specific route group, create a new limiter in your route file:
+To apply a different limit to a specific route group, create a new limiter in your route file or middleware file:
 
 ::: code-group
 
@@ -85,20 +85,20 @@ router.post("/upload", uploadLimiter, uploadHandler);
 
 ### Source files
 
-| File | What it controls |
-|---|---|
-| `src/config/rateLimit.ts` | Rate limit settings (window, max, login max) |
+| File                                | What it controls                                                     |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| `src/config/rateLimit.ts`           | Rate limit settings (window, max, login max)                         |
 | `src/framework/http/ratelimiter.ts` | Core limiter logic — lazy singleton, store selection, key generation |
-| `src/framework/http/app.ts` | Where `rateLimiterMiddleware` is registered globally |
-| `src/modules/auth/routes/api.ts` | Where `loginLimiter` is applied to public auth routes |
+| `src/framework/http/app.ts`         | Where `rateLimiterMiddleware` is registered globally                 |
+| `src/modules/auth/routes/api.ts`    | Where `loginLimiter` is applied to public auth routes                |
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `REDIS` | `false` | Enable Redis for persistent rate limiting across restarts |
-| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis connection string |
-| `REDIS_PREFIX` | `nexgen` | Key prefix for namespacing |
+| Variable       | Default                  | Description                                               |
+| -------------- | ------------------------ | --------------------------------------------------------- |
+| `REDIS`        | `false`                  | Enable Redis for persistent rate limiting across restarts |
+| `REDIS_URL`    | `redis://127.0.0.1:6379` | Redis connection string                                   |
+| `REDIS_PREFIX` | `nexgen`                 | Key prefix for namespacing                                |
 
 ## How It Works
 
