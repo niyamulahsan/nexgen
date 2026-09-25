@@ -3,7 +3,6 @@
 ## [3.2.1] — 2026-09-24
 
 ### Fixed
-- **Storage docs "Real world — deferred export download" and "Large Import — Multipart → tmp → Queue Import"** — the hono-only upload/export examples are now paired `::: code-group` tabs with an Express twin each, using `import type { Handler } from "hono"`; the large-import page also documents that the import route only enqueues and the actual work runs engine-agnostically under the `shouldQueue`-registered job. The BullMQ worker and mail delivery paths are never gated — gating is strictly UI-only.
 
 - **Scaffolder maker-cli runtime injects the dev UI origin into the spawned API** -- `create-nexgen`'s maker-cli runtime (`express`/`hono` `framework/maker-cli/runtime/core.mjs` and `core.mts`, line 214) sets `NEXGEN_FRONTEND_URL: "http://localhost:5173"` on the API child process it spawns when the UI is enabled but the built SPA is absent (Vite dev server still running) -- this is the dev-without-build branch the URL resolver consumes. Byte-identical across both engines; shipped via `create-nexgen@latest` / `nexgen@latest`.
 
@@ -24,8 +23,6 @@
 - **Guide intro auth examples used the wrong token expiries** — the `jwt.generateToken` snippets passed `3600` for access and `604800` (7 days) for refresh, contradicting the actual config (`900` = 15 min access, `3600` = 1 hour refresh, `2592000` = 30 days "remember me"). Fixed the examples to use the defaults and show the remember-me tier. The expiry logic in `auth.helpers.ts`/`jwt.ts`/`cookie.ts` was verified correct and engine-consistent.
 
 - **Guide intro "Self Deploy to VPS" showed only npm commands** — converted both deploy command blocks (init/remote and promote/import) into `::: code-group` tabs for **npm**, **pnpm**, **yarn**, and **bun**, matching the other guides. `--file=` flag syntax per package manager (`npm run maker` uses `-- --file=…`; direct `maker` calls use `--file=…`).
-
-- **Docs examples imported `Handler` as a value from `hono`** — `Handler` is a type-only export, so all 9 occurrences across 7 docs pages (`api/validate.md`, `api/storage/index.md`, `guide/auth.md`, `guide/notification.md`, `guide/openapi.md` ×2, `guide/routing.md`, `guide/storage.md` ×2) now use `import type { Handler } from "hono"`, matching the hono engine's own controller stubs. **express** docs use their engine-native express imports, which are unrelated — docs live in the single shared `packages/docs` tree (not per-engine mirror).
 
 ### Changed
 
