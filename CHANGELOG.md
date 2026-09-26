@@ -3,7 +3,6 @@
 ## [3.2.1] — 2026-09-24
 
 ### Fixed
-- **Scaffolded README advertised the wrong engine** — the Features table said "Hono HTTP server", so a project scaffolded with `--engine=express` shipped a README claiming Hono. Now "Hono/Express HTTP server" across all six copies (root `README.md`, `template/{express,hono}/README.md`, `packages/create-nexgen/README.md`, `packages/create-nexgen/{express,hono}/README.md`). The four scaffolded copies are byte-identical (blob `af0e791`) and the table column alignment is preserved.
 
 - **Scaffolder maker-cli runtime injects the dev UI origin into the spawned API** -- `create-nexgen`'s maker-cli runtime (`express`/`hono` `framework/maker-cli/runtime/core.mjs` and `core.mts`, line 214) sets `NEXGEN_FRONTEND_URL: "http://localhost:5173"` on the API child process it spawns when the UI is enabled but the built SPA is absent (Vite dev server still running) -- this is the dev-without-build branch the URL resolver consumes. Byte-identical across both engines; shipped via `create-nexgen@latest` / `nexgen@latest`.
 
