@@ -59,13 +59,13 @@ Works with any package manager: `pnpm`, `yarn`, or `bun`.
 
 All examples use `npm` as the default. nexgen works with any major package manager:
 
-| Manager  | Create project                    | Run commands          |
-| -------- | --------------------------------- | --------------------- |
-| **npm**  | `npm create nexgen@latest my-app` | `npm run maker <cmd>` |
-| **pnpm** | `pnpm create nexgen@latest my-app`| `pnpm maker <cmd>`    |
-| **yarn** | `yarn create nexgen@latest my-app`| `yarn maker <cmd>`    |
-| **bun**  | `bun create nexgen@latest my-app` | `bun maker <cmd>`     |
-| **all**  | `npm create nexgen@latest .`      | current directory     |
+| Manager  | Create project                     | Run commands          |
+| -------- | ---------------------------------- | --------------------- |
+| **npm**  | `npm create nexgen@latest my-app`  | `npm run maker <cmd>` |
+| **pnpm** | `pnpm create nexgen@latest my-app` | `pnpm maker <cmd>`    |
+| **yarn** | `yarn create nexgen@latest my-app` | `yarn maker <cmd>`    |
+| **bun**  | `bun create nexgen@latest my-app`  | `bun maker <cmd>`     |
+| **all**  | `npm create nexgen@latest .`       | current directory     |
 
 ### Runtime
 
@@ -212,12 +212,14 @@ If nexgen helps you build faster, consider supporting the project:
 
 <p>
   <a href="https://www.supportkori.com/niyam" target="_blank">
-    <img src="https://img.shields.io/badge/Support-Kori-ff6f00?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Kori">
+    <img src="https://img.shields.io/badge/Support-Local_(BD)-ff6f00?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Kori">
   </a>
-  <a href="https://github.com/sponsors/niyamulahsan">
-    <img src="https://img.shields.io/badge/GitHub-Sponsors-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors">
+  <a href="https://github.com/niyamulahsan/nexgen/blob/main/DONATE.md">
+    <img src="https://img.shields.io/badge/International-Bank_Transfer-0070ba?style=for-the-badge&logo=bank&logoColor=white" alt="Bank Transfer">
   </a>
 </p>
+
+🌍 **International supporters:** see [DONATE.md](https://github.com/niyamulahsan/nexgen/blob/main/DONATE.md) for wire transfer details.
 
 ## License
 
