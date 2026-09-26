@@ -78,7 +78,7 @@ nexgen runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 
 | Category            | What you get                                                                           |
 | ------------------- | -------------------------------------------------------------------------------------- |
-| **API**             | Hono HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting         |
+| **API**             | Hono/Express HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting |
 | **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
 | **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware          |
 | **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard           |
