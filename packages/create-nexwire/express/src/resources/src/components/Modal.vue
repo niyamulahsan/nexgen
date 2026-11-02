@@ -39,31 +39,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-
-type ModalSize = "sm" | "md" | "lg" | "xl" | string;
+import { Modal } from "bootstrap";
+import { onMounted, ref } from "vue";
 
 interface ModalProps {
   id: string;
   title?: string;
-  size?: ModalSize;
+  size?: string;
 }
-
-defineOptions({ name: "Modal", inheritAttrs: false });
 
 const props = withDefaults(defineProps<ModalProps>(), {
   title: "",
-  size: "md",
+  size: "md"
 });
 
 const modal = ref<HTMLElement | null>(null);
-const closeButton = ref<HTMLButtonElement | null>(null);
+let bsModal: Modal | null = null;
 
-const close = () => {
-  closeButton.value?.click();
-};
+onMounted(() => {
+  if (modal.value) {
+    bsModal = new Modal(modal.value);
+  }
+});
 
-defineExpose({ close });
+const open = () => bsModal?.show();
+const close = () => bsModal?.hide();
+
+defineExpose({ open, close });
 </script>
 
 <style lang="scss" scoped></style>

@@ -17,7 +17,7 @@ src/modules/<module>/
 ├── schemas/           # Zod validation schemas
 ├── services/          # Business logic — DB, files, network
 ├── types/             # Shared TypeScript types
-├── providers/           # Swappable implementations the module offers
+├── providers/         # Swappable implementations the module offers
 └── facade.ts          # The module's public API
 ```
 
@@ -76,11 +76,11 @@ The first command writes `src/modules/notification/` — table model, default st
 
 A second notification module (for example a panel-specific mount) is generated with the same command. Default name is `notification`.
 
-| Flag | Default | Effect |
-| --- | --- | --- |
-| `--path=<panel>` | — | Nest the module under a panel folder |
-| `--notifiable=<type>` | `user` | Owner type the generated controller writes |
-| `--force` | — | Overwrite a module that already exists |
+| Flag                  | Default | Effect                                     |
+| --------------------- | ------- | ------------------------------------------ |
+| `--path=<panel>`      | —       | Nest the module under a panel folder       |
+| `--notifiable=<type>` | `user`  | Owner type the generated controller writes |
+| `--force`             | —       | Overwrite a module that already exists     |
 
 The command always writes the controller, schemas and routes. It writes the store — `database/models/notification.ts`, `providers/notification.ts`, `jobs/mail.ts` — only when no module already owns one, because the store is a singleton. When it writes the store it prints the `module:migrate` command for the new table. A second notification module is another HTTP surface over the same table, not a second table and a second provider. The Vue UI is manual: see [Notification](/guide/notification).
 
@@ -168,7 +168,7 @@ bun maker module:make-test blog post
 | `module:make-middleware <m> [name]` | `middlewares/<name>.ts`                 | Route-scoped middleware — register it in a route file          |
 | `module:make-type <m> [name]`       | `types/<name>.ts`                       | `Record`, `Result` and `ListResult` interfaces                 |
 | `module:make-model <m> [name]`      | `database/models/<name>.ts`             | Dialect-aware: SQLite, MySQL or PostgreSQL                     |
-| `module:make-seeder <m> [name]`     | `database/seeders/<name>.ts`            | Bound to the model when one matches, standalone otherwise       |
+| `module:make-seeder <m> [name]`     | `database/seeders/<name>.ts`            | Bound to the model when one matches, standalone otherwise      |
 | `module:make-job <m> [name]`        | `jobs/<name>.ts`                        | `shouldQueue` worker pattern                                   |
 | `module:make-console <m> [name]`    | `console/<name>.ts`                     | `defineSchedule` cron pattern                                  |
 | `module:make-test <m> [name]`       | `__tests__/<name>.test.ts`              | Vitest unit test                                               |
@@ -506,14 +506,14 @@ import { sendNotification } from "@/modules/shared/notifications.js";
 
 ### Decision guide
 
-| Where does the logic live?                                       | Where does it go?                                   |
-| ---------------------------------------------------------------- | --------------------------------------------------- |
-| Auth-flavored, needed by most modules                            | `auth` module → export via facade                   |
-| Generic, needed by 2+ modules                                    | `src/modules/shared/`                               |
-| Only used inside one module                                      | that module's `helpers/`                            |
-| Framework-stable, every app needs (e.g. `db`, `jwt`, `password`) | the facade (`@/framework/facade.js`)            |
-| A swappable implementation the whole app uses (e.g. auth, payments) | `src/providers/` — see [Providers](./providers) |
-| A swappable implementation one module offers the app | `src/modules/<name>/providers.ts` — see [Providers](./providers) |
+| Where does the logic live?                                          | Where does it go?                                                |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Auth-flavored, needed by most modules                               | `auth` module → export via facade                                |
+| Generic, needed by 2+ modules                                       | `src/modules/shared/`                                            |
+| Only used inside one module                                         | that module's `helpers/`                                         |
+| Framework-stable, every app needs (e.g. `db`, `jwt`, `password`)    | the facade (`@/framework/facade.js`)                             |
+| A swappable implementation the whole app uses (e.g. auth, payments) | `src/providers/` — see [Providers](./providers)                  |
+| A swappable implementation one module offers the app                | `src/modules/<name>/providers.ts` — see [Providers](./providers) |
 
 > If a module is the foundation every other module already depends on (like `auth`), other modules may import from its facade. For **any other** module, cross-module imports go through facades — reaching into internals is a smell; extract instead.
 

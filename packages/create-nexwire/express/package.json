@@ -1,11 +1,11 @@
 {
   "name": "nexwire-express",
-  "private": true,
-  "type": "module",
   "version": "1.0.0",
+  "private": true,
   "bin": {
     "maker": "./src/framework/maker-cli/index.mjs"
   },
+  "type": "module",
   "scripts": {
     "build": "npm run build:all",
     "build:all": "npm run build:backend && npm run build:ui",
@@ -38,8 +38,8 @@
     "@scalar/express-api-reference": "^0.10.19",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-adapter": "^8.3.0",
-    "@unhead/vue": "^3.4.3",
     "@types/multer": "^2.2.0",
+    "@unhead/vue": "^3.4.3",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vuepic/vue-datepicker": "^14.0.0",
     "@vueuse/core": "^14.4.0",
@@ -83,31 +83,6 @@
     "vue-select": "^4.0.0-beta.6",
     "zod": "^4.6.7"
   },
-  "overrides": {
-    "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.12"
-    },
-    "@maildev/mcp": {
-      "zod": "^4.6.7"
-    },
-    "@maildev/smtp": {
-      "jsdom": "^27.4.0",
-      "nodemailer": "^10.2.1"
-    },
-    "redis-commander": {
-      "express": "^4.22.3",
-      "body-parser": "^1.20.9",
-      "bcrypt": "npm:bcryptjs@^3.0.3",
-      "bcryptjs": "^3.0.3"
-    }
-  },
-  "allowScripts": {
-    "@parcel/watcher": true,
-    "esbuild": true,
-    "msgpackr-extract": true,
-    "redis-commander": true,
-    "vue-demi": true
-  },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
     "@types/bootstrap": "^5.2.11",
@@ -126,10 +101,35 @@
     "vitest": "^5.0.5",
     "vue-tsc": "^3.3.13"
   },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    },
+    "@maildev/mcp": {
+      "zod": "^4.6.7"
+    },
+    "@maildev/smtp": {
+      "jsdom": "^27.4.0",
+      "nodemailer": "^10.2.1"
+    },
+    "redis-commander": {
+      "express": "^4.22.3",
+      "body-parser": "^1.20.9",
+      "bcrypt": "npm:bcryptjs@^3.0.3",
+      "bcryptjs": "^3.0.3"
+    }
+  },
   "engines": {
-    "node": ">=22.12.0",
     "bun": ">=1.3",
+    "node": ">=22.12.0",
     "pnpm": ">=11",
     "yarn": ">=4"
+  },
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "esbuild": true,
+    "msgpackr-extract": true,
+    "redis-commander": true,
+    "vue-demi": true
   }
 }

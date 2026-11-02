@@ -33,9 +33,5 @@
   },
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "vue.format.script.enabled": false,
-  "vue.format.template.enabled": false,
-  "vue.format.style.enabled": false,
-  "vue.validate.enabled": true
+  "files.insertFinalNewline": true
 }
