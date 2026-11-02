@@ -22,7 +22,7 @@ app.use("*", rateLimiterMiddleware);
 
 ## Login Limiter
 
-The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`) in `src/modules/auth/routes/api.ts`:
+The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`) in `src/modules/auth/routes/index.ts`:
 
 ```ts
 const publicRoute = createRouter()
@@ -90,7 +90,7 @@ router.post("/upload", uploadLimiter, uploadHandler);
 | `src/config/rateLimit.ts`           | Rate limit settings (window, max, login max)                         |
 | `src/framework/http/ratelimiter.ts` | Core limiter logic — lazy singleton, store selection, key generation |
 | `src/framework/http/app.ts`         | Where `rateLimiterMiddleware` is registered globally                 |
-| `src/modules/auth/routes/api.ts`    | Where `loginLimiter` is applied to public auth routes                |
+| `src/modules/auth/routes/index.ts`    | Where `loginLimiter` is applied to public auth routes              |
 
 ## Environment Variables
 
