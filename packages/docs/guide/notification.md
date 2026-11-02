@@ -98,7 +98,7 @@ bun maker module:delete-notification notification --yes
 
 Moves the backend module to `src/storage/trash/modules/`. UI files (if any) are user-managed. The `notifications` table stays in the database; remove it with a migration if you no longer need the data.
 
-### API Routes
+## API Routes
 
 All routes are mounted at `/api/notification` behind `authMiddleware`:
 
@@ -199,7 +199,7 @@ await notify(userId, {
   broadcast: true,
 });
 
-// Save + broadcast + send email (queued to "mail" queue)
+// Save + broadcast + send email (queued when Redis is available)
 await notify(userId, {
   type: "warning",
   title: "Password Expiring",
@@ -230,13 +230,13 @@ await notify({ type: "team", id: 7 }, { title: "..." });     // { type: "team", 
 
 | Option      | Type      | Default  | Description                                                                                                                          |
 | ----------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `type`      | `string`  | `"info"` | Category: `info`, `success`, `warning`, `error`                                                                                      |
+| `type`      | `string`  | `"info"` | Free-form category. Conventional values are `info`, `success`, `warning`, `error`, but any key works (`"invoice.paid"`, `"chat.mention"`). |
 | `title`     | `string`  | —        | **Required.** Notification title                                                                                                     |
 | `body`      | `string`  | —        | Notification body text                                                                                                               |
 | `link`      | `string`  | —        | Click-through URL                                                                                                                    |
 | `data`      | `object`  | —        | Arbitrary JSON stored in `data` column                                                                                               |
-| `broadcast` | `boolean` | `false`  | Emit `"notification.created"` via Socket.IO to user                                                                                  |
-| `mail`      | `object`  | —        | `{ subject?, html?, to? }` — sends email via mail queue. Recipient resolved via `mail.to` or the auth provider's `getUserContact()`. |
+| `broadcast` | `boolean` | `false`  | Emit `"notification.created"` via Socket.IO to the user's `user:<id>` room                                                            |
+| `mail`      | `object`  | —        | `{ subject?, html?, to? }` — queues the email when Redis is available, sends directly otherwise. Recipient resolved via `mail.to` or the auth provider's `getUserContact()`. |
 
 ### Recipient resolution
 
@@ -279,11 +279,172 @@ notify(target, { broadcast: true, mail: { ... } })
   │     └─ Socket.IO emits to room "user:<id>"
   │
   └─ 4. If mail option:
-        └─ dispatchEvent("notification:mail", ..., { queue: "mail" })
-            └─ BullMQ Worker sends email
+        ├─ recipient = mail.to, else authProvider.getUserContact(target.id)
+        ├─ Redis available → dispatchEvent("notification:mail", ..., { queue: "mail" })
+        │                    └─ the module's mail job sends it
+        └─ otherwise → mail.sendMail(...) directly
 ```
 
 If no provider is registered — the module was never generated, or it was deleted and nothing replaced it — `notify()` logs one warning naming the generator command and returns `null` instead of throwing.
+
+## Delivery channels
+
+`notify()` always stores through the provider, then does up to two extra things: an optional realtime broadcast and an optional email. **Those are the only two delivery paths that exist today.** There is no channel registry, and `type` is not a delivery method.
+
+| You want | Today |
+| --- | --- |
+| In-app history and bell | `notify()` — the record is what `/api/notification` reads |
+| Live badge/dropdown | `notify(..., { broadcast: true })` — emits `notification.created` to the `user:<id>` room |
+| Email | `notify(..., { mail: { ... } })` — queued when Redis is available, direct send otherwise |
+| SMS, push, webhook, chat | Not built in. Send it yourself next to `notify()` and ignore the returned `null` if the store is optional |
+| A new category | Just pass it as `type` — `"invoice.paid"`, `"chat.mention"`, anything |
+
+::: tip `type` vs delivery
+Two independent axes: `type` is **what the notification is**, delivery is **how it travels**. `type` is free-form and already unlimited; delivery is fixed to broadcast + mail until a channel contract exists.
+:::
+
+Adding SMS or push today means keeping the transport in your own code. A small helper keeps the call site readable:
+
+```ts
+import { getProvider, notify } from "@/framework/facade.js";
+import type { SmsProvider } from "@/providers/sms.js";
+
+export async function notifyBySms(target: number | string, phone: string, title: string, body: string) {
+  const record = await notify(target, { type: "info", title, body });
+
+  const sms = getProvider<SmsProvider>("sms");
+  if (sms && record) await sms.send({ to: phone, body: `${title}\n${body}` });
+
+  return record;
+}
+```
+
+Do not overload `type` (`type: "sms"`) expecting delivery — it only changes the stored category.
+
+## Custom storage provider
+
+`resolveNotificationProvider()` reads the `notification` key. The generated Drizzle provider registers it; registering your own **replaces storage** for both `notify()` and `/api/notification/*`.
+
+Replace it when you want a different table, a remote service, or a test double. You do not need to touch the controllers — they resolve the provider on every request.
+
+```ts
+// src/providers/notification.ts — imported automatically at boot
+import { randomUUID } from "node:crypto";
+import { registerNotificationProvider } from "@/framework/facade.js";
+import type {
+  NotifiableTarget,
+  NotificationRecord,
+  NotificationProvider
+} from "@/framework/facade.js";
+
+const rows: NotificationRecord[] = [];
+
+function ownedBy(row: NotificationRecord, target: NotifiableTarget) {
+  return row.notifiableType === (target.type ?? "user") && row.notifiableId === String(target.id);
+}
+
+const memoryProvider: NotificationProvider = {
+  async create(target, input) {
+    const record: NotificationRecord = {
+      id: randomUUID(),
+      notifiableType: target.type ?? "user",
+      notifiableId: String(target.id),
+      type: input.type ?? "info",
+      title: input.title,
+      body: input.body ?? null,
+      data: input.data ?? null,
+      link: input.link ?? null,
+      readAt: null,
+      createdAt: new Date().toISOString()
+    };
+    rows.unshift(record);
+    return record;
+  },
+
+  async list(target, options = {}) {
+    const mine = rows.filter((row) => ownedBy(row, target));
+    const page = Math.max(1, options.page ?? 1);
+    const perPage = Math.min(100, Math.max(1, options.perPage ?? 20));
+    return {
+      data: mine.slice((page - 1) * perPage, page * perPage),
+      total: mine.length,
+      unread: mine.filter((row) => !row.readAt).length,
+      page,
+      perPage
+    };
+  },
+
+  async unreadCount(target) {
+    return rows.filter((row) => ownedBy(row, target) && !row.readAt).length;
+  },
+
+  async markRead(target, id) {
+    const row = rows.find((item) => ownedBy(item, target) && item.id === String(id));
+    if (!row) return false;
+    row.readAt = new Date().toISOString();
+    return true;
+  },
+
+  async markAllRead(target) {
+    const unread = rows.filter((row) => ownedBy(row, target) && !row.readAt);
+    for (const row of unread) row.readAt = new Date().toISOString();
+    return unread.length;
+  },
+
+  async remove(target, id) {
+    const index = rows.findIndex((item) => ownedBy(item, target) && item.id === String(id));
+    if (index === -1) return false;
+    rows.splice(index, 1);
+    return true;
+  },
+
+  async deleteForTarget(target) {
+    const kept = rows.filter((row) => !ownedBy(row, target));
+    const removed = rows.length - kept.length;
+    rows.length = 0;
+    rows.push(...kept);
+    return removed;
+  }
+};
+
+registerNotificationProvider(memoryProvider);
+```
+
+The generated provider at `src/modules/notification/providers/notification.ts` is the Drizzle reference: same methods, SQL instead of arrays.
+
+### What a custom provider does not replace
+
+| Stays in `notify()` | Consequence |
+| --- | --- |
+| Broadcast | `broadcast: true` still emits `notification.created`; a custom store cannot disable it |
+| Email | `mail: { ... }` still resolves the recipient and sends; it is not the provider's job |
+| The HTTP surface | Routes come from the generated module. A provider without the module has no `/api/notification/*` |
+
+### Which states are normal
+
+| Setup | `notify()` | `/api/notification/*` |
+| --- | --- | --- |
+| Module generated | Stores in the `notifications` table | `200` |
+| Module + custom provider | Stores in the custom store | `200`, same custom store |
+| Custom provider, no module | Stores in the custom store | `404` — the routes belong to the module |
+| Module, provider removed | Warns once, returns `null` | `503` — provider unavailable |
+| Neither | Warns once, returns `null` | `404` |
+
+`503` means "the routes exist but storage is missing". `404` means the module was never generated — run `module:make-notification notification`.
+
+### Testing with a fake
+
+Register a fake provider in the test, then clear it so the next test starts clean:
+
+```ts
+import { clearNotificationProvider, registerNotificationProvider } from "@/framework/facade.js";
+
+afterEach(() => clearNotificationProvider());
+```
+
+The in-memory provider above works as the fake; nothing in it touches the database.
+
+The full contract table is in [Providers → The notification contract](./providers#the-notification-contract).
 
 ## Usage Example: Controller
 
