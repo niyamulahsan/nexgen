@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.2.5] — 2026-10-31
+## [4.2.5] — 2026-11-02
 
 ### Fixed
 
@@ -11,6 +11,10 @@
 
 - **Template (both engines) / Scaffolder**: `npm run typecheck:ui` (`vue-tsc --noEmit -p src/resources/tsconfig.json`) and `vue-tsc ^3.3.13` as a dev dependency. The root `tsc --noEmit` excludes `src/resources`, and the Vite build strips types without checking them, so the 4.2.4 head regression shipped even though the backend typecheck was green. `build:ui` now runs the UI typecheck first, so a red squiggle in `src/resources` fails the build instead of reaching npm.
 - **Template (both engines) / Scaffolder**: `src/resources/src/helpers/assets.ts` adds a default `asset()` helper that resolves an image path to the URL Vite emits, so paths computed at runtime work in both dev and production. It accepts `@/...`, `/...`, `../...` and full `http(s)`/`data:` URLs: `@/` and `/` normalize to `/src/...`, `../` is matched against the glob keys by suffix, and an unknown path warns and returns the input unchanged. The helper eagerly globs `png`, `jpg`, `jpeg`, `svg`, `webp` and `gif` under `/src`, so every matching image is hashed and copied by the build. It is UI-only (`import.meta.glob`) and documented in `guide/resources/helpers.md`; the resources index lists it.
+
+### Changed
+
+- **Docs**: the guides are restructured so auth, middleware, roles, providers and notifications can be implemented from the documentation alone, without reading the template source. `guide/middleware.md` is new and canonical — where middleware lives, `group()` vs per-route arrays, ordering and short-circuiting, the `next()` rules, `c.set`/`res.locals`, the verified global and route-level stacks, and how to test one — and `routing.md` keeps a short pointer to it instead of duplicating the API. `guide/auth.md` is reordered task-first (protect a route, then what the middleware does) and fixes the 401-vs-degraded contradiction: with a provider, an unauthenticated request is always `401`; with **no** provider the middleware logs a warning and passes the request through unauthenticated, so handlers must check for a missing `auth`. It also documents the seeded `admin`/`user` roles and demo password, the `401`/`403` split, the "role must be a string" caveat that breaks `requireRole` when a provider returns `{ id, name }`, `hasRole(auth, ["admin"])` with its real array signature, the auth module map, and that registering a provider replaces rather than extends the built-in one. `guide/providers.md` gains "One file, a folder, or a module?" with the loader's actual rules — every file in `src/providers/**` is imported at boot, while a module's `drivers/` folder stays cold because only `providers.ts` and `providers/*.ts` are imported — plus the SMS-vs-OTP capability/domain split and the note that `provider:make` only writes a flat file. `guide/notification.md` documents `type` as a free-form category, corrects mail delivery to "queued when Redis is available, direct otherwise", and adds the delivery matrix (broadcast and mail are the only built-in paths; SMS, push and webhook are your own code) plus a complete custom `NotificationProvider` example with the `200`/`404`/`503` state matrix. Eight pages that showed `routes/api.ts` now show the file the generator actually writes, `routes/index.ts`.
 
 ## [4.2.4] — 2026-10-25
 
