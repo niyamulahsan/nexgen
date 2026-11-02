@@ -192,6 +192,7 @@ Applied by the framework in `src/framework/http/app.ts`, so every request runs t
 | `corsMiddleware` | CORS headers |
 | `sessionMiddleware` | Session cookie + id |
 | `securityMiddleware` | Security headers |
+| inline request counter | Increments the counters exposed at `/metrics` |
 | `loggerMiddleware` | Request logging (when `loggingConfig.httpRequests` is true in `config/logging.ts`) |
 | `rateLimiterMiddleware` | Global rate limiting |
 | `storageStaticMiddleware` | Serves `storage/` (Express: mounted at `/storage`) |
