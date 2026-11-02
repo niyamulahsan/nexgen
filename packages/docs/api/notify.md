@@ -16,7 +16,7 @@ Creates a user-visible notification through the registered notification provider
 
 | Option      | Type      | Default  | Description                                              |
 | ----------- | --------- | -------- | -------------------------------------------------------- |
-| `type`      | `string`  | `"info"` | Category: `info`, `success`, `warning`, `error`          |
+| `type`      | `string`  | `"info"` | Free-form category — `info`, `success`, `warning`, `error`, or any key you choose (`"invoice.paid"`) |
 | `title`     | `string`  | —        | **Required.** Notification title                         |
 | `body`      | `string`  | —        | Body text                                                |
 | `link`      | `string`  | —        | Click-through URL                                        |
@@ -119,10 +119,13 @@ channel.listen("notification.created", (payload) => {
 ```
 notify(target, { broadcast: true, mail: { ... } })
   ├─ 1. resolveNotificationProvider() — registered provider, else null
-  ├─ 2. provider.create(target, input)
-  ├─ 3. dispatchEvent("notification.created", normalized, { broadcast: { users: [normalizedTarget.id] } })
+  │      └─ null → log one warning, return null (no throw)
+  ├─ 2. provider.create(target, input) → normalized record
+  ├─ 3. If broadcast: dispatchEvent("notification.created", normalized, { broadcast: { users: [id] } })
   │      └─ Socket.IO emits to room "user:<id>"
-  └─ 4. If mail option:
+  └─ 4. If mail:
+         ├─ recipient = mail.to, else authProvider.getUserContact(id)
+         │      └─ neither → no email is sent
          ├─ Redis available → dispatchEvent("notification:mail", ..., { queue: "mail" })
          │      └─ BullMQ worker sends the email
          └─ Redis off → mail.sendMail({ to, subject, html }) directly

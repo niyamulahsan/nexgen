@@ -44,7 +44,7 @@ export const TypeQuerySchema = z.object({
 
 ### Inline response composition
 
-Tiny response shapes stay inline in routes (`auth/routes/api.ts`):
+Tiny response shapes stay inline in routes (`auth/routes/index.ts`):
 
 ```ts
 responses: {

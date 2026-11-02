@@ -94,7 +94,7 @@ const showRoute = createRoute({
 ### Real world — the auth router
 
 ```ts
-// modules/auth/routes/api.ts
+// modules/auth/routes/index.ts
 const loginRoute = createRoute({
   path: "/login",
   method: "post",

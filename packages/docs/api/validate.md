@@ -85,7 +85,7 @@ export const TypeQuerySchema = z.object({
 ```
 
 ```ts
-// modules/auth/routes/api.ts — composed response schema
+// modules/auth/routes/index.ts — composed response schema
 responses: {
   [HttpStatusCodes.OK]: jsonContent(
     z.object({ message: z.string(), data: z.array(UserSchema) }),

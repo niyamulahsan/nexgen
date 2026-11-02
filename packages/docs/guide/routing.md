@@ -19,7 +19,7 @@ The framework exposes the same facade (`createRoute`, `group`, `HttpStatusCodes`
 Every route file exports a `group()` that collects route handlers:
 
 ```ts
-// src/modules/posts/routes/api.ts
+// src/modules/posts/routes/index.ts
 import {
   createRoute,
   group,

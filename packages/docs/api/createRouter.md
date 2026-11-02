@@ -30,7 +30,7 @@ export default createRouter()
 ### Real world — the auth router
 
 ```ts
-// modules/auth/routes/api.ts
+// modules/auth/routes/index.ts
 const publicRoute = createRouter()
   .group(loginLimiter)
   .api(loginRoute, login)

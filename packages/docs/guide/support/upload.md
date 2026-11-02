@@ -17,7 +17,7 @@ import { upload, fields } from "@/framework/facade.js";
 Attach `upload({ field })` to a route. Multer parses the incoming file into `req.file`:
 
 ```ts
-// src/modules/files/routes/api.ts
+// src/modules/files/routes/index.ts
 import type { Request, Response } from "express";
 import {
   createRoute,

@@ -34,7 +34,7 @@ export const posts = pgTable("posts", {
 ```
 
 ```ts
-// src/modules/posts/routes/api.ts
+// src/modules/posts/routes/index.ts
 import { db, group, paginateModel } from "@/framework/facade.js";
 import { posts } from "../database/models/post.js";
 
@@ -142,7 +142,7 @@ Here is a minimal example (with `OPEN_API=true`):
 ::: code-group
 
 ```ts [Hono]
-// src/modules/posts/routes/api.ts
+// src/modules/posts/routes/index.ts
 import {
   createRoute,
   group,
@@ -163,7 +163,7 @@ export default group().api(listRoute, (c) =>
 ```
 
 ```ts [Express]
-// src/modules/posts/routes/api.ts
+// src/modules/posts/routes/index.ts
 import {
   createRoute,
   group,

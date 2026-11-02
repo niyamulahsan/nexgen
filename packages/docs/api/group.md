@@ -36,7 +36,7 @@ export default createRouter()
 ### Real world — role middleware arrays
 
 ```ts
-// modules/auth/routes/api.ts
+// modules/auth/routes/index.ts
 .createRouter()
   .group(authMiddleware)
   .api(usersIndexRoute, [requireRole("supreme", "superadmin", "admin")], usersIndex)
