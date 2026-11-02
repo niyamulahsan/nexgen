@@ -43,6 +43,7 @@ All paths are relative to `src/modules/<module>/`.
 | schema     | `schemas/`          | `*.ts`      | `post.ts`           |
 | service    | `services/`         | `*.ts`      | `post.ts`           |
 | type       | `types/`            | `*.ts`      | `post.ts`           |
+| provider   | `providers/`        | `<name>.ts` | `notification.ts`   |
 | **facade** | `facade.ts` (root)  | —           | `facade.ts`         |
 
 A scaffolded module looks like this:
@@ -72,6 +73,7 @@ src/modules/blog/
 │   └── post.ts
 ├── types/
 │   └── post.ts
+├── providers/
 └── facade.ts
 ```
 
@@ -91,6 +93,17 @@ stable when you move a file between folders.
 `helpers/`, `services/`, and `middlewares/` are created empty (`.gitkeep`) by
 default — fill them with the matching `module:make-*` command when needed.
 :::
+
+## App-level providers
+
+Providers are capabilities, and capabilities can be app-wide or module-scoped:
+
+| Scope | Location | Who writes it |
+| --- | --- | --- |
+| App-wide | `src/providers/` | You — the capability is shared by the whole app (e.g. SMS) |
+| Module-scoped | `src/modules/<module>/providers/` | The module — the capability that module offers (e.g. a module's own notification store) |
+
+See [Providers](/guide/providers) for the layout rules (single file vs folder vs module) and the contracts.
 
 ## helper vs service — not the same
 

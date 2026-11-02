@@ -17,6 +17,7 @@ src/modules/<module>/
 ├── schemas/           # Zod validation schemas
 ├── services/          # Business logic — DB, files, network
 ├── types/             # Shared TypeScript types
+├── providers/           # Swappable implementations the module offers
 └── facade.ts          # The module's public API
 ```
 
