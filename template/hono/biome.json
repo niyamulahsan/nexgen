@@ -6,30 +6,44 @@
     "useIgnoreFile": true
   },
   "html": {
-    "experimentalFullSupportEnabled": true
+    "experimentalFullSupportEnabled": true,
+    "formatter": {
+      "enabled": true
+    }
   },
   "formatter": {
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 140,
-    "bracketSameLine": true
+    "bracketSameLine": false
   },
   "files": {
     "includes": [
       "**",
-      "!**/*.vue"
+      "!**/node_modules"
     ]
   },
   "linter": {
     "rules": {
       "preset": "recommended",
+      "a11y": {
+        "noLabelWithoutControl": "off",
+        "useButtonType": "off",
+        "useSemanticElements": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off",
+        "useValidAnchor": "off",
+        "useAnchorContent": "off",
+        "noDistractingElements": "off"
+      },
       "correctness": {
         "noUnusedVariables": "off",
         "useVueValidTemplateRoot": "off",
         "noUnusedImports": "off"
       },
       "complexity": {
-        "noUselessEscapeInRegex": "off"
+        "noUselessEscapeInRegex": "off",
+        "noImportantStyles": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
