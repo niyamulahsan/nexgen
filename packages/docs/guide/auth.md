@@ -235,7 +235,7 @@ The provider is a **data adapter**, not a whole auth system. It answers two ques
 1. Who is the user with this id? (`getUserById`)
 2. Is this refresh token still valid? (`findRefreshToken`)
 
-Its contract is `AuthProvider`; the required methods are `getUserById` and `findRefreshToken`, and three more are optional. The full contract table is in [Providers → The built-in auth contract](./providers#the-built-in-auth-contract).
+Its contract is `AuthProvider`; the required methods are `getUserById` and `findRefreshToken`, and four more are optional. The full contract table is in [Providers → The built-in auth contract](./providers#the-built-in-auth-contract).
 
 ```ts
 // src/providers/auth.ts — imported automatically at boot

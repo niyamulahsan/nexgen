@@ -323,7 +323,7 @@ Do not overload `type` (`type: "sms"`) expecting delivery — it only changes th
 
 ## Custom storage provider
 
-`resolveNotificationProvider()` reads the `notification` key. The generated Drizzle provider registers it; registering your own **replaces storage** for both `notify()` and `/api/notification/*`.
+`resolveNotificationProvider()` reads the `notification` key. The generated Drizzle provider registers it; registering your own **replaces storage** for both `notify()` and `/api/notification/*`. Registration is last-wins and `src/providers/` is imported after `src/modules/`, so an app-wide provider wins over the generated one without deleting it.
 
 Replace it when you want a different table, a remote service, or a test double. You do not need to touch the controllers — they resolve the provider on every request.
 

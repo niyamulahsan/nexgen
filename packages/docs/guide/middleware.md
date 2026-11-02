@@ -221,7 +221,7 @@ import { authMiddleware } from "@/middlewares/auth-middleware.js";
 export default group(authMiddleware).api(meRoute, me);
 ```
 
-Two outcomes to know about:
+Three outcomes to know about:
 
 - **Authenticated request** — handler reads `auth`.
 - **No valid token** — `401`, and the cookies are cleared.

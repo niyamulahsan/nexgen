@@ -145,7 +145,7 @@ Module-scoped providers are covered in [Module providers](#module-providers).
 ### Rules the loader enforces
 
 1. **The key is the capability, not the vendor.** Register `"sms"`, not `"twilio"`. The vendor is configuration (`SMS_DRIVER`), so consumers never change.
-2. **One registrar per key.** Registration overwrites. With several files registering the same key, the last one imported wins, silently.
+2. **One registrar per key.** Registration overwrites. With several files registering the same key, the last one imported wins, silently. Files are imported in sorted path order, so `src/providers/` always loads after `src/modules/` — an app-wide registrar wins over a module's registrar for the same key.
 3. **Provider files must be import-safe.** No network calls, no client construction, no `throw` at module scope. The loader catches a failing file, logs a warning and continues — so a broken provider simply does not exist.
 4. **`getProvider()` returns `null`.** Consumers decide whether to throw, fall back, or degrade. `notify()` degrades; a payment provider should probably throw.
 5. **Never import an implementation.** Read it through `getProvider<T>(key)` so swapping vendors stays a one-line change.
