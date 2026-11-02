@@ -22,7 +22,7 @@ export default createRouter().api(
 );
 ```
 
-See [Routing > Middleware](./../guide/routing) for the full middleware API.
+See [Middleware](/guide/middleware) for the full middleware API.
 
 ## `middleware:make <name>`
 

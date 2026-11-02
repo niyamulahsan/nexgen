@@ -188,7 +188,7 @@ This creates `src/modules/blog/routes/post.ts` and auto-links it to the most rec
 
 ## Middleware
 
-Apply middleware per-route or per-group (API identical on both engines):
+Middleware runs before route handlers. Apply it to a group or to a single route — identical on both engines:
 
 ```ts
 import { group } from "@/framework/facade.js";
@@ -197,75 +197,12 @@ import { requireRole } from "@/middlewares/role-middleware.js";
 
 export default group(authMiddleware) // all routes require auth
   .api(listRoute, index)
-  .api(showRoute, [requireRole("admin")], show); // only admin role
+  .api(showRoute, [requireRole("admin")], show); // admin only
 ```
 
-To create your own middleware, use the `middleware:make` CLI command and fill in the engine-specific signature — see [Middleware Commands](../cli/middleware):
+`authMiddleware` authenticates; `requireRole` authorises. Order matters — run auth first.
 
-### Generating Middleware
-
-::: code-group
-
-```bash [npm]
-npm run maker middleware:make ratelimit
-```
-
-```bash [pnpm]
-pnpm maker middleware:make ratelimit
-```
-
-```bash [yarn]
-yarn maker middleware:make ratelimit
-```
-
-```bash [bun]
-bun maker middleware:make ratelimit
-```
-
-:::
-
-This creates `src/middlewares/ratelimit-middleware.ts` into middlewares folder.
-
-::: code-group
-
-```ts [Hono]
-// src/middlewares/rate-limit-middleware.ts
-import type { Context, Next } from "hono";
-import { db } from "@/framework/facade.js";
-
-export async function ratelimitMiddleware(c: Context, next: Next) {
-  c.set("note", "checked"); // share data with handlers via c.get()
-  return await next();
-}
-```
-
-```ts [Express]
-// src/middlewares/rate-limit-middleware.ts
-import type { NextFunction, Request, Response } from "express";
-import { db } from "@/framework/facade.js";
-
-export function ratelimitMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  res.locals.note = "checked"; // share data with handlers via res.locals
-  return next();
-}
-```
-
-:::
-
-## Built-in Middleware
-
-The framework applies these globally in `src/framework/http/app.ts`:
-
-| Middleware              | Purpose                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `corsMiddleware`        | CORS headers                                                                       |
-| `sessionMiddleware`     | Session cookie + ID                                                                |
-| `rateLimiterMiddleware` | Global rate limiting                                                               |
-| `loggerMiddleware`      | Request logging (when `loggingConfig.httpRequests` is true in `config/logging.ts`) |
+Running order, writing your own, sharing data with handlers, the global stack and the full list of built-in middleware live in [Middleware](./middleware). Generate a new file with `middleware:make` — see [Middleware Commands](../cli/middleware).
 
 ## Request Validation
 
