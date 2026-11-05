@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cpSync, readFileSync, writeFileSync, rmSync, renameSync, existsSync } from "node:fs";
+import { cpSync, readFileSync, writeFileSync, rmSync, renameSync, existsSync, readdirSync, mkdirSync } from "node:fs";
 import { join, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -81,6 +81,54 @@ function reportEnvDrift(examplePath, envPath, name) {
   console.log(`  [${name}] .env differs from .env.example — this ships: ${parts.join("; ")}`);
 }
 
+/**
+ * Normalize the synced scaffold to a fresh-checkout state. The template
+ * working tree is doubles as a local build area, and build output is NOT
+ * gitignored at every depth (only `public/*` is), so it can silently land in
+ * the published package. Never publish:
+ *
+ * - `src/storage/logs/*`     request logs from local runs/tests
+ * - `public/*`               `vite build` output (outDir is "../../public")
+ * - `deploy/`                `maker deploy:init`
+ * - `dist/`                  `tsc` output
+ *
+ * The published package keeps `.gitkeep` markers so the folder layout is
+ * identical everywhere.
+ */
+function sanitizeScaffold(dest, name) {
+  const resetToGitkeep = (dir, label) => {
+    if (existsSync(dir)) {
+      for (const entry of readdirSync(dir)) {
+        if (entry === ".gitkeep") continue;
+        rmSync(join(dir, entry), { recursive: true, force: true });
+      }
+    } else {
+      mkdirSync(dir, { recursive: true });
+    }
+    const marker = join(dir, ".gitkeep");
+    if (!existsSync(marker)) writeFileSync(marker, "");
+    if (readdirSync(dir).some((entry) => entry !== ".gitkeep")) {
+      console.error(`  [${name}] ${label} still contains build output - refusing to publish it`);
+      process.exit(1);
+    }
+  };
+
+  resetToGitkeep(join(dest, "public"), "public/");
+  resetToGitkeep(join(dest, "src", "storage", "logs"), "src/storage/logs/");
+
+  // Build output folders never ship - the engine root is the only place
+  // `maker deploy:init` writes, so a deep `dist/` is already excluded by the
+  // copy filter above; this catches the root case and anything else that slips.
+  for (const dir of ["deploy", "dist"]) {
+    const target = join(dest, dir);
+    rmSync(target, { recursive: true, force: true });
+    if (existsSync(target)) {
+      console.error(`  [${name}] ${dir}/ could not be removed from the scaffold - refusing to publish it`);
+      process.exit(1);
+    }
+  }
+}
+
 function syncEngine(name, { src, dest }) {
   if (!existsSync(src)) {
     console.error(`Error: ${name} template not found at`, src);
@@ -145,6 +193,9 @@ function syncEngine(name, { src, dest }) {
     if (pinned !== original) writeFileSync(envPath, pinned);
   }
   reportEnvDrift(join(dest, ".env.example"), join(dest, ".env"), name);
+
+  // Strip the working-tree artifacts that carry request data or build output.
+  sanitizeScaffold(dest, name);
 }
 
 const requested = process.argv[2]?.toLowerCase();
