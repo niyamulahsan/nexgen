@@ -21,11 +21,11 @@ const mailBreaker = createCircuitBreaker({ name: "SMTP Mail" });
 
 export const mail = {
   /**
-  * Why: Sends transactional email through configured SMTP transport.
-  * When: Features need notifications/password reset/signup email.
-  * Where: Jobs and event handlers.
-  * How: Uses nodemailer transport and respects the fail-silent setting.
-  */
+   * Why: Sends transactional email through configured SMTP transport.
+   * When: Features need notifications/password reset/signup email.
+   * Where: Jobs and event handlers.
+   * How: Uses nodemailer transport and respects the fail-silent setting.
+   */
   async sendMail(payload: MailPayload) {
     try {
       return await mailBreaker.exec(() =>

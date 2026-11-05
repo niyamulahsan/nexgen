@@ -22,7 +22,7 @@ Only two files are framework-specific:
 1. **`vite.config.ts`** — swap `@vitejs/plugin-vue` for your framework's plugin
 2. **`src/main.ts`** — rewrite the entry point for your framework
 
-Everything else (proxy, build output, aliases, `__SOCKET_ENABLED__` define) stays the same. The API layer, auth, storage, and all backend services are consumed via HTTP — they don't care what UI framework you use.
+Everything else (proxy, build output, aliases, `VITE_SOCKET_ENABLED` define) stays the same. The API layer, auth, storage, and all backend services are consumed via HTTP — they don't care what UI framework you use.
 
 ## Project structure
 

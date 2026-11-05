@@ -1,10 +1,10 @@
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig, redisConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { authFromSocketHandshake, unauthenticatedRealtimeAuth } from "@/framework/realtime/socket-cookie.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
-import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 export const WS_PATH = "/socket.io";
@@ -45,7 +45,7 @@ async function attachRedisAdapter() {
       await adapterSubClient.connect();
 
       io?.adapter(createAdapter(pubClient, adapterSubClient));
-      logger.info("Socket.IO Redis adapter attached successfully");
+      logger.debug("Socket.IO Redis adapter attached successfully");
     });
   } catch (error) {
     if (isCircuitBreakerError(error)) {
@@ -56,7 +56,6 @@ async function attachRedisAdapter() {
     // Fallback: Socket.IO will automatically use its default in-memory adapter.
   }
 }
-
 
 function registerAuthAndRooms() {
   io?.use(async (socket, next) => {
@@ -103,7 +102,7 @@ function registerAuthAndRooms() {
  */
 export async function initRealtime(target: { httpServer: any }): Promise<RealtimeInit | null> {
   if (!realtimeConfig.enabled) {
-    logger.info("Socket.IO disabled (disabled in config)");
+    logger.debug("Socket.IO disabled (disabled in config)");
     return null;
   }
 
@@ -118,7 +117,7 @@ export async function initRealtime(target: { httpServer: any }): Promise<Realtim
   await attachRedisAdapter();
   registerAuthAndRooms();
 
-  logger.info(`Socket.IO enabled at ${WS_PATH}`);
+  logger.debug(`Socket.IO enabled at ${WS_PATH}`);
   return { io, websocketServe: {} };
 }
 

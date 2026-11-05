@@ -1,7 +1,7 @@
 import { env } from "@/env.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { socketServer } from "@/framework/realtime/socket.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
-import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 export type BroadcastOptions = {
@@ -12,7 +12,7 @@ export type BroadcastOptions = {
   all?: boolean;
 };
 
-// Circuit breaker for the pub/sub relay
+// Circuit breaker for the pub/sub relay (used by workers that don't have Socket.IO)
 const broadcastBreaker = createCircuitBreaker({
   name: "Realtime Broadcast Relay",
   failureThreshold: 3,
@@ -41,12 +41,17 @@ function emitViaIo(event: string, payload: any, options: BroadcastOptions) {
 export async function broadcast(event: string, payload: any, options: BroadcastOptions = {}) {
   const io = socketServer();
 
+  // If this process has Socket.IO (the main API server), emit directly
   if (io) {
-    emitViaIo(event, payload, options);
+    try {
+      emitViaIo(event, payload, options);
+    } catch (error) {
+      logger.error("Failed to broadcast event via Socket.IO", { error, event });
+    }
     return;
   }
 
-  // No Socket.IO in this process — relay through Redis so the main process can broadcast
+  // If this is a background worker, relay through Redis
   const redis = redisClientIfReady();
   if (!redis) return;
 
@@ -56,7 +61,6 @@ export async function broadcast(event: string, payload: any, options: BroadcastO
       await redis.publish(channel, JSON.stringify({ event, payload, options }));
     });
   } catch (error) {
-    // If the circuit is open, we just log a warning and skip the broadcast
     if (isCircuitBreakerError(error)) {
       logger.warn("Broadcast relay skipped: Circuit breaker is open");
     } else {

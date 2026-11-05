@@ -9,7 +9,6 @@ import { env } from "@/env.js";
  */
 
 const rawUrl = env.DATABASE_URL;
-const isSqlite = rawUrl.startsWith("sqlite:") || rawUrl.startsWith("file:");
 
 export const databaseConfig = {
   // If it's sqlite, convert "sqlite:./db.sqlite" to "file:./db.sqlite"
@@ -31,16 +30,16 @@ export const databaseConfig = {
   prepare: true,
 
   /**
-   * Default to false. Users can append `?sslmode=require` to their
-   * DATABASE_URL for Postgres/MySQL if their provider requires it.
+   * Require TLS for MySQL and PostgreSQL connections. Set this to true, or
+   * append `?sslmode=require` to DATABASE_URL if your provider documents that.
    */
   ssl: false
 };
 
 export type DatabaseConfig = typeof databaseConfig;
 
-export function detectDialectFrom(connectionUrl: string): "sqlite" | "mysql" | "postgresql" {
-  const value = connectionUrl.toLowerCase();
+export function detectDialectFrom(url: string): "sqlite" | "mysql" | "postgresql" {
+  const value = url.toLowerCase();
   if (value.startsWith("mysql")) return "mysql";
   if (value.startsWith("postgres")) return "postgresql";
   return "sqlite";

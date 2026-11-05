@@ -138,7 +138,7 @@ export async function startServer(): Promise<ServerHandle> {
   }
 
   if (!redisConfig.enabled) {
-    console.log(chalk.cyan("Redis disabled (configured in src/config/redis.ts)"));
+    console.log(chalk.cyan("Redis disabled (configured in .env)"));
     console.log(chalk.cyan(`Redis-backed services disabled: ${redisBackedServices}`));
   } else if (redisReady()) {
     console.log(chalk.green(`Redis connected: ${redisConfig.url}`));

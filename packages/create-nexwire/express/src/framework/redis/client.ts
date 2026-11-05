@@ -36,7 +36,7 @@ export async function initRedis() {
   if (!redisConfig.enabled) {
     ready = false;
     lastError = "redis disabled in config";
-    logger.info("Redis disabled; cache, session storage, queue, events, and cockpit unavailable");
+    logger.debug("Redis disabled; cache, session storage, queue, events, and cockpit unavailable");
     return null;
   }
 
@@ -58,7 +58,7 @@ export async function initRedis() {
       await client.ping();
 
       ready = true;
-      logger.info("Redis connected successfully");
+      logger.debug("Redis connected successfully");
       return client;
     });
   } catch (error) {

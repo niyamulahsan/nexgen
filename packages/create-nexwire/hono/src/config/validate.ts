@@ -37,9 +37,8 @@ export function validateConfig(): void {
         throw new Error("URL must include a valid hostname");
       }
 
-      // Note: We do NOT check if the port is empty. 
+      // Note: We do NOT check if the port is empty.
       // ioredis automatically defaults to 6379 if no port is provided.
-
     } catch (error) {
       throw new Error(`REDIS_URL is invalid: "${redisConfig.url}" — ${error instanceof Error ? error.message : error}`);
     }

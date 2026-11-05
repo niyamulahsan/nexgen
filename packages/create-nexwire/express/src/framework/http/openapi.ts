@@ -45,8 +45,8 @@ export function configureOpenApi(app: Express) {
   app.get(
     docsPath,
     apiReference({
-      url: specUrl,       // Map specUrl to url
-      ...scalarOptions,   // Pass EVERYTHING else automatically!
-    } as any)             // The `as any` might still be needed if Express types are slightly behind
+      url: specUrl, // Map specUrl to url
+      ...scalarOptions // Pass EVERYTHING else automatically!
+    } as any) // The `as any` might still be needed if Express types are slightly behind
   );
 }

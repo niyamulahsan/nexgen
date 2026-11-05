@@ -289,6 +289,8 @@ pulse.connect(); // silent no-op
 
 Your code never needs to check `if (SOCKET)` — Pulse handles it internally.
 
+Pulse reads the flag from `import.meta.env.VITE_SOCKET_ENABLED`, which Vite inlines into the plugin in both dev and build. If you flip `SOCKET` while the dev stack is running, restart it and hard-refresh the browser tab; a page loaded before the change keeps the old value in memory.
+
 ## Complete Example: Dashboard with Realtime Updates
 
 Since the auth store bootstraps asynchronously, use `onMounted` to ensure the user is loaded before joining the channel:

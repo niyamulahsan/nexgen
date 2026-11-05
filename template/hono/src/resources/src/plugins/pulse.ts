@@ -1,9 +1,10 @@
 import { io, type Socket } from "socket.io-client";
 import type { App } from "vue";
 
-declare const __SOCKET_ENABLED__: boolean;
-// 1. Safely evaluate the injected variable
-const isSocketEnabled = typeof __SOCKET_ENABLED__ !== "undefined" ? Boolean(__SOCKET_ENABLED__) : false;
+// 1. Read the value Vite inlines into this module. Do not use a bare `define`
+//    global here: in dev it is a window global and can survive a server
+//    restart or browser cache, leaving Pulse enabled after SOCKET=false.
+const isSocketEnabled = import.meta.env.VITE_SOCKET_ENABLED === true;
 
 type EventCallback<T = unknown> = (payload: T) => void;
 

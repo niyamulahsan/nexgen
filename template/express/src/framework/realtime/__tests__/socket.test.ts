@@ -54,7 +54,7 @@ vi.mock("@/framework/support/logger.js", () => ({
     info: (message: string) => state.logs.push(`info: ${message}`),
     warn: (message: string) => state.logs.push(`warn: ${message}`),
     error: (message: string) => state.logs.push(`error: ${message}`),
-    debug: () => {}
+    debug: (message: string) => state.logs.push(`debug: ${message}`)
   }
 }));
 

@@ -1,7 +1,7 @@
+import type { NormalizedTarget, NotificationOptions, NotificationTarget } from "@/framework/notification/contracts.js";
+import { getChannels } from "@/framework/notification/registry.js";
 import { resolveNotificationProvider } from "@/framework/providers/adapter.js";
 import type { NotificationRecord } from "@/framework/providers/contracts.js";
-import { getChannels } from "@/framework/notification/registry.js";
-import type { NotificationOptions, NotificationTarget, NormalizedTarget } from "@/framework/notification/contracts.js";
 
 let missingProviderWarned = false;
 

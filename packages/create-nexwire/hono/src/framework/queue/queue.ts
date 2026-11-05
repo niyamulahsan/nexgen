@@ -170,7 +170,7 @@ function warnDroppedJob(queueName: string, job: string, delay?: number) {
   const schedule = delay ? ` It was due in ${delay}s, so it was never even scheduled.` : "";
   console.warn(
     `[queue] Dropped job "${job}" on queue "${queueName}". Redis is not available, so this job was never queued and never ran.${schedule} ` +
-    `Enable REDIS in .env and run a queue worker, or call dispatchCommand("${job}", payload) without { async: true } to run it in-process now.`
+      `Enable REDIS in .env and run a queue worker, or call dispatchCommand("${job}", payload) without { async: true } to run it in-process now.`
   );
 }
 
@@ -294,6 +294,7 @@ export async function pruneStaleQueues(protectedQueues: string[] = []) {
  */
 export async function startQueueWorker(queueNames = ["default"]) {
   await bootQueueJobs();
+  if (!redisConfig.enabled) throw new Error("Redis is required for queue workers");
 
   for (const queueName of queueNames) {
     if (workedQueues.has(queueName)) continue;
@@ -308,12 +309,8 @@ export async function startQueueWorker(queueNames = ["default"]) {
 
     if (durable) {
       // Durable worker still needs a shared client for its state store in this specific lib
-      const client = redisClientIfReady();
-      if (!client) throw new Error("Redis is required for durable queue workers");
-
-      if (!durableStateStore) {
-        durableStateStore = new RedisStateStore({ connection: client as never, prefix: queueConfig.durablePrefix });
-      }
+      const store = durableStateStoreIfReady();
+      if (!store) throw new Error("Redis is required for durable queue workers");
 
       const map: Record<string, AnyQueueHandler> = {};
       for (const [k, h] of handlers) {
@@ -326,7 +323,7 @@ export async function startQueueWorker(queueNames = ["default"]) {
       const worker = new DurableWorker(queueName, map as never, {
         connection: connectionOptions(),
         prefix: queuePrefix(),
-        stateStore: durableStateStore,
+        stateStore: store,
         concurrency: 10
       });
 

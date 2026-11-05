@@ -34,9 +34,12 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
           with: { role: true }
         });
         if (user) return user;
-      } catch { }
+      } catch {}
       try {
-        const rows = await db.select().from(users).where(eq(users.id, id as any));
+        const rows = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, id as any));
         return rows?.[0] ?? null;
       } catch {
         return null;
@@ -51,7 +54,7 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
             where: eq(refreshTokens.jti, jti)
           });
           if (token) return token;
-        } catch { }
+        } catch {}
         try {
           const rows = await db.select().from(refreshTokens).where(eq(refreshTokens.jti, jti));
           return rows?.[0] ?? null;
@@ -62,12 +65,12 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
       async deleteRefreshToken(tokenId: number | string) {
         try {
           await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenId as any));
-        } catch { }
+        } catch {}
       },
       async revokeRefreshToken(tokenId: number | string) {
         try {
           await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenId as any));
-        } catch { }
+        } catch {}
       },
       async getAuthContext(user: any, payload?: any) {
         try {
@@ -81,7 +84,7 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
               ...user
             };
           }
-        } catch { }
+        } catch {}
         return {
           ...(payload || {}),
           id: user.id,

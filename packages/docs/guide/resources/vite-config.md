@@ -3,14 +3,17 @@
 `src/resources/vite.config.ts` configures the Vite dev server and build for the UI SPA.
 
 ```ts
-import { defineConfig, loadEnv } from "vite";
-import vue from "@vitejs/plugin-vue";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import vue from "@vitejs/plugin-vue";
+import { defineConfig, loadEnv } from "vite";
+
+const configDir = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(configDir, "../..");
 
 export default defineConfig(({ mode }) => {
-  // Load .env the same way the backend does
-  const env = loadEnv(mode, process.cwd(), "");
+  // Load .env the same way the backend does, from the project root
+  const env = loadEnv(mode, projectRoot, "");
 
   const cacheBase = process.env.LOCALAPPDATA || process.env.TEMP || ".";
   const apiUrl = env.APP_URL || "http://localhost:3000";
@@ -30,6 +33,7 @@ export default defineConfig(({ mode }) => {
   return {
     define: {
       // Vite replace values must be JSON strings, not booleans
+      "import.meta.env.VITE_SOCKET_ENABLED": JSON.stringify(socketEnabled),
       __SOCKET_ENABLED__: JSON.stringify(socketEnabled),
       __API_URL__: JSON.stringify(apiUrl),
     },
@@ -112,7 +116,8 @@ Then rewrite `src/main.ts` for your framework's entry point.
 | `@` alias            | `src/`                                       | Maps to `src/resources/src/`                                              |
 | `outDir`             | `../../public`                               | Build output goes to the framework's public directory                     |
 | `server.port`        | `5173`                                       | Dev server port                                                           |
-| `__SOCKET_ENABLED__` | `JSON.stringify(env.SOCKET === "true")`     | Compile-time boolean for Pulse; must be stringified for Vite `define`     |
+| `VITE_SOCKET_ENABLED` | `JSON.stringify(env.SOCKET === "true")`      | Boolean inlined into Pulse by both dev and build; must be stringified for Vite `define` |
+| `__SOCKET_ENABLED__`  | `JSON.stringify(env.SOCKET === "true")`      | Legacy global kept for compatibility; Pulse reads `VITE_SOCKET_ENABLED`    |
 | `__API_URL__`        | `JSON.stringify(env.APP_URL)`                | Compile-time API base URL                                                 |
 | `cacheDir`           | `%LOCALAPPDATA%/nexwire/vite-cache/resources` | Offloads cache from project directory                                     |
 
@@ -129,4 +134,6 @@ All backend requests are proxied to `env.APP_URL` to avoid CORS issues during de
 
 The `/socket.io` entry is only added when `SOCKET` is exactly `"true"`; with realtime disabled there is nothing to proxy, and Vite does not hold a websocket upgrade path open to a server that is not listening on it. This matches the backend default: an unset `SOCKET` means off.
 
-`loadEnv(mode, process.cwd(), "")` reads the project `.env` directly (the empty third argument removes Vite's `VITE_` prefix filter), so `APP_URL` and `SOCKET` mean the same thing in the Vite config as they do in the backend.
+`loadEnv(mode, projectRoot, "")` reads the project `.env` directly (the empty third argument removes Vite's `VITE_` prefix filter), so `APP_URL` and `SOCKET` mean the same thing in the Vite config as they do in the backend. `projectRoot` comes from the config file's own path (`path.resolve(configDir, "../..")`), so starting Vite from another working directory cannot pick up a different `.env`.
+
+The UI never reads `SOCKET` at runtime. `VITE_SOCKET_ENABLED` is inlined into `src/plugins/pulse.ts` by Vite in both dev and build, so `SOCKET=false` produces a no-op Pulse client even after a dev-server restart or a cached `/@vite/env` module. `__SOCKET_ENABLED__` is still emitted for compatibility, but new code should not rely on it.

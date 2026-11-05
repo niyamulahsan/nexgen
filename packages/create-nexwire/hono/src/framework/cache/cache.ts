@@ -1,6 +1,6 @@
 import { cacheConfig, redisConfig } from "@/config/index.js";
-import { redisClientIfReady } from "@/framework/redis/client.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+import { redisClientIfReady } from "@/framework/redis/client.js";
 
 function cacheKey(key: string) {
   return `${cacheConfig.keyPrefix}:${key}`;
@@ -109,10 +109,6 @@ export const cache = {
    * How: Confirms REDIS flag and ready Redis client instance.
    */
   isAvailable() {
-    return (
-      redisConfig.enabled &&
-      redisClientIfReady() !== null &&
-      cacheBreaker.getState() !== "open"
-    );
+    return redisConfig.enabled && redisClientIfReady() !== null && cacheBreaker.getState() !== "open";
   }
 };

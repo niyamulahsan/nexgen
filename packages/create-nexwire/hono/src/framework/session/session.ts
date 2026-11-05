@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { appConfig, redisConfig, sessionConfig } from "@/config/index.js";
-import { redisClientIfReady } from "@/framework/redis/client.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+import { redisClientIfReady } from "@/framework/redis/client.js";
 
 // Initialize the breaker for Session operations
 const sessionBreaker = createCircuitBreaker({
@@ -109,7 +109,12 @@ export const session = {
 
     try {
       return await sessionBreaker.exec(async () => {
-        const data = (await session.all<Record<string, unknown>>(id)) || {};
+        // Read through the client directly rather than `session.all()`. Calling
+        // another breaker-wrapped method from inside `exec` deadlocks the
+        // half-open probe: the inner call sees the outer probe in flight and
+        // rejects, so a `set` could never be the call that closes the breaker.
+        const raw = await client.get(sessionKey(id));
+        const data = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
         data[key] = value;
         await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
         return true;
@@ -159,10 +164,6 @@ export const session = {
 
   /** Returns true when Redis is enabled and the Redis client is ready — guards against using session store without Redis. */
   isAvailable() {
-    return (
-      redisConfig.enabled &&
-      redisClientIfReady() !== null &&
-      sessionBreaker.getState() !== "open"
-    );
+    return redisConfig.enabled && redisClientIfReady() !== null && sessionBreaker.getState() !== "open";
   }
 };

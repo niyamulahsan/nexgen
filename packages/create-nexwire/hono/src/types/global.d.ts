@@ -24,3 +24,9 @@ declare module "bootstrap/js/dist/toast.js" {
 declare module "luxon";
 declare module "nodemailer";
 declare module "vue-select";
+
+interface ImportMetaEnv {
+  readonly VITE_API_URL?: string;
+  readonly VITE_SOCKET_URL?: string;
+  readonly VITE_SOCKET_ENABLED?: boolean;
+}

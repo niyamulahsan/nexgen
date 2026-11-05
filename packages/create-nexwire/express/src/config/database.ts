@@ -19,7 +19,7 @@ export const databaseConfig = {
     max: 10,
     idleTimeout: 20000, // ms
     connectTimeout: 10000, // ms
-    keepAlive: true,
+    keepAlive: true
   },
 
   /**
@@ -30,10 +30,10 @@ export const databaseConfig = {
   prepare: true,
 
   /**
-   * Default to false. Users can append `?sslmode=require` to their
-   * DATABASE_URL for Postgres/MySQL if their provider requires it.
+   * Require TLS for MySQL and PostgreSQL connections. Set this to true, or
+   * append `?sslmode=require` to DATABASE_URL if your provider documents that.
    */
-  ssl: false,
+  ssl: false
 };
 
 export type DatabaseConfig = typeof databaseConfig;

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { redisConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { databaseDialect, databasePool } from "@/framework/database/connection.js";
 import { redis, redisReady } from "@/framework/redis/client.js";
-import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 type LockOptions = { ttlMs?: number; tableName?: string };

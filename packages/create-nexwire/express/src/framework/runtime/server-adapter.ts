@@ -1,7 +1,7 @@
+import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import type { Express } from "express";
-import { createServer, type Server } from "node:http";
-import { initRealtime, closeRealtime } from "@/framework/realtime/socket.js";
+import { closeRealtime, initRealtime } from "@/framework/realtime/socket.js";
 
 export type HttpServerHandle = {
   address(): string | AddressInfo | null;

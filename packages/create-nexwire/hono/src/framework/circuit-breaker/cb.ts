@@ -22,7 +22,7 @@ export function createCircuitBreaker({
   name = "Unknown Service",
   failureThreshold = 3,
   resetTimeout = 30000,
-  successThreshold = 1,
+  successThreshold = 1
 }: CircuitBreakerOptions = {}) {
   let state: "closed" | "open" | "half-open" = "closed";
   let failureCount = 0;

@@ -100,7 +100,7 @@ export async function startServer(): Promise<ServerHandle> {
   }
 
   const views = new Set(parseCsvOrFallback(process.env.NEXWIRE_DEV_VIEWS, []).map((view) => view.toLowerCase()));
-  let redisWarnColor: ((text: string) => string) | null = null;
+  const redisWarnColor: ((text: string) => string) | null = null;
 
   if (appConfig.openApiEnabled) {
     console.log(`API Docs: ${serverUrl(server, "/api-docs")}`);
@@ -116,7 +116,9 @@ export async function startServer(): Promise<ServerHandle> {
   console.log(redisWarnColor ? redisWarnColor(bullboardLine) : bullboardLine);
 
   if (views.has("maildev")) {
-    console.log(`MailDev: http://localhost:${mailConfig.maildev.webPort} (SMTP ${mailConfig.maildev.smtpPort}) (requested; see dev process status)`);
+    console.log(
+      `MailDev: http://localhost:${mailConfig.maildev.webPort} (SMTP ${mailConfig.maildev.smtpPort}) (requested; see dev process status)`
+    );
   }
 
   if (views.has("studio")) {
@@ -136,7 +138,7 @@ export async function startServer(): Promise<ServerHandle> {
   }
 
   if (!redisConfig.enabled) {
-    console.log(chalk.cyan("Redis disabled (configured in src/config/redis.ts)"));
+    console.log(chalk.cyan("Redis disabled (configured in .env)"));
     console.log(chalk.cyan(`Redis-backed services disabled: ${redisBackedServices}`));
   } else if (redisReady()) {
     console.log(chalk.green(`Redis connected: ${redisConfig.url}`));

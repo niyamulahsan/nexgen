@@ -1,7 +1,7 @@
 import { env } from "@/env.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { socketServer } from "@/framework/realtime/socket.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
-import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 export type BroadcastOptions = {
@@ -43,7 +43,11 @@ export async function broadcast(event: string, payload: any, options: BroadcastO
 
   // If this process has Socket.IO (the main API server), emit directly
   if (io) {
-    emitViaIo(event, payload, options);
+    try {
+      emitViaIo(event, payload, options);
+    } catch (error) {
+      logger.error("Failed to broadcast event via Socket.IO", { error, event });
+    }
     return;
   }
 

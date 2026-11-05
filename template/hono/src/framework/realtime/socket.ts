@@ -71,7 +71,7 @@ async function attachRedisAdapter() {
       await adapterSubClient.connect();
 
       io?.adapter(createAdapter(pubClient, adapterSubClient));
-      logger.info("Socket.IO Redis adapter attached successfully");
+      logger.debug("Socket.IO Redis adapter attached successfully");
     });
   } catch (error) {
     if (isCircuitBreakerError(error)) {
@@ -135,7 +135,7 @@ function registerAuthAndRooms() {
  */
 export async function initRealtime(target: { app?: any; httpServer?: any }): Promise<RealtimeInit | null> {
   if (!realtimeConfig.enabled) {
-    logger.info("Socket.IO disabled (disabled in config)");
+    logger.debug("Socket.IO disabled (disabled in config)");
     return null;
   }
 
@@ -166,7 +166,7 @@ export async function initRealtime(target: { app?: any; httpServer?: any }): Pro
   await attachRedisAdapter();
   registerAuthAndRooms();
 
-  logger.info(`Socket.IO enabled at ${WS_PATH}`);
+  logger.debug(`Socket.IO enabled at ${WS_PATH}`);
   return { io, websocketServe: serveWebSocket };
 }
 

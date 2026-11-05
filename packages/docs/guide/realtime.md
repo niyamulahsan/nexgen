@@ -213,6 +213,7 @@ When disabled:
 - `socketServer()` returns `null`
 - `broadcast()` returns immediately without emitting
 - `dispatchEvent()` with `broadcast` options is a no-op
+- The UI Pulse client is a no-op (`VITE_SOCKET_ENABLED` is inlined as `false`)
 - The server starts faster, uses less memory
 
 ## Complete Controller Example

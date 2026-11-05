@@ -32,16 +32,21 @@ const disks: Record<Disk, string> = {
 const driver: StorageDriver = storageConfig.driver as StorageDriver;
 const defaultDisk: Disk = storageConfig.defaultDisk as Disk;
 
-const s3 = driver === "s3" ? new S3Client({
-  region: storageConfig.region,
-  endpoint: storageConfig.endpoint,
-  forcePathStyle: storageConfig.forcePathStyle,
-  credentials:
-    storageConfig.accessKeyId && storageConfig.secretAccessKey ? {
-      accessKeyId: storageConfig.accessKeyId,
-      secretAccessKey: storageConfig.secretAccessKey
-    } : undefined
-}) : null;
+const s3 =
+  driver === "s3"
+    ? new S3Client({
+        region: storageConfig.region,
+        endpoint: storageConfig.endpoint,
+        forcePathStyle: storageConfig.forcePathStyle,
+        credentials:
+          storageConfig.accessKeyId && storageConfig.secretAccessKey
+            ? {
+                accessKeyId: storageConfig.accessKeyId,
+                secretAccessKey: storageConfig.secretAccessKey
+              }
+            : undefined
+      })
+    : null;
 
 const storageBreaker = s3 ? createCircuitBreaker({ name: "S3 Storage" }) : null;
 
@@ -203,9 +208,7 @@ async function remove(disk: Disk, file: string) {
  */
 async function read(disk: Disk, file: string) {
   if (driver === "s3") {
-    const output = await safeS3Send<{ Body?: any }>(
-      new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) })
-    );
+    const output = await safeS3Send<{ Body?: any }>(new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
     return output?.Body ? Buffer.from(await output.Body.transformToByteArray()) : Buffer.from([]);
   }
 
@@ -288,11 +291,9 @@ async function metadata(disk: Disk, file: string) {
  */
 async function temporaryUrl(disk: Disk, file: string, ttl = storageConfig.signedUrlTtlSeconds) {
   if (driver === "s3") {
-    return getSignedUrl(
-      s3 as S3Client,
-      new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }),
-      { expiresIn: ttl }
-    );
+    return getSignedUrl(s3 as S3Client, new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }), {
+      expiresIn: ttl
+    });
   }
 
   return `/storage/${clean(file)}`;
@@ -333,9 +334,7 @@ async function listFiles(disk: Disk, directory = "") {
  */
 async function readStream(disk: Disk, file: string) {
   if (driver === "s3") {
-    const output = await safeS3Send<{ Body?: any }>(
-      new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) })
-    );
+    const output = await safeS3Send<{ Body?: any }>(new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
 
     const body = output?.Body;
 
@@ -387,9 +386,7 @@ async function setVisibility(disk: Disk, file: string, visibility: Visibility) {
 async function getVisibility(disk: Disk, file: string): Promise<Visibility> {
   if (driver !== "s3") return disk === "public" ? "public" : "private";
 
-  const acl = await safeS3Send<{ Grants?: any[] }>(
-    new GetObjectAclCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) })
-  );
+  const acl = await safeS3Send<{ Grants?: any[] }>(new GetObjectAclCommand({ Bucket: storageConfig.bucket, Key: objectKey(disk, file) }));
 
   const isPublic = (acl?.Grants || []).some(
     (grant) => grant.Grantee?.URI === "http://acs.amazonaws.com/groups/global/AllUsers" && grant.Permission === "READ"
@@ -407,9 +404,7 @@ async function getVisibility(disk: Disk, file: string): Promise<Visibility> {
 async function makeDirectory(disk: Disk, directory: string) {
   const dir = clean(directory);
   if (driver === "s3") {
-    await safeS3Send(
-      new PutObjectCommand({ Bucket: storageConfig.bucket, Key: `${diskPrefix(disk)}/${dir}/`, Body: "" })
-    );
+    await safeS3Send(new PutObjectCommand({ Bucket: storageConfig.bucket, Key: `${diskPrefix(disk)}/${dir}/`, Body: "" }));
     return dir;
   }
 
@@ -490,19 +485,23 @@ async function writeStream(disk: Disk, file: string, stream: Readable) {
           Body: passThrough,
           ACL: disk === "public" ? "public-read" : "private"
         })
-      ).then(() => resolve()).catch(reject);
+      )
+        .then(() => resolve())
+        .catch(reject);
     });
     return clean(file);
   }
 
   await new Promise<void>((resolve, reject) => {
     const filePath = abs(disk, file);
-    fs.mkdir(path.dirname(filePath), { recursive: true }).then(() => {
-      const ws = createWriteStream(filePath);
-      stream.pipe(ws);
-      ws.on("error", reject);
-      ws.on("close", resolve);
-    }).catch(reject);
+    fs.mkdir(path.dirname(filePath), { recursive: true })
+      .then(() => {
+        const ws = createWriteStream(filePath);
+        stream.pipe(ws);
+        ws.on("error", reject);
+        ws.on("close", resolve);
+      })
+      .catch(reject);
   });
 
   return clean(file);
@@ -547,9 +546,7 @@ async function writeGeneratedTempStream(prefix: string, extension: string, strea
 async function consumeGeneratedTemp(file: string) {
   const target = clean(file);
   if (driver === "s3") {
-    const output = await safeS3Send<{ Body?: any }>(
-      new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey("tmp", target) })
-    );
+    const output = await safeS3Send<{ Body?: any }>(new GetObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey("tmp", target) }));
     const body = output?.Body ? Buffer.from(await output.Body.transformToByteArray()) : Buffer.from([]);
     await safeS3Send(new DeleteObjectCommand({ Bucket: storageConfig.bucket, Key: objectKey("tmp", target) }));
     return body;

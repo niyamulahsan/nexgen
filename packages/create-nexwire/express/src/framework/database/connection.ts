@@ -70,10 +70,7 @@ export async function initDatabase() {
     let drizzleMysql: any;
     let mysql: any;
     try {
-      [{ drizzle: drizzleMysql }, mysql] = await Promise.all([
-        optionalImport("drizzle-orm/mysql2"),
-        optionalImport("mysql2/promise")
-      ]);
+      [{ drizzle: drizzleMysql }, mysql] = await Promise.all([optionalImport("drizzle-orm/mysql2"), optionalImport("mysql2/promise")]);
     } catch {
       throw new Error("Missing mysql dependencies. Install with: bun add drizzle-orm mysql2");
     }
@@ -83,6 +80,7 @@ export async function initDatabase() {
       connectionLimit: databaseConfig.pool.max,
       connectTimeout: databaseConfig.pool.connectTimeout,
       enableKeepAlive: databaseConfig.pool.keepAlive,
+      ...(databaseConfig.ssl ? { ssl: {} } : {})
     });
 
     databaseInstance = drizzleMysql(pool, { schema, mode: "default" });
@@ -106,6 +104,7 @@ export async function initDatabase() {
     idle_timeout: Math.floor(databaseConfig.pool.idleTimeout / 1000),
     connect_timeout: Math.floor(databaseConfig.pool.connectTimeout / 1000),
     prepare: databaseConfig.prepare,
+    ...(databaseConfig.ssl ? { ssl: "require" as const } : {})
   });
 
   databaseInstance = drizzlePg(pool, { schema });
