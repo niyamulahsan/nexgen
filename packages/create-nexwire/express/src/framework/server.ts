@@ -100,46 +100,48 @@ export async function startServer(): Promise<ServerHandle> {
   }
 
   const views = new Set(parseCsvOrFallback(process.env.NEXWIRE_DEV_VIEWS, []).map((view) => view.toLowerCase()));
-  const redisWarnColor: ((text: string) => string) | null = null;
 
   if (appConfig.openApiEnabled) {
     console.log(`API Docs: ${serverUrl(server, "/api-docs")}`);
   }
 
   if (appConfig.uiEnabled) {
-    console.log(process.env.NEXWIRE_FRONTEND_URL ? `UI: ${process.env.NEXWIRE_FRONTEND_URL}` : "UI enabled");
+    console.log(`UI: ${process.env.NEXWIRE_FRONTEND_URL}`);
   } else {
-    console.log(chalk.gray("UI disabled (disabled in src/config/app.ts)"));
+    console.log(chalk.gray("UI: .env -> UI=false (API-only mode)"));
   }
 
-  const bullboardLine = `${bullBoard.enabled ? "Queue Dashboard enabled" : "Queue Dashboard unavailable"}: ${serverUrl(server, bullBoard.basePath)}`;
-  console.log(redisWarnColor ? redisWarnColor(bullboardLine) : bullboardLine);
+  if (redisConfig.enabled && bullBoard.enabled) {
+    console.log(`Queue: ${serverUrl(server, bullBoard.basePath)}`);
+  }
 
   if (views.has("maildev")) {
-    console.log(
-      `MailDev: http://localhost:${mailConfig.maildev.webPort} (SMTP ${mailConfig.maildev.smtpPort}) (requested; see dev process status)`
-    );
+    console.log(`MailDev: http://localhost:${mailConfig.maildev.webPort} (SMTP ${mailConfig.maildev.smtpPort})`);
   }
 
   if (views.has("studio")) {
-    console.log("Drizzle Studio requested: https://local.drizzle.studio (see dev process status)");
+    console.log("Drizzle: https://local.drizzle.studio");
   }
 
   const wsUrl = serverUrl(server, WS_PATH).replace(/^http/, "ws");
-  const socketLine = !realtimeConfig.enabled
-    ? "Realtime (Socket.IO) disabled"
-    : realtime
-      ? `Realtime (Socket.IO) enabled: ${socketAdmin.enabled ? `Admin UI: https://admin.socket.io | ${wsUrl}` : `| ${wsUrl}`}`
-      : "Realtime (Socket.IO) unavailable";
-  console.log(!realtimeConfig.enabled ? chalk.gray(socketLine) : realtime ? chalk.green(socketLine) : chalk.yellow(socketLine));
+  if (!realtimeConfig.enabled) {
+    console.log(chalk.gray("Realtime (Socket.IO) disabled"));
+  } else if (realtime) {
+    if (socketAdmin.enabled) {
+      console.log(`Realtime: https://admin.socket.io | ${wsUrl}`);
+    } else {
+      console.log(`Realtime: ${wsUrl}`);
+    }
+  } else {
+    console.log(chalk.yellow("Realtime (Socket.IO) unavailable"));
+  }
 
-  if (views.has("redis")) {
-    console.log(`Redis UI: http://localhost:${redisConfig.commanderPort} (requested; see dev process status)`);
+  if (redisConfig.enabled && views.has("redis")) {
+    console.log(`Redis UI: http://localhost:${redisConfig.commanderPort}`);
   }
 
   if (!redisConfig.enabled) {
-    console.log(chalk.cyan("Redis disabled (configured in .env)"));
-    console.log(chalk.cyan(`Redis-backed services disabled: ${redisBackedServices}`));
+    console.log(chalk.cyan(`Redis: .env -> REDIS=false (disabled ${redisBackedServices})`));
   } else if (redisReady()) {
     console.log(chalk.green(`Redis connected: ${redisConfig.url}`));
     console.log(chalk.green(`Redis-backed services enabled: ${redisBackedServices}`));

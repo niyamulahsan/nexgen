@@ -10,8 +10,8 @@ function requestIp(req: Parameters<RequestHandler>[0]) {
 
 // এই ফাংশনটি Express-এর জন্য তৈরি করা হয়েছে, তাই এটি কিছু অতিরিক্ত পাথও বাদ দেয় যা Hono-তে প্রযোজ্য নয়।
 function shouldSkipHttpLog(pathname: string) {
-  // /queues, /queues/..., /health, /favicon.ico বাদ দিন
-  return pathname === "/health" || pathname.startsWith("/queues") || pathname === "/favicon.ico" || pathname === openApiConfig.scalar.specUrl || pathname === openApiConfig.scalar.docsPath;
+  // /queues, /queues/..., /favicon.ico বাদ দিন
+  return pathname.startsWith("/queues") || pathname === "/favicon.ico" || pathname === openApiConfig.scalar.specUrl || pathname === openApiConfig.scalar.docsPath;
 }
 
 export const loggerMiddleware: RequestHandler = (req, res, next) => {

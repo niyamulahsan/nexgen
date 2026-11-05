@@ -30,6 +30,30 @@ export function createHttpApp() {
     next();
   });
 
+  if (appConfig.openApiEnabled) {
+    configureOpenApi(app);
+    registerOpenApiRoute(
+      createRoute({
+        path: "/health",
+        method: "get",
+        tags: ["System"],
+        responses: {
+          200: jsonContent(z.object({ message: z.string() }), "Application health status")
+        }
+      })
+    );
+
+    app.get("/health", (_req, res) => {
+      res.json({ message: "Application is healthy" });
+    });
+  }
+
+  if (loggingConfig.httpRequests) {
+    app.use(loggerMiddleware);
+  }
+
+  app.use(rateLimiterMiddleware);
+
   app.get("/ready", (_req, res) => {
     const checks: Record<string, string> = {};
     let allOk = true;
@@ -71,29 +95,11 @@ export function createHttpApp() {
     res.type("text/plain").status(200).send(output);
   });
 
-  if (loggingConfig.httpRequests) {
-    app.use(loggerMiddleware);
+  if (!appConfig.openApiEnabled) {
+    app.get("/health", (_req, res) => {
+      res.json({ message: "Application is healthy" });
+    });
   }
-
-  app.use(rateLimiterMiddleware);
-
-  if (appConfig.openApiEnabled) {
-    configureOpenApi(app);
-    registerOpenApiRoute(
-      createRoute({
-        path: "/health",
-        method: "get",
-        tags: ["System"],
-        responses: {
-          200: jsonContent(z.object({ message: z.string() }), "Application health status")
-        }
-      })
-    );
-  }
-
-  app.get("/health", (_req, res) => {
-    res.json({ message: "Application is healthy" });
-  });
 
   if (!hasUiBuild()) {
     app.get("/", (_req, res) => {
