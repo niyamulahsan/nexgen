@@ -24,6 +24,10 @@ const ENGINES = {
  */
 const FORCED_ENV_DEFAULTS = {
   REDIS: "false",
+  // A fresh project must not start with realtime on. The template `.env` is
+  // developer-local, so a local SOCKET=true would otherwise ship to npm and
+  // make the UI open `/socket.io` even though the documented default is off.
+  SOCKET: "false",
 };
 
 /** Parse the uncommented KEY=VALUE pairs of an env file. */
