@@ -1,8 +1,9 @@
 import { type Job, type JobsOptions, Queue, QueueEvents, Worker } from "bullmq";
 import { type DurableContext, type DurableJob, DurableWorker, RedisStateStore } from "bullmq-durable";
-import { queueConfig } from "@/config/index.js";
+import { queueConfig, redisConfig } from "@/config/index.js";
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+import { logger } from "@/framework/support/logger.js";
 
 export type QueueJob = {
   name: string;
@@ -10,9 +11,7 @@ export type QueueJob = {
 };
 
 export type QueueHandler = (job: Job) => Promise<any>;
-
 export type DurableQueueHandler = (job: DurableJob, ctx: DurableContext) => Promise<any>;
-
 export type AnyQueueHandler = QueueHandler | DurableQueueHandler;
 
 const queues = new Map<string, Queue>();
@@ -49,6 +48,14 @@ function key(queue: string, job: string) {
 }
 
 /**
+ * Why: BullMQ manages its own connections. We pass the URL string,
+ * not the shared client, so BullMQ doesn't crash if the shared client dies.
+ */
+function connectionOptions() {
+  return { url: redisConfig.url };
+}
+
+/**
  * Why: Registers a job handler for a queue + job name.
  * When: Module job files are loaded during boot.
  * Where: Module job definition files under `src/modules/<module>/jobs`.
@@ -73,14 +80,14 @@ export function shouldQueue(job: string, queue: string, handler: AnyQueueHandler
  * How: Reuses shared Redis connection and memoized queue map.
  */
 export function getQueue(queue = "default") {
-  const client = redisClientIfReady();
-  if (!client) return null;
+  // Check if Redis is supposed to be enabled
+  if (!redisConfig.enabled) return null;
 
   if (!queues.has(queue)) {
     queues.set(
       queue,
       new Queue(queue, {
-        connection: client as any,
+        connection: connectionOptions(), // Let BullMQ handle its own connection
         prefix: queuePrefix(),
         defaultJobOptions: {
           attempts: 3,
@@ -197,15 +204,20 @@ export async function queueJob(
     return null;
   }
 
-  return await queue.add(job, data, {
-    delay: options.delay ? options.delay * 1000 : 0,
-    attempts: options.attempts ?? 3,
-    jobId: options.jobId,
-    priority: options.priority,
-    removeOnComplete: options.removeOnComplete ?? 1000,
-    removeOnFail: options.removeOnFail ?? 5000,
-    backoff: options.backoff ?? { type: "exponential", delay: 3000 }
-  });
+  try {
+    return await queue.add(job, data, {
+      delay: options.delay ? options.delay * 1000 : 0,
+      attempts: options.attempts ?? 3,
+      jobId: options.jobId,
+      priority: options.priority,
+      removeOnComplete: options.removeOnComplete ?? 1000,
+      removeOnFail: options.removeOnFail ?? 5000,
+      backoff: options.backoff ?? { type: "exponential", delay: 3000 }
+    });
+  } catch (error) {
+    logger.error(`Failed to queue job ${job}`, { error });
+    return null;
+  }
 }
 
 /**
@@ -234,7 +246,7 @@ export async function bootQueueJobs() {
  *      queue's keys on demand if any code path still dispatches to it.
  */
 export async function pruneStaleQueues(protectedQueues: string[] = []) {
-  if (!queueConfig.autoPruneQueues) return;
+  if (!queueConfig.autoPruneQueues || !redisConfig.enabled) return;
 
   const client = redisClientIfReady();
   if (!client) return;
@@ -264,13 +276,13 @@ export async function pruneStaleQueues(protectedQueues: string[] = []) {
         if (live !== 0) continue;
 
         await queue.obliterate({ force: true });
-        console.log(`Pruned stale queue "${name}"`);
+        logger.info(`Pruned stale queue "${name}"`);
       } catch (error: any) {
-        console.warn(`Could not prune stale queue "${name}": ${error?.message || error}`);
+        logger.warn(`Could not prune stale queue "${name}": ${error?.message || error}`);
       }
     }
   } catch (error: any) {
-    console.warn(`Could not scan queues for stale cleanup: ${error?.message || error}`);
+    logger.warn(`Could not scan queues for stale cleanup: ${error?.message || error}`);
   }
 }
 
@@ -282,23 +294,21 @@ export async function pruneStaleQueues(protectedQueues: string[] = []) {
  */
 export async function startQueueWorker(queueNames = ["default"]) {
   await bootQueueJobs();
-  const client = redisClientIfReady();
-  if (!client) throw new Error("Redis is required for queue workers");
+  if (!redisConfig.enabled) throw new Error("Redis is required for queue workers");
 
   for (const queueName of queueNames) {
-    // Already working this queue in this process: a second worker would add a
-    // second blocking connection and a second copy of every log line, and would
-    // never process a job the first one was not already getting.
     if (workedQueues.has(queueName)) continue;
     workedQueues.add(queueName);
 
     if (!events.has(queueName)) {
-      events.set(queueName, new QueueEvents(queueName, { connection: client as any, prefix: queuePrefix() }));
+      // Let BullMQ manage its own connection for events
+      events.set(queueName, new QueueEvents(queueName, { connection: connectionOptions(), prefix: queuePrefix() }));
     }
 
     const durable = [...durableHandlers.keys()].some((k) => k.startsWith(`${queueName}:`));
 
     if (durable) {
+      // Durable worker still needs a shared client for its state store in this specific lib
       const store = durableStateStoreIfReady();
       if (!store) throw new Error("Redis is required for durable queue workers");
 
@@ -311,20 +321,14 @@ export async function startQueueWorker(queueNames = ["default"]) {
       }
 
       const worker = new DurableWorker(queueName, map as never, {
-        connection: client as any,
+        connection: connectionOptions(),
         prefix: queuePrefix(),
         stateStore: store,
         concurrency: 10
       });
 
-      worker.on("completed", (job) => {
-        console.log(`[${new Date().toLocaleTimeString()}] Processed:  ${job.name} (${queueName})`);
-      });
-
-      worker.on("failed", (job, error) => {
-        const jobName = job?.name ?? "unknown";
-        console.log(`[${new Date().toLocaleTimeString()}] Failed:     ${jobName} (${queueName}) - ${error.message}`);
-      });
+      worker.on("completed", (job) => logger.info(`Processed: ${job.name} (${queueName})`));
+      worker.on("failed", (job, error) => logger.warn(`Failed: ${job?.name ?? "unknown"} (${queueName}) - ${error.message}`));
 
       workers.push(worker as unknown as Worker);
       continue;
@@ -333,22 +337,16 @@ export async function startQueueWorker(queueNames = ["default"]) {
     const worker = new Worker(
       queueName,
       async (job) => {
-        console.log(`[${new Date().toLocaleTimeString()}] Processing: ${job.name} (${queueName})`);
+        logger.info(`Processing: ${job.name} (${queueName})`);
         const handler = handlers.get(key(queueName, job.name));
         if (!handler) throw new Error(`No handler registered for ${queueName}:${job.name}`);
         return await handler(job);
       },
-      { connection: client as any, prefix: queuePrefix(), concurrency: 10 }
+      { connection: connectionOptions(), prefix: queuePrefix(), concurrency: 10 }
     );
 
-    worker.on("completed", (job) => {
-      console.log(`[${new Date().toLocaleTimeString()}] Processed:  ${job.name} (${queueName})`);
-    });
-
-    worker.on("failed", (job, error) => {
-      const jobName = job?.name ?? "unknown";
-      console.log(`[${new Date().toLocaleTimeString()}] Failed:     ${jobName} (${queueName}) - ${error.message}`);
-    });
+    worker.on("completed", (job) => logger.info(`Processed: ${job.name} (${queueName})`));
+    worker.on("failed", (job, error) => logger.warn(`Failed: ${job?.name ?? "unknown"} (${queueName}) - ${error.message}`));
 
     workers.push(worker);
   }
@@ -364,6 +362,7 @@ export async function startQueueWorker(queueNames = ["default"]) {
  *      Cache/session/rate-limit keys are intentionally left alone.
  */
 export async function clearQueue() {
+  if (!redisConfig.enabled) return;
   const client = redisClientIfReady();
   if (!client) return;
 

@@ -2,8 +2,13 @@ import { randomUUID } from "node:crypto";
 import { redisConfig } from "@/config/index.js";
 import { databaseDialect, databasePool } from "@/framework/database/connection.js";
 import { redis, redisReady } from "@/framework/redis/client.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+import { logger } from "@/framework/support/logger.js";
 
 type LockOptions = { ttlMs?: number; tableName?: string };
+
+// Circuit breaker for the Redis Lock
+const lockBreaker = createCircuitBreaker({ name: "Redis Lock", failureThreshold: 3, resetTimeout: 30000 });
 
 function table(name?: string) {
   return name || "scheduler_locks";
@@ -80,30 +85,37 @@ async function releaseDbLock(name: string, owner: string, tableName?: string) {
   });
 }
 
-/**
- * Why: Runs a handler with distributed lock to prevent duplicate execution.
- * When: Scheduled tasks may run across multiple processes/instances.
- * Where: Scheduler runtime around each cron job.
- * How: Uses Redis NX lock when available, otherwise falls back to DB lock table.
- */
 export async function runWithLock<T>(name: string, handler: () => Promise<T>, options: LockOptions = {}) {
   const owner = randomUUID();
   const ttlMs = options.ttlMs || 60_000;
   const client = redis();
 
   if (redisReady() && client) {
-    const key = `${redisConfig.prefix}:lock:${name}`;
-    const ok = await client.set(key, owner, "PX", ttlMs, "NX");
-    if (!ok) return { ran: false, backend: "redis" as const };
-
     try {
-      const result = await handler();
-      return { ran: true, backend: "redis" as const, result };
-    } finally {
-      await client.del(key);
+      return await lockBreaker.exec(async () => {
+        const key = `${redisConfig.prefix}:lock:${name}`;
+        const ok = await client.set(key, owner, "PX", ttlMs, "NX");
+        if (!ok) return { ran: false, backend: "redis" as const };
+
+        try {
+          const result = await handler();
+          return { ran: true, backend: "redis" as const, result };
+        } finally {
+          await client.del(key);
+        }
+      });
+    } catch (error) {
+      // If the circuit breaker is open, we log it and fall back to DB lock
+      if (isCircuitBreakerError(error)) {
+        logger.warn(`Redis lock skipped due to circuit breaker for ${name}; falling back to DB`);
+      } else {
+        logger.error(`Redis lock error for ${name}; falling back to DB`, { error });
+      }
+      // Fall through to DB lock
     }
   }
 
+  // DB Lock Fallback
   const ok = await acquireDbLock(name, owner, ttlMs, options.tableName);
   if (!ok) return { ran: false, backend: "db" as const };
 

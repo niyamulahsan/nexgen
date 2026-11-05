@@ -11,6 +11,8 @@ import type { NexwireRouter } from "@/framework/http/router.js";
  * How: Exposes `/doc` spec and `/api-docs` Scalar viewer.
  */
 export function configureOpenApi(app: NexwireRouter) {
+  const { specUrl, docsPath, favicon, ...scalarOptions } = openApiConfig.scalar;
+
   app.doc("/doc", {
     openapi: openApiConfig.version,
     info: {
@@ -20,23 +22,19 @@ export function configureOpenApi(app: NexwireRouter) {
     }
   });
 
-  if (openApiConfig.scalar.favicon) {
+  if (favicon) {
     app.get("/favicon.ico", (c) => {
-      const faviconPath = path.join(process.cwd(), openApiConfig.scalar.favicon);
+      const faviconPath = path.join(process.cwd(), favicon);
       if (!fs.existsSync(faviconPath)) return c.notFound();
       return c.body(fs.readFileSync(faviconPath), 200, { "content-type": "image/x-icon" });
     });
   }
 
   app.get(
-    openApiConfig.scalar.docsPath,
+    docsPath, // Use the destructured path
     Scalar({
-      url: openApiConfig.scalar.specUrl,
-      layout: openApiConfig.scalar.layout,
-      theme: openApiConfig.scalar.theme,
-      pageTitle: openApiConfig.scalar.pageTitle,
-      defaultHttpClient: openApiConfig.scalar.defaultHttpClient,
-      defaultOpenAllTags: openApiConfig.scalar.defaultOpenAllTags
+      url: specUrl, // Use the destructured URL
+      ...scalarOptions // Pass EVERYTHING else automatically!
     })
   );
 }

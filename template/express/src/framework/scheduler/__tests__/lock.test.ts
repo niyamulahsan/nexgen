@@ -57,6 +57,13 @@ vi.mock("@/framework/redis/client.js", () => ({
   redisReady: () => !state.redisDisabled
 }));
 
+// The lock reports circuit-breaker fallbacks through the shared logger, which
+// reads the logging config and writes rotating files. The lock's behaviour is
+// what matters here, so keep logging out of the test.
+vi.mock("@/framework/support/logger.js", () => ({
+  logger: { fatal: () => {}, error: () => {}, warn: () => {}, info: () => {}, debug: () => {}, trace: () => {}, child: () => ({}) }
+}));
+
 /**
  * A pool fake shared by all three dialects. `execute`, `query` and `unsafe` all
  * reach the same two decisions - capture the owner on INSERT, report it back on

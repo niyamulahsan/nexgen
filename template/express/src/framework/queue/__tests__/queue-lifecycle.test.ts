@@ -39,6 +39,14 @@ const state = vi.hoisted(() => ({
   deleted: [] as string[],
   config: { queues: ["default", "mail", "maintenance"] as string[], autoPruneQueues: true },
   redisAvailable: false,
+  /**
+   * REDIS in `.env`. Separate from `redisAvailable` on purpose: the queue code
+   * distinguishes "the operator turned Redis off" (refuse to boot a worker)
+   * from "Redis is configured but the shared client has not connected yet"
+   * (BullMQ owns its own connection, so that must not block a worker).
+   */
+  redisEnabled: true,
+  redisUrl: "redis://localhost:6379",
   /** Live-job counts the fake BullMQ queue reports, keyed by queue name. */
   jobCounts: {} as Record<string, number>,
   failClose: new Set<string>(),
@@ -62,12 +70,37 @@ vi.mock("@/config/index.js", () => ({
       durablePrefix: DURABLE_PREFIX,
       queueUi: "/queues"
     };
+  },
+  get redisConfig() {
+    return {
+      enabled: state.redisEnabled,
+      url: state.redisUrl,
+      prefix: "nexwire"
+    };
   }
 }));
 
 vi.mock("@/framework/redis/client.js", () => ({
   redisClientIfReady: () => (state.redisAvailable ? fakeRedis() : null)
 }));
+
+/**
+ * The queue module logs through the shared logger, which needs the logging
+ * config and writes rotating files. Route calls into the captured output so the
+ * tests assert what an operator would see without touching the real sinks.
+ */
+vi.mock("@/framework/support/logger.js", () => {
+  const logger = {
+    fatal: (message: string) => state.logs.push(message),
+    error: (message: string) => state.logs.push(message),
+    warn: (message: string) => state.warnings.push(message),
+    info: (message: string) => state.logs.push(message),
+    debug: () => {},
+    trace: () => {},
+    child: () => logger
+  };
+  return { logger };
+});
 
 vi.mock("@/framework/modules/discover.js", () => ({
   discoverModuleFiles: async () => state.jobFiles,
@@ -203,7 +236,12 @@ vi.mock("bullmq-durable", () => {
     /** Mirrors bullmq-durable: the client is opened lazily, on first use. */
     use() {
       if (!this.client) {
-        this.client = { quitCalls: 0, async quit() { this.quitCalls++; } };
+        this.client = {
+          quitCalls: 0,
+          async quit() {
+            this.quitCalls++;
+          }
+        };
       }
       return this.client;
     }
@@ -268,6 +306,8 @@ beforeEach(() => {
   state.deleted = [];
   state.config = { queues: ["default", "mail", "maintenance"], autoPruneQueues: true };
   state.redisAvailable = false;
+  state.redisEnabled = true;
+  state.redisUrl = "redis://localhost:6379";
   state.jobCounts = {};
   state.failClose = new Set();
   state.failScan = false;
@@ -283,7 +323,7 @@ describe("starting the queue worker", () => {
   it("refuses to start without Redis, before opening anything", async () => {
     // REDIS=false is the default in a freshly scaffolded project, so this is the
     // path most people hit first. It must not leave half a worker behind.
-    state.redisAvailable = false;
+    state.redisEnabled = false;
     const module_ = await loadQueue();
 
     await expect(module_.startQueueWorker(["default"])).rejects.toThrow("Redis is required for queue workers");
@@ -291,6 +331,19 @@ describe("starting the queue worker", () => {
     expect(state.workers).toHaveLength(0);
     expect(state.durableWorkers).toHaveLength(0);
     expect(state.eventStreams).toHaveLength(0);
+  });
+
+  it("still starts when Redis is enabled but the shared client is not ready yet", async () => {
+    // BullMQ opens its own connection from the URL, so a shared client that has
+    // not connected yet must not stop the worker. Checking `redisClientIfReady`
+    // here was the old behaviour and it made boot ordering brittle.
+    state.redisEnabled = true;
+    state.redisAvailable = false;
+    const module_ = await loadQueue();
+
+    await module_.startQueueWorker(["default"]);
+
+    expect(state.workers).toHaveLength(1);
   });
 
   it("opens one worker per queue it was asked to work", async () => {
@@ -367,9 +420,7 @@ describe("starting the queue worker", () => {
 
     // BullMQ retries a throwing processor three times and then parks the job as
     // failed. A generic error leaves the operator hunting for which job died.
-    await expect(state.workers[0].processor({ name: "mystery.job" })).rejects.toThrow(
-      "No handler registered for default:mystery.job"
-    );
+    await expect(state.workers[0].processor({ name: "mystery.job" })).rejects.toThrow("No handler registered for default:mystery.job");
   });
 
   it("reports a job it finished, and a job it failed", async () => {
@@ -380,11 +431,11 @@ describe("starting the queue worker", () => {
     state.workers[0].emit("completed", { name: "orders.import" });
     state.workers[0].emit("failed", { name: "orders.export" }, new Error("S3 unreachable"));
 
-    const output = state.logs.join("\n");
-    expect(output).toContain("Processed:  orders.import (default)");
+    const output = [...state.logs, ...state.warnings].join("\n");
+    expect(output).toContain("Processed: orders.import (default)");
     // The error text belongs in the log. A failure line without the reason sends
     // the operator to Redis to inspect a job that may look perfectly healthy.
-    expect(output).toContain("Failed:     orders.export (default) - S3 unreachable");
+    expect(output).toContain("Failed: orders.export (default) - S3 unreachable");
   });
 
   it("still names the job when a failure arrives with no job attached", async () => {
@@ -396,7 +447,7 @@ describe("starting the queue worker", () => {
     await module_.startQueueWorker(["default"]);
 
     expect(() => state.workers[0].emit("failed", null, new Error("worker crashed"))).not.toThrow();
-    expect(state.logs.join("\n")).toContain("unknown (default) - worker crashed");
+    expect([...state.logs, ...state.warnings].join("\n")).toContain("unknown (default) - worker crashed");
   });
 
   it("uses a durable worker when a queue has a durable handler", async () => {

@@ -64,7 +64,7 @@ const notificationProvider: NotificationProvider = {
 registerNotificationProvider(notificationProvider);
 ```
 
-A registered notification provider always wins over the generated `src/modules/notification` store. Mail and realtime remain in the runtime, so `notify({ broadcast, mail })` keeps working.
+A registered notification provider always wins over the generated `src/modules/notification` store. Channel delivery remains in the runtime — the built-in `broadcast` and `mail` channels plus any custom channels — so `notify({ broadcast, mail })` keeps working.
 
 ### Register your own contract
 

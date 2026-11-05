@@ -59,6 +59,8 @@ Queue settings live in `src/config/queue.ts`:
 
 Set `REDIS=true` in `.env` to enable queues, caching, sessions, and the Socket.IO Redis adapter.
 
+BullMQ opens its **own** connection from `REDIS_URL` (`connection: { url }`) for queues, workers, and `QueueEvents`; it does not borrow the framework's shared Redis client. That keeps the job runtime alive while the shared client reconnects. The shared client is still used for durable-job state and the BullBoard dashboard.
+
 ## Dispatching Events
 
 The primary API is `dispatchEvent()`, imported from the facade:
@@ -297,6 +299,8 @@ The worker process:
 3. Creates BullMQ `Worker` instances (concurrency: 10)
 4. Processes jobs as they arrive
 5. Logs completion and failure to console
+
+`startQueueWorker()` throws `"Redis is required for queue workers"` when `REDIS=false`, so `maker queue:work` refuses to start rather than run a worker with no backing store. When Redis is enabled but the framework's shared client has not finished connecting yet, the worker still starts — BullMQ owns the worker connection, so startup does not race the shared client. Durable workers are the exception: they need the shared client for their state store and throw `"Redis is required for durable queue workers"` until it is ready.
 
 ## BullMQ Dashboard
 

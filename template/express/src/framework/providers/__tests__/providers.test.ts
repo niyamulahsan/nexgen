@@ -18,6 +18,20 @@ import {
   registerProvider
 } from "@/framework/providers/registry.js";
 
+/**
+ * The project ships `src/providers/notification.ts`, which registers the mail
+ * and broadcast channels through the framework facade. Importing that facade
+ * pulls in the database, Redis, S3 and BullMQ clients. That has nothing to do
+ * with discovery, and it is slow enough to blow the test timeout when the whole
+ * suite runs in parallel. The loader only needs each file to be importable, so
+ * stub the facade for this file.
+ */
+vi.mock("@/framework/facade.js", () => ({
+  registerChannel: () => {},
+  mailChannel: { name: "mail", send: async () => false },
+  broadcastChannel: { name: "broadcast", send: async () => false }
+}));
+
 /** Minimal store implementation: the registry only cares that a contract is filled. */
 const notificationProvider: NotificationProvider = {
   create: async () => ({

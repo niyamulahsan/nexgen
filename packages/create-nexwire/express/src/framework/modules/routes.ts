@@ -12,6 +12,11 @@ export async function registerModuleRoutes(app: Express) {
       throw new Error(`Route file ${file} has no default export`);
     }
 
+    // Optional Guard: Ensure it's an Express Router
+    if (typeof route.default !== "function" || !route.default.stack) {
+      throw new Error(`Route file ${file} must export an express.Router() instance as default`);
+    }
+
     const prefix = `/api/${moduleNameFromPath(file)}`;
     registerRouterOpenApi(route.default, prefix);
     app.use(prefix, route.default);

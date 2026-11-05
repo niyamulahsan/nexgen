@@ -18,6 +18,7 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
   if (defaultProvider) return defaultProvider;
   if (defaultLoadAttempted) return null;
   defaultLoadAttempted = true;
+
   try {
     const userMod = await import("@/modules/auth/database/models/user.js").catch(() => null);
     if (!userMod?.users || !userMod?.refreshTokens) return null;
@@ -25,29 +26,32 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
     const users = userMod.users;
     const refreshTokens = userMod.refreshTokens;
 
-    defaultProvider = {
-      async getUserById(id: number | string) {
-        try {
-          const user = await (db.query.users.findFirst as any)?.({
-            where: eq(users.id, id as any),
-            with: { role: true }
-          });
-          if (user) return user;
-        } catch {}
-        try {
-          const rows = await db.select().from(users).where(eq(users.id, id as any));
-          return rows?.[0] ?? null;
-        } catch {
-          return null;
-        }
-      },
+    // Define the core logic as standalone functions to avoid `this` context issues
+    const getUserById = async (id: number | string) => {
+      try {
+        const user = await (db.query.users.findFirst as any)?.({
+          where: eq(users.id, id as any),
+          with: { role: true }
+        });
+        if (user) return user;
+      } catch { }
+      try {
+        const rows = await db.select().from(users).where(eq(users.id, id as any));
+        return rows?.[0] ?? null;
+      } catch {
+        return null;
+      }
+    };
+
+    const provider: AuthProvider = {
+      getUserById,
       async findRefreshToken(jti: string) {
         try {
           const token = await (db.query.refreshTokens.findFirst as any)?.({
             where: eq(refreshTokens.jti, jti)
           });
           if (token) return token;
-        } catch {}
+        } catch { }
         try {
           const rows = await db.select().from(refreshTokens).where(eq(refreshTokens.jti, jti));
           return rows?.[0] ?? null;
@@ -58,12 +62,12 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
       async deleteRefreshToken(tokenId: number | string) {
         try {
           await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenId as any));
-        } catch {}
+        } catch { }
       },
       async revokeRefreshToken(tokenId: number | string) {
         try {
           await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenId as any));
-        } catch {}
+        } catch { }
       },
       async getAuthContext(user: any, payload?: any) {
         try {
@@ -77,7 +81,7 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
               ...user
             };
           }
-        } catch {}
+        } catch { }
         return {
           ...(payload || {}),
           id: user.id,
@@ -89,7 +93,8 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
       },
       async getUserContact(userId: number | string) {
         try {
-          const user = await this.getUserById(userId);
+          // Use the standalone function instead of `this.getUserById`
+          const user = await getUserById(userId);
           if (!user) return null;
           return {
             email: user.email ?? null,
@@ -101,6 +106,8 @@ async function loadDefaultProvider(): Promise<AuthProvider | null> {
         }
       }
     };
+
+    defaultProvider = provider;
     return defaultProvider;
   } catch {
     return null;

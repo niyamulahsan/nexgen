@@ -33,24 +33,22 @@ const state = vi.hoisted(() => ({
     copyFile: vi.fn().mockResolvedValue(undefined),
     rename: vi.fn().mockResolvedValue(undefined),
     stat: vi.fn().mockResolvedValue({ size: 123, mtimeMs: Date.now() }),
-    readdir: vi.fn().mockResolvedValue([]),
+    readdir: vi.fn().mockResolvedValue([])
   },
   s3Send: vi.fn().mockResolvedValue({}),
   s3ClientInstance: null as any,
   passThroughInstance: null as any,
   config: { driver: "local" as "local" | "s3" },
-  streams: [] as Array<{ destroy?: () => void; on: (...args: any[]) => any }>,
+  streams: [] as Array<{ destroy?: () => void; on: (...args: any[]) => any }>
 }));
 
 vi.mock("node:fs", () => ({
-  promises: Object.fromEntries(
-    Object.entries(state.fs).map(([k, f]) => [k, (...args: any[]) => (f as any)(...args)])
-  ),
+  promises: Object.fromEntries(Object.entries(state.fs).map(([k, f]) => [k, (...args: any[]) => (f as any)(...args)])),
   createWriteStream: vi.fn((...args: any[]) => {
     const ws = { on: vi.fn(), close: vi.fn() };
     state.streams.push(ws);
     return ws;
-  }),
+  })
 }));
 
 vi.mock("node:stream", () => ({
@@ -60,11 +58,14 @@ vi.mock("node:stream", () => ({
       return this;
     });
     _errorHandler: Function | null = null;
-    constructor() { state.streams.push(this); state.passThroughInstance = this; }
+    constructor() {
+      state.streams.push(this);
+      state.passThroughInstance = this;
+    }
   },
   Readable: {
     from: vi.fn(() => ({})),
-    fromWeb: vi.fn(() => ({})),
+    fromWeb: vi.fn(() => ({}))
   }
 }));
 
@@ -84,21 +85,24 @@ vi.mock("@aws-sdk/client-s3", () => ({
   HeadObjectCommand: vi.fn(),
   CopyObjectCommand: vi.fn(),
   ListObjectsV2Command: vi.fn(),
-  GetObjectAclCommand: vi.fn(),
+  GetObjectAclCommand: vi.fn()
 }));
 
 vi.mock("@aws-sdk/s3-request-presigner", () => ({
-  getSignedUrl: vi.fn(async () => "https://signed.url"),
+  getSignedUrl: vi.fn(async () => "https://signed.url")
 }));
 
 vi.mock("@/framework/circuit-breaker/cb.js", () => ({
-  CircuitBreaker: class {
-    state = "closed";
-    async exec<T>(fn: () => Promise<T>): Promise<T> { return fn(); }
-    getState() { return this.state; }
-    onSuccess() { }
-    onFailure() { }
-  }
+  createCircuitBreaker: () => ({
+    state: "closed",
+    async exec<T>(fn: () => Promise<T>): Promise<T> {
+      return fn();
+    },
+    getState() {
+      return "closed";
+    }
+  }),
+  isCircuitBreakerError: () => false
 }));
 
 vi.mock("@/config/index.js", () => ({
@@ -113,7 +117,7 @@ vi.mock("@/config/index.js", () => ({
       secretAccessKey: "secret",
       signedUrlTtlSeconds: 3600,
       defaultDisk: "private",
-      prefix: "nexwire",
+      prefix: "nexwire"
     };
   }
 }));
@@ -247,9 +251,7 @@ describe("storage.consumeGenerated", () => {
 
   it("reads then deletes on S3 driver", async () => {
     state.config.driver = "s3";
-    state.s3Send
-      .mockResolvedValueOnce({ Body: { transformToByteArray: async () => new Uint8Array([1, 2, 3]) } })
-      .mockResolvedValueOnce({});
+    state.s3Send.mockResolvedValueOnce({ Body: { transformToByteArray: async () => new Uint8Array([1, 2, 3]) } }).mockResolvedValueOnce({});
     const { storage } = await loadStorage();
 
     await storage.consumeGenerated("generated/test.pdf");

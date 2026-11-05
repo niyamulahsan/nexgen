@@ -113,11 +113,30 @@ export default {
 ```ts
 // src/config/database.ts
 export default {
+  // `sqlite:` is normalized to the `file:` prefix the driver expects
   url: env.DATABASE_URL,
+
+  // Provider-agnostic pool defaults
+  pool: {
+    max: 10,
+    idleTimeout: 20000, // ms
+    connectTimeout: 10000, // ms
+    keepAlive: true,
+  },
+
+  // Prepared statements (PostgreSQL)
+  prepare: true,
+
+  // Require TLS for MySQL/PostgreSQL
+  ssl: false,
 };
 ```
 
 The dialect (`mysql`, `postgresql`, `sqlite`) is auto-detected from the URL prefix. The `databaseDialect` constant and `detectDialectFrom()` helper are also exported.
+
+`pool.max` becomes MySQL's `connectionLimit` and `postgres`'s `max`; `idleTimeout` maps to `postgres`'s `idle_timeout` (seconds); `connectTimeout` maps to `connectTimeout` (MySQL, ms) / `connect_timeout` (PostgreSQL, seconds); `keepAlive` maps to MySQL's `enableKeepAlive`.
+
+Set `ssl: true` (or append `?sslmode=require` to the URL when your provider documents it) to require TLS. The framework wires it into both drivers: MySQL gets `ssl: {}` (Node's TLS defaults, `rejectUnauthorized: true`) and PostgreSQL gets `ssl: "require"`.
 
 ## Redis
 
@@ -324,7 +343,7 @@ Access via `securityConfig` from the facade or `config.security`.
 
 - `DATABASE_URL` missing or empty
 - S3 `bucket`, `accessKeyId`, `secretAccessKey` required when driver is `s3`
-- `REDIS_URL` must include host and port when Redis is enabled
+- `REDIS_URL` must be a `redis://` or `rediss://` URL with a hostname when Redis is enabled. The port is optional — ioredis defaults to `6379`.
 - `MAIL_USERNAME` required when `MAIL_FAIL_SILENT` is `false`
 
 ## Redis Key Namespace

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { mailConfig } from "@/config/index.js";
-import { CircuitBreaker } from "@/framework/circuit-breaker/cb.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 type MailPayload = {
@@ -17,7 +17,7 @@ const transport = nodemailer.createTransport({
   auth: mailConfig.username ? { user: mailConfig.username, pass: mailConfig.password } : undefined
 });
 
-const mailBreaker = new CircuitBreaker();
+const mailBreaker = createCircuitBreaker({ name: "SMTP Mail" });
 
 export const mail = {
   /**
@@ -35,11 +35,19 @@ export const mail = {
         })
       );
     } catch (error) {
-      logger.error("Mail send failed", {
-        to: payload.to,
-        subject: payload.subject,
-        error: error instanceof Error ? error.message : error
-      });
+      // Distinguish between a Circuit Breaker rejection and an actual SMTP failure
+      if (isCircuitBreakerError(error)) {
+        logger.warn("Mail send skipped: Circuit breaker is open", {
+          to: payload.to,
+          subject: payload.subject
+        });
+      } else {
+        logger.error("Mail send failed", {
+          to: payload.to,
+          subject: payload.subject,
+          error: error instanceof Error ? error.message : error
+        });
+      }
 
       if (!mailConfig.failSilent) throw error;
       return null;

@@ -1,10 +1,20 @@
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig, redisConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { authFromSocketHandshake, unauthenticatedRealtimeAuth } from "@/framework/realtime/socket-cookie.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
 import { logger } from "@/framework/support/logger.js";
+
+export const WS_PATH = "/socket.io";
+
+// Create a breaker for the Socket.IO Redis adapter
+const socketAdapterBreaker = createCircuitBreaker({
+  name: "Socket.IO Redis Adapter",
+  failureThreshold: 3,
+  resetTimeout: 30000
+});
 
 export type RealtimeServeWebSocket = Record<string, never>;
 
@@ -12,8 +22,6 @@ export type RealtimeInit = {
   io: SocketIOServer;
   websocketServe: RealtimeServeWebSocket;
 };
-
-export const WS_PATH = "/socket.io";
 
 let io: SocketIOServer | null = null;
 let adapterSubClient: ReturnType<typeof redisClientIfReady> | null = null;
@@ -27,12 +35,26 @@ function socketAllowedOrigins() {
 async function attachRedisAdapter() {
   if (!redisConfig.enabled) return;
 
-  const pubClient = redisClientIfReady();
-  if (!pubClient) return;
+  try {
+    await socketAdapterBreaker.exec(async () => {
+      const pubClient = redisClientIfReady();
+      if (!pubClient) throw new Error("Redis client not ready");
 
-  adapterSubClient = pubClient.duplicate();
-  await adapterSubClient.connect();
-  io?.adapter(createAdapter(pubClient, adapterSubClient));
+      // Socket.IO requires a duplicate connection for subscriptions
+      adapterSubClient = pubClient.duplicate();
+      await adapterSubClient.connect();
+
+      io?.adapter(createAdapter(pubClient, adapterSubClient));
+      logger.info("Socket.IO Redis adapter attached successfully");
+    });
+  } catch (error) {
+    if (isCircuitBreakerError(error)) {
+      logger.warn("Socket.IO Redis adapter skipped due to circuit breaker");
+    } else {
+      logger.error("Failed to attach Socket.IO Redis adapter", { error });
+    }
+    // Fallback: Socket.IO will automatically use its default in-memory adapter.
+  }
 }
 
 function registerAuthAndRooms() {
@@ -72,6 +94,12 @@ function registerAuthAndRooms() {
   });
 }
 
+/**
+ * Why: Boots the singleton Socket.IO server for Express.
+ * When: Express HTTP server starts and realtime is enabled.
+ * Where: Framework server lifecycle.
+ * How: Attaches Socket.IO directly to the Express/Node httpServer.
+ */
 export async function initRealtime(target: { httpServer: any }): Promise<RealtimeInit | null> {
   if (!realtimeConfig.enabled) {
     logger.info("Socket.IO disabled (disabled in config)");
@@ -80,7 +108,9 @@ export async function initRealtime(target: { httpServer: any }): Promise<Realtim
 
   if (io) return { io, websocketServe: {} };
 
+  // Express uses the native Node.js httpServer
   io = new SocketIOServer(target.httpServer, {
+    path: WS_PATH, // Explicitly set the path to match Hono
     cors: { origin: socketAllowedOrigins(), credentials: true }
   });
 

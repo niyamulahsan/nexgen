@@ -2,7 +2,15 @@ import { randomUUID } from "node:crypto";
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { appConfig, redisConfig, sessionConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+
+// Initialize the breaker for Session operations
+const sessionBreaker = createCircuitBreaker({
+  name: "Redis Session",
+  failureThreshold: 3,
+  resetTimeout: 30000
+});
 
 /** Extract origin from a URL string. Returns empty string on invalid/missing input. */
 function originOf(url?: string) {
@@ -60,9 +68,16 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return "";
 
-    const id = randomUUID();
-    await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
-    return id;
+    try {
+      return await sessionBreaker.exec(async () => {
+        const id = randomUUID();
+        await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
+        return id;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return "";
+      return "";
+    }
   },
 
   /** Get the full session payload for a given id. Returns null when session doesn't exist or Redis is unavailable. */
@@ -70,8 +85,15 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return null;
 
-    const data = await client.get(sessionKey(id));
-    return data ? JSON.parse(data) : null;
+    try {
+      return await sessionBreaker.exec(async () => {
+        const data = await client.get(sessionKey(id));
+        return data ? (JSON.parse(data) as T) : null;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return null;
+      return null;
+    }
   },
 
   /** Read a single key from the session payload. Returns null if the key or session doesn't exist. */
@@ -85,10 +107,22 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    const data = (await session.all<Record<string, unknown>>(id)) || {};
-    data[key] = value;
-    await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
-    return true;
+    try {
+      return await sessionBreaker.exec(async () => {
+        // Read through the client directly rather than `session.all()`. Calling
+        // another breaker-wrapped method from inside `exec` deadlocks the
+        // half-open probe: the inner call sees the outer probe in flight and
+        // rejects, so a `set` could never be the call that closes the breaker.
+        const raw = await client.get(sessionKey(id));
+        const data = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+        data[key] = value;
+        await client.set(sessionKey(id), JSON.stringify(data), "EX", sessionConfig.ttlSeconds);
+        return true;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return false;
+      return false;
+    }
   },
 
   /** @deprecated Use set() instead. */
@@ -101,8 +135,15 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    await client.expire(sessionKey(id), sessionConfig.ttlSeconds);
-    return true;
+    try {
+      return await sessionBreaker.exec(async () => {
+        await client.expire(sessionKey(id), sessionConfig.ttlSeconds);
+        return true;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return false;
+      return false;
+    }
   },
 
   /** Delete a session document from Redis. Use on logout or session expiry. Returns false when Redis is unavailable. */
@@ -110,12 +151,19 @@ export const session = {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    await client.del(sessionKey(id));
-    return true;
+    try {
+      return await sessionBreaker.exec(async () => {
+        await client.del(sessionKey(id));
+        return true;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return false;
+      return false;
+    }
   },
 
   /** Returns true when Redis is enabled and the Redis client is ready — guards against using session store without Redis. */
   isAvailable() {
-    return redisConfig.enabled && redisClientIfReady() !== null;
+    return redisConfig.enabled && redisClientIfReady() !== null && sessionBreaker.getState() !== "open";
   }
 };

@@ -28,27 +28,25 @@ export function createOpenApiDocument() {
 }
 
 export function configureOpenApi(app: Express) {
-  app.get(openApiConfig.scalar.specUrl, (_req, res) => {
+  const { specUrl, docsPath, favicon, ...scalarOptions } = openApiConfig.scalar;
+
+  app.get(specUrl, (_req, res) => {
     res.json(createOpenApiDocument());
   });
 
-  if (openApiConfig.scalar.favicon) {
+  if (favicon) {
     app.get("/favicon.ico", (_req, res) => {
-      const faviconPath = path.join(process.cwd(), openApiConfig.scalar.favicon);
+      const faviconPath = path.join(process.cwd(), favicon);
       if (!fs.existsSync(faviconPath)) return res.status(404).end();
       res.type("image/x-icon").sendFile(faviconPath);
     });
   }
 
   app.get(
-    openApiConfig.scalar.docsPath,
+    docsPath,
     apiReference({
-      url: openApiConfig.scalar.specUrl,
-      layout: openApiConfig.scalar.layout,
-      theme: openApiConfig.scalar.theme,
-      pageTitle: openApiConfig.scalar.pageTitle,
-      defaultHttpClient: openApiConfig.scalar.defaultHttpClient,
-      defaultOpenAllTags: openApiConfig.scalar.defaultOpenAllTags
-    } as any)
+      url: specUrl, // Map specUrl to url
+      ...scalarOptions // Pass EVERYTHING else automatically!
+    } as any) // The `as any` might still be needed if Express types are slightly behind
   );
 }

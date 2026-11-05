@@ -26,9 +26,20 @@ export function validateConfig(): void {
   if (redisConfig.enabled) {
     try {
       const url = new URL(redisConfig.url);
-      if (!url.hostname || url.port === "") {
-        throw new Error(`REDIS_URL is invalid: "${redisConfig.url}" — must include host and port`);
+
+      // Ensure it starts with redis:// or rediss://
+      if (url.protocol !== "redis:" && url.protocol !== "rediss:") {
+        throw new Error("URL must start with redis:// or rediss://");
       }
+
+      // Hostname is mandatory (e.g., localhost, 127.0.0.1, redis-container)
+      if (!url.hostname) {
+        throw new Error("URL must include a valid hostname");
+      }
+
+      // Note: We do NOT check if the port is empty. 
+      // ioredis automatically defaults to 6379 if no port is provided.
+
     } catch (error) {
       throw new Error(`REDIS_URL is invalid: "${redisConfig.url}" — ${error instanceof Error ? error.message : error}`);
     }

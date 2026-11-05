@@ -266,7 +266,7 @@ registerNotificationProvider(notificationProvider);
 
 A target is `{ type?: string; id: number | string }`; `type` defaults to `"user"` and the id is always passed through as-is, so numeric auth ids and UUIDs both work.
 
-Mail and realtime stay in the runtime: a custom provider only replaces storage, and `notify({ broadcast, mail })` keeps working. Without the generated module and without a registered provider, `notify()` warns once and returns `null`, and the HTTP handlers return `503`.
+Channel delivery stays in the runtime: a custom provider only replaces storage, and `notify({ broadcast, mail })` keeps working through the built-in channels (plus any channel you register). Without the generated module and without a registered provider, `notify()` warns once and returns `null`, and the HTTP handlers return `503`.
 
 ## Module providers
 

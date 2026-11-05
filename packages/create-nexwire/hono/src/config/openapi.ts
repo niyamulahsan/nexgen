@@ -8,46 +8,28 @@ import { appConfig } from "./app.js";
  *      and the Scalar docs UI appearance.
  */
 export const openApiConfig = {
-  /** OpenAPI spec version */
   version: "3.0.0",
-
-  /** API title shown in docs and the /doc spec */
   title: `${appConfig.name} API`,
-
-  /** API version shown in docs */
   apiVersion: "1.0.0",
-
-  /** Optional description shown in the /doc spec */
   description: "",
 
   /** Scalar docs UI settings */
   scalar: {
-    /** URL path to the OpenAPI JSON spec */
-    specUrl: "/doc",
-
-    /** URL path to the interactive docs UI */
-    docsPath: "/api-docs",
-
-    /** UI layout: "classic" or "modern" */
-    layout: "classic" as const,
-
+    specUrl: "/doc", // URL path to the OpenAPI JSON spec
+    docsPath: "/api-docs", // URL path to the interactive docs UI
+    layout: "classic" as const, // UI layout: "classic" or "modern"
     /** UI theme: "default", "moon", "purple", "solarized", "bluePlanet", "fastify", "kepler", "mars", "nebula", "none" */
     theme: "moon" as const,
-
-    /** HTML page title for the /api-docs page */
-    pageTitle: `${appConfig.name} API`,
-
+    pageTitle: `${appConfig.name} API`, // HTML page title for the /api-docs page
     /** Favicon file (project-relative) served at /favicon.ico for the /api-docs page */
     favicon: "src/resources/src/assets/images/favicon/favicon.ico",
-
     /** Default HTTP client shown in code examples */
     defaultHttpClient: {
       targetKey: "js" as const,
       clientKey: "fetch" as const
     },
-
-    /** Expand all tags on load */
-    defaultOpenAllTags: true
+    defaultOpenAllTags: true, // Expand all tags on load
+    showDeveloperTools: "never"
   }
 } as const;
 

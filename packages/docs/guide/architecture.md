@@ -243,7 +243,7 @@ Module Router              — Match route → run middleware → execute contro
 | Config validation | `src/config/validate.ts`        | Kernel boot (`validateConfig`)                                                                | No             |
 | Metrics           | `src/config/metrics.ts`         | `src/framework/http/metrics.ts`                                                               | No             |
 | Health / liveness | `src/config/health.ts`          | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
-| Circuit breaker   | `src/config/circuit-breaker.ts` | `src/framework/circuit-breaker`                                                               | No             |
+| Circuit breaker   | —                               | `src/framework/circuit-breaker/cb.ts`                                                         | No             |
 | Rate limiting     | `src/config/rateLimit.ts`       | `http/ratelimiter.ts`                                                                         | No             |
 | Storage facade    | —                               | —                                                                                             | **Yes**        |
 | DB facade         | —                               | —                                                                                             | **Yes**        |
@@ -270,6 +270,29 @@ The framework auto-wires the container-probe endpoints you need for orchestratio
 
 These are mounted on the HTTP app by the framework — **you never define routes for them** in your modules. Kubernetes (or any orchestrator) hits the endpoint, reads the status, and decides pod health from it. Like circuit breaker, this is app/orchestration-level structure, not user code.
 
-### Circuit breaker (app settings)
+### Circuit breaker (framework internals)
 
-Circuit breaker is configured in `src/config/circuit-breaker.ts` (thresholds, reset timeout, half-open success count) and enforced by `src/framework/circuit-breaker` around shell/command execution. **It is not a facade export** — app modules shouldn't interact with it directly. It exists to prevent a failing dependency from cascading; the facade simply routes through it transparently.
+There is no `src/config/circuit-breaker.ts`. Each subsystem creates its own breaker with the factory in `src/framework/circuit-breaker/cb.ts`:
+
+```ts
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+
+const breaker = createCircuitBreaker({
+  name: "Redis Cache",
+  failureThreshold: 3, // failures before opening (default 3)
+  resetTimeout: 30000, // ms before allowing a half-open probe (default 30000)
+  successThreshold: 1, // probe successes before closing (default 1)
+});
+
+try {
+  await breaker.exec(() => doWork());
+} catch (error) {
+  if (isCircuitBreakerError(error)) {
+    // degraded path
+  }
+}
+```
+
+The factory returns a closure with `exec()` and `getState()` (`"closed" | "open" | "half-open"`). While open, `exec()` throws a `CircuitBreakerOpenError` without running the operation. After `resetTimeout`, a single probe is allowed through; `successThreshold` consecutive successes close the breaker, and any failure while half-open re-opens it.
+
+Breakers guard Redis itself, cache, sessions, the scheduler lock, realtime broadcast, the Socket.IO Redis adapter, S3 storage, and SMTP mail. Most catch blocks fall back to a degraded path rather than failing the request — a cache miss, a database scheduler lock, an in-memory Socket.IO adapter, or a logged skip. The breaker is **not a facade export**; app modules should not interact with it directly.

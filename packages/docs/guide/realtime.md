@@ -18,6 +18,15 @@
 
 Set `SOCKET=false` in `.env` to disable all WebSocket functionality. `dispatchEvent()` with `broadcast` options will be a no-op.
 
+## Server Lifecycle
+
+Socket.IO is attached **before** the HTTP server starts listening, so no request can arrive before realtime is ready:
+
+- **Express** — `startHttpServer()` delegates to `startNode()`, which creates the Node HTTP server, awaits `initRealtime({ httpServer })`, and only then calls `server.listen()`. On shutdown, `closeRealtime()` runs before `server.close()`.
+- **Hono** — the runtime adapter calls `initRealtime()` and passes the bun-engine websocket options to the Bun server (or attaches to the Node HTTP server).
+
+The HTTP path is fixed at `/socket.io` (`WS_PATH` in `src/framework/realtime/socket.ts`, mirrored by `realtimeConfig.path`). The UI's Vite proxy forwards `/socket.io` to the API only when `SOCKET` is not `false`.
+
 ## Room Strategy
 
 When a client connects, the `initRealtime()` middleware extracts the JWT from the handshake cookie and joins the socket to rooms automatically:
@@ -139,6 +148,8 @@ Instance A                     Redis Pub/Sub                    Instance B
 ```
 
 Without Redis, broadcasting works only within a single process.
+
+The adapter is attached through a circuit breaker. If either Redis leg cannot connect, the failure is logged and the server keeps the **in-memory adapter** — realtime keeps working in a single process instead of failing to boot.
 
 ## Client-Side Integration
 

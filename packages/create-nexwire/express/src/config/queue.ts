@@ -24,7 +24,7 @@ export const queueConfig = {
   prefix: `${redisConfig.prefix}:queue`,
   durablePrefix: `${redisConfig.prefix}:durable`,
   queueUi: "/queues",
-  allowedEmails: ""
+  allowedEmails: "" // Comma-separated list of email addresses allowed to access the queue UI. Empty means no restriction.
 };
 
 export type QueueConfig = typeof queueConfig;

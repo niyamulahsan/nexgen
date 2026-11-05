@@ -1,9 +1,17 @@
 import { cacheConfig, redisConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
 
 function cacheKey(key: string) {
   return `${cacheConfig.keyPrefix}:${key}`;
 }
+
+// Initialize the circuit breaker specifically for Cache operations
+const cacheBreaker = createCircuitBreaker({
+  name: "Redis Cache",
+  failureThreshold: 3,
+  resetTimeout: 30000
+});
 
 /**
  * Why: Provides Redis-backed cache helpers with graceful fallback behavior.
@@ -20,18 +28,35 @@ export const cache = {
    */
   async get<T>(key: string, fallback: T | null = null) {
     const client = redisClientIfReady();
+    // If the client isn't connected at all, fail fast to fallback
     if (!client) return fallback;
 
-    const value = await client.get(cacheKey(key));
-    return value ? (JSON.parse(value) as T) : fallback;
+    try {
+      return await cacheBreaker.exec(async () => {
+        const value = await client.get(cacheKey(key));
+        return value ? (JSON.parse(value) as T) : fallback;
+      });
+    } catch (error) {
+      // If the circuit is open, or a Redis error occurs, return the fallback safely
+      if (isCircuitBreakerError(error)) return fallback;
+      return fallback;
+    }
   },
 
   async set(key: string, value: unknown, ttl = cacheConfig.ttlSeconds) {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    await client.set(cacheKey(key), JSON.stringify(value), "EX", ttl);
-    return true;
+    try {
+      return await cacheBreaker.exec(async () => {
+        await client.set(cacheKey(key), JSON.stringify(value), "EX", ttl);
+        return true;
+      });
+    } catch (error) {
+      // If the circuit is open, or a Redis error occurs, silently fail
+      if (isCircuitBreakerError(error)) return false;
+      return false;
+    }
   },
 
   /**
@@ -51,8 +76,15 @@ export const cache = {
     const client = redisClientIfReady();
     if (!client) return false;
 
-    await client.del(cacheKey(key));
-    return true;
+    try {
+      return await cacheBreaker.exec(async () => {
+        await client.del(cacheKey(key));
+        return true;
+      });
+    } catch (error) {
+      if (isCircuitBreakerError(error)) return false;
+      return false;
+    }
   },
 
   /**
@@ -66,7 +98,7 @@ export const cache = {
     if (cached !== null) return cached;
 
     const fresh = await callback();
-    await this.put(key, fresh, ttl);
+    await this.set(key, fresh, ttl);
     return fresh;
   },
 
@@ -77,6 +109,6 @@ export const cache = {
    * How: Confirms REDIS flag and ready Redis client instance.
    */
   isAvailable() {
-    return redisConfig.enabled && redisClientIfReady() !== null;
+    return redisConfig.enabled && redisClientIfReady() !== null && cacheBreaker.getState() !== "open";
   }
 };

@@ -62,7 +62,7 @@
     "ioredis": "^5.11.1",
     "lodash-es": "^4.18.1",
     "luxon": "^3.7.2",
-    "maildev": "^3.0.0",
+    "maildev": "^2.2.1",
     "mysql2": "^3.23.3",
     "nodemailer": "^10.2.1",
     "pinia": "^3.0.4",

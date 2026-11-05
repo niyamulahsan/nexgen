@@ -21,7 +21,7 @@ export { authConfig } from "./auth.js";
 export { cacheConfig } from "./cache.js";
 export { cookieConfig } from "./cookie.js";
 export { corsConfig } from "./cors.js";
-export { databaseConfig } from "./database.js";
+export { databaseConfig, databaseDialect, detectDialectFrom } from "./database.js";
 export { jwtConfig } from "./jwt.js";
 export { loggingConfig } from "./logging.js";
 export { mailConfig } from "./mail.js";

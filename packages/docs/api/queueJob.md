@@ -60,6 +60,7 @@ The `null` return means the work was dropped, not deferred. `queueJob` logs a wa
 ## Notes
 
 - Requires Redis; returns `null` (never throws) when Redis is unavailable on the app side, and warns once per job so the loss is visible.
+- BullMQ owns its connection (`connection: { url }` from `REDIS_URL`), so enqueueing does not depend on the framework's shared client being connected. The worker runtime refuses to start when `REDIS=false`.
 - A dropped job is not retried, not persisted, and not shown in BullBoard. To run the work immediately instead, use [`dispatchCommand`](./dispatchCommand) without `{ async: true }`.
 - Default queue resources: `attempts: 3`, exponential backoff 3s, keep 1000 completed / 5000 failed — override per enqueue.
 - Handlers register with `shouldQueue(job, queue, fn)`; the job name and queue name must match.

@@ -1,6 +1,6 @@
 import { Redis } from "ioredis";
 import { redisConfig } from "@/config/index.js";
-import { CircuitBreaker } from "@/framework/circuit-breaker/cb.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { logger } from "@/framework/support/logger.js";
 
 export type redis = Redis;
@@ -8,10 +8,10 @@ export type redis = Redis;
 let client: redis | null = null;
 let ready = false;
 let lastError: string | null = null;
-let redisBreaker: CircuitBreaker | null = null;
+let redisBreaker: any | null = null;
 
 if (redisConfig.enabled) {
-  redisBreaker = new CircuitBreaker();
+  redisBreaker = createCircuitBreaker({ name: "Redis", failureThreshold: 3, resetTimeout: 30000 });
 }
 
 function safeRedisUrl() {
@@ -40,42 +40,40 @@ export async function initRedis() {
     return null;
   }
 
-  if (redisBreaker?.getState() === "open") {
-    lastError = "redis circuit breaker is open";
-    logger.warn("Redis circuit breaker is open; skipping connection");
-    return null;
-  }
-
   try {
-    client = new Redis(redisConfig.url, {
-      lazyConnect: true,
-      enableReadyCheck: true,
-      maxRetriesPerRequest: 0,
-      retryStrategy: () => null
-    });
+    return await redisBreaker.exec(async () => {
+      client = new Redis(redisConfig.url, {
+        lazyConnect: true,
+        enableReadyCheck: true,
+        maxRetriesPerRequest: 0,
+        retryStrategy: () => null
+      });
 
-    client.on("error", (error) => {
-      lastError = error.message;
-      if (ready) {
-        logger.warn("Redis connection error", {
-          redisUrl: safeRedisUrl(),
-          error: error.message
-        });
-      }
-    });
+      client.on("error", (error) => {
+        lastError = error.message;
+        if (ready) logger.warn("Redis connection error", { redisUrl: safeRedisUrl(), error: error.message });
+      });
 
-    await client.connect();
-    await client.ping();
-    ready = true;
-    redisBreaker?.onSuccess();
-    return client;
+      await client.connect();
+      await client.ping();
+
+      ready = true;
+      logger.info("Redis connected successfully");
+      return client;
+    });
   } catch (error) {
-    lastError ||= error instanceof Error ? error.message : String(error);
+    // Use the functional guard
+    if (isCircuitBreakerError(error)) {
+      lastError = error.message;
+      logger.warn("Redis initialization blocked by circuit breaker");
+    } else {
+      lastError = error instanceof Error ? error.message : String(error);
+      logger.warn(`Redis unavailable; continuing without Redis features (${lastError})`);
+    }
+
     client?.disconnect();
     client = null;
     ready = false;
-    redisBreaker?.onFailure();
-    logger.warn(`Redis unavailable; continuing without Redis features (${lastError})`);
     return null;
   }
 }
@@ -107,7 +105,6 @@ export function redisReady() {
  * How: Returns connected client or null when Redis is unavailable.
  */
 export function redisClientIfReady() {
-  if (redisBreaker?.getState() === "open") return null;
   return redisReady() ? client : null;
 }
 

@@ -20,6 +20,20 @@ vi.mock("@/framework/redis/client.js", () => ({
   redisClientIfReady: () => null
 }));
 
+// `getQueue()` now asks configuration, not the shared client, whether Redis is
+// on. REDIS=false is the shipped default, so this is the state a fresh project
+// boots into.
+vi.mock("@/config/index.js", () => ({
+  redisConfig: { enabled: false, url: "redis://localhost:6379" },
+  queueConfig: { prefix: "nexwire:queue", durablePrefix: "nexwire:durable" }
+}));
+
+// The queue module reports real failures through the shared logger. These tests
+// only care about the dropped-job warning, so keep the logger out of the way.
+vi.mock("@/framework/support/logger.js", () => ({
+  logger: { fatal: () => {}, error: () => {}, warn: () => {}, info: () => {}, debug: () => {}, trace: () => {}, child: () => ({}) }
+}));
+
 describe("queueJob when Redis is unavailable", () => {
   let warnings: string[] = [];
 

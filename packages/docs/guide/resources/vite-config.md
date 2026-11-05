@@ -3,49 +3,61 @@
 `src/resources/vite.config.ts` configures the Vite dev server and build for the UI SPA.
 
 ```ts
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 
-const cacheBase = process.env.LOCALAPPDATA || process.env.TEMP || ".";
-const apiUrl = process.env.APP_URL || "http://localhost:3000";
-const socketEnabled = process.env.SOCKET !== "false";
+export default defineConfig(({ mode }) => {
+  // Load .env the same way the backend does
+  const env = loadEnv(mode, process.cwd(), "");
 
-const proxy: Record<string, any> = {
-  "/api": { target: apiUrl, changeOrigin: true },
-  "/health": { target: apiUrl, changeOrigin: true },
-  "/storage": { target: apiUrl, changeOrigin: true },
-};
+  const cacheBase = process.env.LOCALAPPDATA || process.env.TEMP || ".";
+  const apiUrl = env.APP_URL || "http://localhost:3000";
+  const socketEnabled = env.SOCKET === "true";
 
-proxy["/socket.io"] = { target: apiUrl, changeOrigin: true, ws: true };
+  const proxy: Record<string, any> = {
+    "/api": { target: apiUrl, changeOrigin: true },
+    "/health": { target: apiUrl, changeOrigin: true },
+    "/storage": { target: apiUrl, changeOrigin: true },
+  };
 
-export default defineConfig({
-  define: {
-    __SOCKET_ENABLED__: socketEnabled,
-    __API_URL__: JSON.stringify(apiUrl),
-  },
-  root: "src/resources",
-  cacheDir: path.join(cacheBase, "nexwire", "vite-cache", "resources"),
-  plugins: [vue()],
-  css: {
-    preprocessorOptions: {
-      scss: { quietDeps: true },
+  // Only proxy the websocket path when realtime is actually on
+  if (socketEnabled) {
+    proxy["/socket.io"] = { target: apiUrl, changeOrigin: true, ws: true, timeout: 10000 };
+  }
+
+  return {
+    define: {
+      // Vite replace values must be JSON strings, not booleans
+      __SOCKET_ENABLED__: JSON.stringify(socketEnabled),
+      __API_URL__: JSON.stringify(apiUrl),
     },
-  },
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    root: fileURLToPath(new URL(".", import.meta.url)),
+    cacheDir: path.join(cacheBase, "nexwire", "vite-cache", "resources"),
+    plugins: [vue()],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          quietDeps: true,
+          silenceDeprecations: ["import", "if-function", "global-builtin", "color-functions", "slash-div"],
+        },
+      },
     },
-  },
-  build: {
-    outDir: "../../public",
-    emptyOutDir: true,
-  },
-  server: {
-    port: 5173,
-    proxy,
-  },
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
+    build: {
+      outDir: "../../public",
+      emptyOutDir: true,
+    },
+    server: {
+      port: 5173,
+      proxy,
+    },
+  };
 });
 ```
 
@@ -96,11 +108,12 @@ Then rewrite `src/main.ts` for your framework's entry point.
 
 | Setting              | Value                                        | Notes                                                                     |
 | -------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
-| `root`               | `src/resources`                              | Vite serves from the resources directory                                  |
+| `root`               | Config file's directory (`new URL(".", import.meta.url)`) | Vite serves from `src/resources/` regardless of the process CWD     |
 | `@` alias            | `src/`                                       | Maps to `src/resources/src/`                                              |
 | `outDir`             | `../../public`                               | Build output goes to the framework's public directory                     |
 | `server.port`        | `5173`                                       | Dev server port                                                           |
-| `__SOCKET_ENABLED__` | `process.env.SOCKET`                         | Compile-time constant for Pulse availability (set via `SOCKET` in `.env`) |
+| `__SOCKET_ENABLED__` | `JSON.stringify(env.SOCKET === "true")`     | Compile-time boolean for Pulse; must be stringified for Vite `define`     |
+| `__API_URL__`        | `JSON.stringify(env.APP_URL)`                | Compile-time API base URL                                                 |
 | `cacheDir`           | `%LOCALAPPDATA%/nexwire/vite-cache/resources` | Offloads cache from project directory                                     |
 
 ## Proxy
@@ -113,3 +126,7 @@ All backend requests are proxied to `env.APP_URL` to avoid CORS issues during de
 | `/health`    | `env.APP_URL` | —               |
 | `/storage/*` | `env.APP_URL` | —               |
 | `/socket.io` | `env.APP_URL` | Yes (for Pulse) |
+
+The `/socket.io` entry is only added when `SOCKET` is exactly `"true"`; with realtime disabled there is nothing to proxy, and Vite does not hold a websocket upgrade path open to a server that is not listening on it. This matches the backend default: an unset `SOCKET` means off.
+
+`loadEnv(mode, process.cwd(), "")` reads the project `.env` directly (the empty third argument removes Vite's `VITE_` prefix filter), so `APP_URL` and `SOCKET` mean the same thing in the Vite config as they do in the backend.

@@ -38,6 +38,7 @@ const collectionQueue = queue("collection");
 ## Notes
 
 - Returns `null` when Redis is off — the app never crashes from a missing Redis.
+- Queues and workers use BullMQ's own connection built from `REDIS_URL`, not the framework's shared Redis client.
 - `queue()` lazily creates the queue on first access; `queueJob` uses the same registry.
 - Prefer `queueJob` for enqueueing and `shouldQueue` for handlers; reach for the raw instance only for introspection.
 

@@ -83,7 +83,7 @@ Controls all Redis-backed subsystems. When `false`, the framework skips Redis en
 ### `SOCKET`
 
 - **Type:** boolean (`true` / `false`)
-- **Default:** `true`
+- **Default:** `false`
 
 Controls Socket.IO on both backend and UI:
 

@@ -1,6 +1,7 @@
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig, redisConfig } from "@/config/index.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 import { authFromSocketHandshake, unauthenticatedRealtimeAuth } from "@/framework/realtime/socket-cookie.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
@@ -8,6 +9,13 @@ import { isBun } from "@/framework/runtime/runtime.js";
 import { logger } from "@/framework/support/logger.js";
 
 export const WS_PATH = "/socket.io";
+
+// Create a breaker for the Socket.IO Redis adapter
+const socketAdapterBreaker = createCircuitBreaker({
+  name: "Socket.IO Redis Adapter",
+  failureThreshold: 3,
+  resetTimeout: 30000
+});
 
 /**
  * Why: Describes runtime-specific WebSocket wiring for the HTTP server adapter.
@@ -53,12 +61,25 @@ function socketCors() {
 async function attachRedisAdapter() {
   if (!redisConfig.enabled) return;
 
-  const pubClient = redisClientIfReady();
-  if (!pubClient) return;
+  try {
+    await socketAdapterBreaker.exec(async () => {
+      const pubClient = redisClientIfReady();
+      if (!pubClient) throw new Error("Redis client not ready");
 
-  adapterSubClient = pubClient.duplicate();
-  await adapterSubClient.connect();
-  io?.adapter(createAdapter(pubClient, adapterSubClient));
+      // Socket.IO requires a duplicate connection for subscriptions
+      adapterSubClient = pubClient.duplicate();
+      await adapterSubClient.connect();
+
+      io?.adapter(createAdapter(pubClient, adapterSubClient));
+      logger.info("Socket.IO Redis adapter attached successfully");
+    });
+  } catch (error) {
+    if (isCircuitBreakerError(error)) {
+      logger.warn("Socket.IO Redis adapter skipped due to circuit breaker");
+    } else {
+      logger.error("Failed to attach Socket.IO Redis adapter", { error });
+    }
+  }
 }
 
 /**

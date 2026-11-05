@@ -2,6 +2,8 @@ import { io, type Socket } from "socket.io-client";
 import type { App } from "vue";
 
 declare const __SOCKET_ENABLED__: boolean;
+// 1. Safely evaluate the injected variable
+const isSocketEnabled = typeof __SOCKET_ENABLED__ !== "undefined" ? Boolean(__SOCKET_ENABLED__) : false;
 
 type EventCallback<T = unknown> = (payload: T) => void;
 
@@ -25,17 +27,24 @@ export type PulseClient = {
 };
 
 function createPulse(): PulseClient {
-  if (!__SOCKET_ENABLED__) {
-    const n = (): PulseChannel => ({ listen: () => n(), stopListening: () => n() });
-    const c: PulseClient = {
-      connect: () => c,
-      disconnect: () => c,
-      channel: n,
-      private: n,
-      leave: () => c
+  // 2. If disabled, return the no-op dummy client immediately
+  if (!isSocketEnabled) {
+    const dummyChannel = (): PulseChannel => ({
+      listen: () => dummyChannel(),
+      stopListening: () => dummyChannel()
+    });
+
+    const dummyClient: PulseClient = {
+      connect: () => dummyClient,
+      disconnect: () => dummyClient,
+      channel: dummyChannel,
+      private: dummyChannel,
+      leave: () => dummyClient
     };
-    return c;
+
+    return dummyClient;
   }
+
   let socket: Socket | null = null;
   const channels = new Map<string, ChannelBinding[]>();
   const joinedRooms = new Set<string>();

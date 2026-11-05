@@ -2,17 +2,21 @@
   <header :class="{ scrolled: isScrolled }">
     <nav class="navbar bg-transparent p-0">
       <div class="container-fluid p-0 row-gap-2 column-gap-1">
-        <button
-          id="off-canvas"
-          type="button"
-          class="nav-btn order-0"
-          title="Toggle Button"
-          @click="props.onToggleSidebar">
+        <button id="off-canvas" type="button" class="nav-btn order-0" title="Toggle Button" @click="props.onToggleSidebar">
           <i class="bi bi-layout-text-sidebar-reverse"></i>
         </button>
         <div id="pagebar" class="card card-body nav-card order-5 order-sm-2"></div>
         <template v-for="btn in featureButtons" :key="btn.id">
-          <button v-if="!btn.render" type="button" class="nav-btn order-3 order-sm-3" :class="btn.class" :title="btn.title || undefined" :aria-label="btn.label || 'button'" v-bind="btn.attrs" @click="btn.onClick">
+          <button
+            v-if="!btn.render"
+            type="button"
+            class="nav-btn order-3 order-sm-3"
+            :class="btn.class"
+            :title="btn.title || undefined"
+            :aria-label="btn.label || 'button'"
+            v-bind="btn.attrs"
+            @click="btn.onClick"
+          >
             <i v-if="btn.icon" :class="btn.icon"></i>
             <span v-if="btn.label" class="ms-1">{{ btn.label }}</span>
           </button>
@@ -21,7 +25,15 @@
           </template>
         </template>
         <div class="btn-group order-4 order-sm-4">
-          <button type="button" class="nav-btn w-100" title="user" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="button">
+          <button
+            type="button"
+            class="nav-btn w-100"
+            title="user"
+            data-bs-toggle="dropdown"
+            data-bs-display="static"
+            aria-expanded="false"
+            aria-label="button"
+          >
             <i class="bi bi-person-circle"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
@@ -42,7 +54,7 @@
               <div class="dropdown-divider my-1"></div>
             </li>
             <li>
-              <router-link class="dropdown-item" to="/profile">
+              <router-link class="dropdown-item" to="#">
                 <i class="bi bi-person-check me-3"></i><span>My Profile</span>
               </router-link>
             </li>
@@ -53,7 +65,14 @@
             </li>
           </ul>
         </div>
-        <button id="theme-switch" type="button" title="theme" class="nav-btn order-1 order-sm-5" aria-label="button" @click="props.onToggleTheme">
+        <button
+          id="theme-switch"
+          type="button"
+          title="theme"
+          class="nav-btn order-1 order-sm-5"
+          aria-label="button"
+          @click="props.onToggleTheme"
+        >
           <i :class="themeIconClass"></i>
         </button>
       </div>

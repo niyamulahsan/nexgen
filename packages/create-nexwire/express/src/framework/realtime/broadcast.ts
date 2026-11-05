@@ -1,6 +1,8 @@
 import { env } from "@/env.js";
 import { socketServer } from "@/framework/realtime/socket.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
+import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+import { logger } from "@/framework/support/logger.js";
 
 export type BroadcastOptions = {
   users?: Array<string | number>;
@@ -9,6 +11,13 @@ export type BroadcastOptions = {
   auth?: boolean;
   all?: boolean;
 };
+
+// Circuit breaker for the pub/sub relay (used by workers that don't have Socket.IO)
+const broadcastBreaker = createCircuitBreaker({
+  name: "Realtime Broadcast Relay",
+  failureThreshold: 3,
+  resetTimeout: 30000
+});
 
 /**
  * Why: Emits realtime events to targeted audiences.
@@ -29,18 +38,29 @@ function emitViaIo(event: string, payload: any, options: BroadcastOptions) {
   for (const room of options.rooms || []) io.to(room).emit(event, payload);
 }
 
-export function broadcast(event: string, payload: any, options: BroadcastOptions = {}) {
+export async function broadcast(event: string, payload: any, options: BroadcastOptions = {}) {
   const io = socketServer();
 
+  // If this process has Socket.IO (the main API server), emit directly
   if (io) {
     emitViaIo(event, payload, options);
     return;
   }
 
-  // No Socket.IO in this process — relay through Redis so the main process can broadcast
+  // If this is a background worker, relay through Redis
   const redis = redisClientIfReady();
   if (!redis) return;
 
-  const channel = `${env.REDIS_PREFIX}:broadcast`;
-  redis.publish(channel, JSON.stringify({ event, payload, options }));
+  try {
+    await broadcastBreaker.exec(async () => {
+      const channel = `${env.REDIS_PREFIX}:broadcast`;
+      await redis.publish(channel, JSON.stringify({ event, payload, options }));
+    });
+  } catch (error) {
+    if (isCircuitBreakerError(error)) {
+      logger.warn("Broadcast relay skipped: Circuit breaker is open");
+    } else {
+      logger.error("Failed to relay broadcast via Redis", { error, event });
+    }
+  }
 }

@@ -1,7 +1,7 @@
 import type { AddressInfo } from "node:net";
 import type { Express } from "express";
-import type { RealtimeServeWebSocket } from "@/framework/realtime/socket.js";
-import { runtime } from "@/framework/runtime/runtime.js";
+import { createServer, type Server } from "node:http";
+import { initRealtime, closeRealtime } from "@/framework/realtime/socket.js";
 
 export type HttpServerHandle = {
   address(): string | AddressInfo | null;
@@ -9,26 +9,31 @@ export type HttpServerHandle = {
   native: unknown;
 };
 
-async function startNode(app: Express, port: number, _websocket?: RealtimeServeWebSocket): Promise<HttpServerHandle> {
-  const { createServer } = await import("node:http");
-
+async function startNode(app: Express, port: number): Promise<HttpServerHandle> {
   const server = createServer(app);
-  await new Promise<void>((resolve) => server.listen(port, resolve));
+
+  // 1. Attach Socket.IO BEFORE starting the server
+  await initRealtime({ httpServer: server });
+
+  // 2. Start listening
+  await new Promise<void>((resolve, reject) => {
+    server.listen(port, () => resolve());
+    server.on("error", (err) => reject(err));
+  });
 
   return {
     native: server,
     address: () => server.address(),
-    close: () => new Promise<void>((resolve) => server.close(() => resolve()))
+    close: async () => {
+      // 3. Close Socket.IO safely, then the HTTP server
+      await closeRealtime();
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   };
 }
 
-async function startBun(app: Express, port: number, _websocket?: RealtimeServeWebSocket): Promise<HttpServerHandle> {
-  const server = await startNode(app, port);
-  return server;
-}
-
-export async function startHttpServer(app: Express, port: number, websocket?: RealtimeServeWebSocket): Promise<HttpServerHandle> {
-  const activeRuntime = runtime();
-  if (activeRuntime === "bun") return startBun(app, port, websocket);
-  return startNode(app, port, websocket);
+export async function startHttpServer(app: Express, port: number): Promise<HttpServerHandle> {
+  // Express runs natively on Node.js.
+  // Even if you run Express on Bun, Bun's Node compatibility layer handles http.createServer.
+  return startNode(app, port);
 }

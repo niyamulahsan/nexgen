@@ -42,7 +42,7 @@
               <div class="dropdown-divider my-1"></div>
             </li>
             <li>
-              <router-link class="dropdown-item" to="/profile">
+              <router-link class="dropdown-item" to="#">
                 <i class="bi bi-person-check me-3"></i><span>My Profile</span>
               </router-link>
             </li>
