@@ -83,7 +83,7 @@ function reportEnvDrift(examplePath, envPath, name) {
 
 /**
  * Normalize the synced scaffold to a fresh-checkout state. The template
- * working tree is doubles as a local build area, and build output is NOT
+ * working tree doubles as a local build area, and build output is NOT
  * gitignored at every depth (only `public/*` is), so it can silently land in
  * the published package. Never publish:
  *
@@ -92,29 +92,36 @@ function reportEnvDrift(examplePath, envPath, name) {
  * - `deploy/`                `maker deploy:init`
  * - `dist/`                  `tsc` output
  *
- * The published package keeps `.gitkeep` markers so the folder layout is
- * identical everywhere.
+ * `public/` keeps only `.gitkeep`. `src/storage/logs/` keeps `.gitkeep` and
+ * empty `app.log` / `fatal.log` (the framework's two rotating log files), with
+ * all request data stripped. The package therefore looks like a clean
+ * checkout: the logs directory exists but contains no content from local
+ * runs.
  */
 function sanitizeScaffold(dest, name) {
-  const resetToGitkeep = (dir, label) => {
+  const resetToGitkeep = (dir, label, extraFiles = []) => {
     if (existsSync(dir)) {
       for (const entry of readdirSync(dir)) {
-        if (entry === ".gitkeep") continue;
+        if (entry === ".gitkeep" || extraFiles.includes(entry)) continue;
         rmSync(join(dir, entry), { recursive: true, force: true });
       }
     } else {
       mkdirSync(dir, { recursive: true });
     }
-    const marker = join(dir, ".gitkeep");
-    if (!existsSync(marker)) writeFileSync(marker, "");
-    if (readdirSync(dir).some((entry) => entry !== ".gitkeep")) {
+    if (!existsSync(join(dir, ".gitkeep"))) writeFileSync(join(dir, ".gitkeep"), "");
+    for (const entry of extraFiles) {
+      // Always ship empty, even if a stale copy already exists in the scaffold.
+      writeFileSync(join(dir, entry), "");
+    }
+    const allowed = new Set([".gitkeep", ...extraFiles]);
+    if (readdirSync(dir).some((entry) => !allowed.has(entry))) {
       console.error(`  [${name}] ${label} still contains build output - refusing to publish it`);
       process.exit(1);
     }
   };
 
   resetToGitkeep(join(dest, "public"), "public/");
-  resetToGitkeep(join(dest, "src", "storage", "logs"), "src/storage/logs/");
+  resetToGitkeep(join(dest, "src", "storage", "logs"), "src/storage/logs/", ["app.log", "fatal.log"]);
 
   // Build output folders never ship - the engine root is the only place
   // `maker deploy:init` writes, so a deep `dist/` is already excluded by the
