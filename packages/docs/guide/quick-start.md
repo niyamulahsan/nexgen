@@ -36,7 +36,15 @@ bun create nexwire@latest my-project
 
 ### Choosing an HTTP engine
 
-By default the project uses the **Hono** engine. To start with **Express** instead, pass `--engine=express`:
+When `--engine` is not passed, `create-nexwire` shows a list and asks which backend to scaffold — **Hono** (the default) or **Express**. Arrow keys move the highlight, `1`/`2` jumps, Enter confirms:
+
+```
+Choose a backend:
+❯ Hono      Hono-based HTTP layer and OpenAPI
+  Express   Express-based HTTP layer and OpenAPI
+```
+
+To skip the question and pick one directly, pass `--engine`:
 
 ::: code-group
 
@@ -57,6 +65,8 @@ bun create nexwire@latest my-project --engine=express
 ```
 
 :::
+
+For CI or scripts, `-y` / `--yes` skips every prompt and accepts the defaults (a project name is still required).
 
 See [Routing: Hono vs Express](/guide/routing) for how the two engines differ.
 

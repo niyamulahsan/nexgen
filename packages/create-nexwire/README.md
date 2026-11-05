@@ -27,22 +27,34 @@ nexwire ships that stack **already connected**. Auth reads the database. Enqueue
 
 ## Quick Start
 
-### Hono (default)
+### Choose a backend
+
+The CLI asks which backend to scaffold when you don't pass `--engine`:
 
 ```bash
 npm create nexwire@latest my-app
-cd my-app
-npm install
-npm run maker dev
 ```
 
-### Express
+```
+Choose a backend:
+❯ Hono      Hono-based HTTP layer and OpenAPI
+  Express   Express-based HTTP layer and OpenAPI
+```
+
+Arrow keys to move, `1`/`2` to jump, Enter to confirm. Press Enter to accept the default (**Hono**). Point at a specific one and the prompt is skipped:
 
 ```bash
+# Hono (default)
+npm create nexwire@latest my-app
+
+# Express
 npm create nexwire@latest my-app -- --engine=express
-cd my-app
-npm install
-npm run maker dev
+```
+
+For CI or scripts, `-y` / `--yes` skips every prompt and accepts the defaults (a project name is still required):
+
+```bash
+npm create nexwire@latest my-app -- --yes
 ```
 
 Your API is live at `http://localhost:3000`, Scalar docs at `/api-docs`, and the Vue frontend at `http://localhost:5173`.

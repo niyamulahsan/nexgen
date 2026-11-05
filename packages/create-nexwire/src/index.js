@@ -3,7 +3,7 @@
 import { readFileSync, existsSync, cpSync, mkdirSync, writeFileSync, renameSync, readdirSync, rmSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createInterface } from "node:readline";
+import { createInterface, emitKeypressEvents } from "node:readline";
 import { gunzipSync } from "node:zlib";
 import https from "node:https";
 
@@ -16,6 +16,104 @@ const version = pkg.version;
 function ask(query) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => rl.question(query, (a) => { rl.close(); resolve(a.trim()); }));
+}
+
+// Keep this in sync with the packages/ directories shipped in the tarball and
+// with ENGINE_PREFIXES below. A future frontend adds its own list here and its
+// own prefix inside extractTarGz.
+const BACKENDS = [
+  { value: "hono", label: "Hono", hint: "Hono-based HTTP layer and OpenAPI" },
+  { value: "express", label: "Express", hint: "Express-based HTTP layer and OpenAPI" }
+];
+
+const BACKEND_NAMES = BACKENDS.map((b) => b.value);
+
+function backendIndex(value) {
+  return BACKENDS.findIndex((b) => b.value === String(value).toLowerCase());
+}
+
+const useColor = Boolean(process.stdout.isTTY && !process.env.NO_COLOR);
+const paint = (code, text) => (useColor ? `\x1b[${code}m${text}\x1b[0m` : text);
+
+/**
+ * Render an arrow-key list picker. Falls back to the default choice when
+ * stdin is not a TTY (CI, piped input) so `npm create nexwire@latest .`
+ * keeps working in scripts without hanging on a prompt.
+ */
+async function selectOption(title, options, defaultIndex = 0) {
+  if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== "function") {
+    return options[defaultIndex].value;
+  }
+
+  const stdin = process.stdin;
+  const out = process.stdout;
+  let index = defaultIndex;
+  const lines = options.length + 2; // title + options + trailing help line
+
+  emitKeypressEvents(stdin);
+  stdin.setRawMode(true);
+  stdin.resume();
+  out.write("\x1b[?25l"); // hide the cursor while the list is live
+
+  const render = (first) => {
+    if (!first) out.write(`\x1b[${lines}A`);
+    out.write(`${paint(1, title)}\n`);
+    options.forEach((option, i) => {
+      const active = i === index;
+      const marker = active ? paint(32, "\u276F") : " ";
+      const label = paint(active ? 1 : 0, option.label);
+      const hint = option.hint ? `  ${paint(2, option.hint)}` : "";
+      out.write(`${marker} ${label}${hint}\x1b[K\n`);
+    });
+    out.write(`${paint(2, "Arrow keys choose, 1-2 jump, Enter confirm")}\n`);
+  };
+
+  render(true);
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      stdin.setRawMode(false);
+      stdin.removeListener("keypress", onKeypress);
+      stdin.pause();
+      out.write("\x1b[?25h"); // restore the cursor
+    };
+
+    const onKeypress = (str, key = {}) => {
+      if (key.ctrl && key.name === "c") {
+        cleanup();
+        out.write("\n");
+        process.exit(130);
+      }
+      if (key.name === "escape") {
+        cleanup();
+        out.write("\n");
+        process.exit(130);
+      }
+      if (key.name === "up" || key.name === "k") {
+        index = (index - 1 + options.length) % options.length;
+        render(false);
+        return;
+      }
+      if (key.name === "down" || key.name === "j") {
+        index = (index + 1) % options.length;
+        render(false);
+        return;
+      }
+      if (key.name === "return" || key.name === "enter") {
+        cleanup();
+        out.write("\n");
+        resolve(options[index].value);
+        return;
+      }
+      const digit = Number(str);
+      if (Number.isInteger(digit) && digit >= 1 && digit <= options.length) {
+        index = digit - 1;
+        render(false);
+      }
+    };
+
+    stdin.on("keypress", onKeypress);
+  });
 }
 
 function detectPackageManager() {
@@ -116,26 +214,26 @@ function fetchTarball(pkgName, pkgVersion) {
 
 async function main() {
   const args = process.argv.slice(2);
+  const yes = args.includes("--yes") || args.includes("-y");
+  const engineArg = args.find((a) => a.startsWith("--engine="));
   let projectName = args.find((a) => !a.startsWith("--"));
 
-  const engineArg = args.find((a) => a.startsWith("--engine="));
-  let engine = engineArg ? engineArg.split("=")[1] : "hono";
-
-  if (!ENGINE_PREFIXES[engine]) {
-    console.error(`Error: Unknown engine "${engine}". Supported engines: hono, express.`);
-    process.exit(1);
-  }
-
+  // --help works even with --engine set, and before any prompt or network call.
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`create-nexwire v${version}`);
     console.log();
     console.log("Usage:");
-    console.log("  npm create nexwire@latest <project-name|.> [--engine=<hono|express>]");
-    console.log("  pnpm create nexwire@latest <project-name|.> [--engine=<hono|express>]");
-    console.log("  bun create nexwire@latest <project-name|.> [--engine=<hono|express>]");
-    console.log("  npx create-nexwire@latest <project-name|.> [--engine=<hono|express>]");
+    console.log("  npm create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
+    console.log("  pnpm create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
+    console.log("  bun create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
+    console.log("  npx create-nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
     console.log();
-    console.log("Engines:");
+    console.log("Options:");
+    console.log("  --engine=<hono|express>  Backend to scaffold. Asked interactively when omitted.");
+    console.log("  -y, --yes                Skip prompts and accept the defaults (requires a project name).");
+    console.log("  -h, --help               Show this help.");
+    console.log();
+    console.log("Backends:");
     console.log("  hono     (default) Hono-based HTTP layer and OpenAPI");
     console.log("  express  Express-based HTTP layer and OpenAPI");
     console.log();
@@ -144,7 +242,25 @@ async function main() {
     process.exit(0);
   }
 
+  if (engineArg === undefined && args.includes("--engine")) {
+    console.error('Error: Missing value for --engine. Use --engine=hono or --engine=express.');
+    process.exit(1);
+  }
+
+  if (engineArg) {
+    const engine = engineArg.split("=")[1].toLowerCase();
+    if (backendIndex(engine) === -1) {
+      console.error(`Error: Unknown engine "${engine}". Supported backends: ${BACKEND_NAMES.join(", ")}.`);
+      process.exit(1);
+    }
+  }
+
   if (!projectName) {
+    if (!process.stdin.isTTY || yes) {
+      console.error("Error: Please provide a project name or '.' to scaffold into the current directory.");
+      console.error("  A project name is required when the CLI runs without an interactive terminal.");
+      process.exit(1);
+    }
     projectName = await ask("Project name or '.' for the current directory: ");
   }
 
@@ -156,6 +272,15 @@ async function main() {
   if (projectName !== "." && !isValidProjectName(projectName)) {
     console.error("Error: Invalid project name. Use alphanumeric, dashes, or underscores, or '.' for the current directory.");
     process.exit(1);
+  }
+
+  let engine = engineArg ? engineArg.split("=")[1].toLowerCase() : null;
+  if (!engine) {
+    if (yes) {
+      engine = "hono";
+    } else {
+      engine = await selectOption("Choose a backend:", BACKENDS, 0);
+    }
   }
 
   const targetDir = resolveTargetDir(projectName);
