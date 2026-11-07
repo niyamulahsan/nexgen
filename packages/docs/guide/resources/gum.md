@@ -837,7 +837,7 @@ Do **not** combine `getWith` navigation with `watch(route.query)` — both fetch
 
 ### Built-in `DataTable` caveat
 
-The template's `DataTable`, `Pagination` and `SelectOption` components navigate with `gum.get(..., { skipFetch: true })` — they change the URL and rely on the page watcher to fetch. If you use them:
+The template's `DataTable`, `Pagination` and `SelectOption` components navigate with `gum.get(..., { skipFetch: true })` — they change the URL and rely on the page watcher to fetch. The backend `paginate()` helper only shapes the response (`path`, `current_page`, `last_page`, `per_page`, `total`); it does not trigger a fetch, so it does not remove the need for the watcher. If you use them:
 
 - Keep `watch(route.query)` → `store.list(...)` for the listing (store-owned mutations are still fine).
 - Do **not** drop the watcher and use `getWith`, or pagination/search clicks will only update the URL and never fetch.
