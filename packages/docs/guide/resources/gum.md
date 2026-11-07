@@ -16,13 +16,13 @@ import { GumPlugin, clearRememberForPath, normalizeValidationErrors, useGum, use
 
 ## Mental Model
 
-| Layer              | Purpose                                                            | Owns                                                          |
-| ------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------- |
-| `route.query`      | Reload-safe request state: page, size, search, filters             | URL                                                           |
-| Pinia store        | API data and shared application state                              | Data                                                          |
-| `useGum()`         | Visits, query navigation, scroll preservation, remember reset      | Router + global processing                                    |
-| `useGum(defaults)` | The same visit API **plus** `gum.form`                             | Field errors, dirty tracking, per-form processing             |
-| `useGumRemember()` | Local UI state that should not live in the URL                     | localStorage                                                  |
+| Layer              | Purpose                                                       | Owns                                              |
+| ------------------ | ------------------------------------------------------------- | ------------------------------------------------- |
+| `route.query`      | Reload-safe request state: page, size, search, filters        | URL                                               |
+| Pinia store        | API data and shared application state                         | Data                                              |
+| `useGum()`         | Visits, query navigation, scroll preservation, remember reset | Router + global processing                        |
+| `useGum(defaults)` | The same visit API **plus** `gum.form`                        | Field errors, dirty tracking, per-form processing |
+| `useGumRemember()` | Local UI state that should not live in the URL                | localStorage                                      |
 
 ## Initialization
 
@@ -53,47 +53,47 @@ signup.processing.value; // same global ref
 
 ### Visits — URL-based (axios)
 
-| Method      | Signature                          | Request body | Navigates?               |
-| ----------- | ---------------------------------- | ------------ | ------------------------ |
-| `gum.get`   | `(url, options?)`                  | —            | Yes                      |
-| `gum.post`  | `(url, data?, options?)`           | Yes          | No                       |
-| `gum.put`   | `(url, data?, options?)`           | Yes          | No                       |
-| `gum.patch` | `(url, data?, options?)`           | Yes          | No                       |
-| `gum.delete`| `(url, options?)`                  | via `options.data` | No                 |
-| `gum.reload`| `(options?)`                       | —            | Yes — current route, `replace` |
-| `gum.visit` | `(url, options?)` or `(options)`   | depends      | depends                  |
+| Method       | Signature                        | Request body       | Navigates?                     |
+| ------------ | -------------------------------- | ------------------ | ------------------------------ |
+| `gum.get`    | `(url, options?)`                | —                  | Yes                            |
+| `gum.post`   | `(url, data?, options?)`         | Yes                | No                             |
+| `gum.put`    | `(url, data?, options?)`         | Yes                | No                             |
+| `gum.patch`  | `(url, data?, options?)`         | Yes                | No                             |
+| `gum.delete` | `(url, options?)`                | via `options.data` | No                             |
+| `gum.reload` | `(options?)`                     | —                  | Yes — current route, `replace` |
+| `gum.visit`  | `(url, options?)` or `(options)` | depends            | depends                        |
 
 ### Visits — fetcher-only (no URL)
 
-| Method            | Signature | Request body   | Navigates?                    |
-| ----------------- | --------- | -------------- | ----------------------------- |
-| `gum.getWith`     | `(options)` | —            | Yes                           |
-| `gum.postWith`    | `(options)` | via `options.data` | No                      |
-| `gum.putWith`     | `(options)` | via `options.data` | No                      |
-| `gum.patchWith`   | `(options)` | via `options.data` | No                      |
-| `gum.deleteWith`  | `(options)` | via `options.data` | No                      |
-| `gum.reloadWith`  | `(options)` | —            | Yes — current route, `replace` |
+| Method           | Signature   | Request body       | Navigates?                     |
+| ---------------- | ----------- | ------------------ | ------------------------------ |
+| `gum.getWith`    | `(options)` | —                  | Yes                            |
+| `gum.postWith`   | `(options)` | via `options.data` | No                             |
+| `gum.putWith`    | `(options)` | via `options.data` | No                             |
+| `gum.patchWith`  | `(options)` | via `options.data` | No                             |
+| `gum.deleteWith` | `(options)` | via `options.data` | No                             |
+| `gum.reloadWith` | `(options)` | —                  | Yes — current route, `replace` |
 
 All `*With` methods **require `fetcher`** at the type level.
 
 ### Forms — URL-based (axios)
 
-| Method             | Signature                              | Navigates? |
-| ------------------ | -------------------------------------- | ---------- |
-| `gum.form.post`    | `(url, payload?, options?)`            | No         |
-| `gum.form.put`     | `(url, payload?, options?)`            | No         |
-| `gum.form.patch`   | `(url, payload?, options?)`            | No         |
-| `gum.form.delete`  | `(url, payload?, options?)`            | No         |
-| `gum.form.submit`  | `(method, url?, payload?, options?)`   | No         |
+| Method            | Signature                            | Navigates? |
+| ----------------- | ------------------------------------ | ---------- |
+| `gum.form.post`   | `(url, payload?, options?)`          | No         |
+| `gum.form.put`    | `(url, payload?, options?)`          | No         |
+| `gum.form.patch`  | `(url, payload?, options?)`          | No         |
+| `gum.form.delete` | `(url, payload?, options?)`          | No         |
+| `gum.form.submit` | `(method, url?, payload?, options?)` | No         |
 
 ### Forms — fetcher-only (no URL)
 
-| Method                  | Signature   | Navigates? |
-| ----------------------- | ----------- | ---------- |
-| `gum.form.postWith`     | `(options)` | No         |
-| `gum.form.putWith`      | `(options)` | No         |
-| `gum.form.patchWith`    | `(options)` | No         |
-| `gum.form.deleteWith`   | `(options)` | No         |
+| Method                | Signature   | Navigates? |
+| --------------------- | ----------- | ---------- |
+| `gum.form.postWith`   | `(options)` | No         |
+| `gum.form.putWith`    | `(options)` | No         |
+| `gum.form.patchWith`  | `(options)` | No         |
+| `gum.form.deleteWith` | `(options)` | No         |
 
 `*With` requires `fetcher`. The payload is `form.data` after `transform` (or the explicit `payload` argument).
 
@@ -101,33 +101,33 @@ All `*With` methods **require `fetcher`** at the type level.
 
 Every visit method accepts the same options object:
 
-| Option            | Type                                  | Default             | Meaning                                                        |
-| ----------------- | ------------------------------------- | ------------------- | -------------------------------------------------------------- |
-| `method`          | `"get" \| "post" \| "put" \| "patch" \| "delete"` | `"get"` | HTTP verb (used directly by `visit()`)            |
-| `data`            | `object \| FormData`                  | —                   | Request body (ignored for GET)                                 |
-| `query`           | `object`                              | `route.query`       | Query-string params, always merged into the request params     |
-| `routePath`       | `string`                              | `route.path`        | Destination path when navigating                               |
-| `replace`         | `boolean`                             | `false`             | Use `router.replace` instead of `router.push`                  |
-| `preserveState`   | `boolean`                             | `method !== "get"`  | When `false`, clears `useGumRemember` keys for the destination |
-| `preserveScroll`  | `boolean`                             | `false`             | Restore `window.scrollY` after the call                        |
-| `skipFetch`       | `boolean`                             | `false`             | Skip the network call — navigate only                          |
-| `fetcher`         | `(payload) => Promise<unknown>`       | —                   | Delegate the network call (e.g. a store method)                |
-| `onBefore`        | `() => boolean \| Promise<boolean>`   | —                   | Return `false` to cancel                                       |
-| `onStart`         | `() => void \| Promise<void>`         | —                   | Before the network call                                        |
-| `onProgress`      | `(event: AxiosProgressEvent) => void` | —                   | Raw upload-progress event                                      |
-| `onSuccess`       | `(response: AxiosResponse) => void`   | —                   | After a successful response                                    |
-| `onError`         | `(errors, error) => void`             | —                   | If provided, the error is swallowed                            |
-| `onFinish`        | `() => void \| Promise<void>`         | —                   | Always runs, after processing stops                            |
+| Option           | Type                                              | Default            | Meaning                                                        |
+| ---------------- | ------------------------------------------------- | ------------------ | -------------------------------------------------------------- |
+| `method`         | `"get" \| "post" \| "put" \| "patch" \| "delete"` | `"get"`            | HTTP verb (used directly by `visit()`)                         |
+| `data`           | `object \| FormData`                              | —                  | Request body (ignored for GET)                                 |
+| `query`          | `object`                                          | `route.query`      | Query-string params, always merged into the request params     |
+| `routePath`      | `string`                                          | `route.path`       | Destination path when navigating                               |
+| `replace`        | `boolean`                                         | `false`            | Use `router.replace` instead of `router.push`                  |
+| `preserveState`  | `boolean`                                         | `method !== "get"` | When `false`, clears `useGumRemember` keys for the destination |
+| `preserveScroll` | `boolean`                                         | `false`            | Restore `window.scrollY` after the call                        |
+| `skipFetch`      | `boolean`                                         | `false`            | Skip the network call — navigate only                          |
+| `fetcher`        | `(payload) => Promise<unknown>`                   | —                  | Delegate the network call (e.g. a store method)                |
+| `onBefore`       | `() => boolean \| Promise<boolean>`               | —                  | Return `false` to cancel                                       |
+| `onStart`        | `() => void \| Promise<void>`                     | —                  | Before the network call                                        |
+| `onProgress`     | `(event: AxiosProgressEvent) => void`             | —                  | Raw upload-progress event                                      |
+| `onSuccess`      | `(response: AxiosResponse) => void`               | —                  | After a successful response                                    |
+| `onError`        | `(errors, error) => void`                         | —                  | If provided, the error is swallowed                            |
+| `onFinish`       | `() => void \| Promise<void>`                     | —                  | Always runs, after processing stops                            |
 
 ## Form Options
 
 Form methods accept `onBefore`, `onStart`, `onProgress`, `onSuccess`, `onError`, `onFinish`, `fetcher`, plus:
 
-| Option      | Type                                                       | Meaning                                                       |
-| ----------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
-| `validate`  | `(data: T) => Record<string, string> \| null \| undefined` | Local validation before the network. Errors map to `form.errors`. |
+| Option      | Type                                                       | Meaning                                                                           |
+| ----------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `validate`  | `(data: T) => Record<string, string> \| null \| undefined` | Local validation before the network. Errors map to `form.errors`.                 |
 | `transform` | `(data: T) => object \| FormData`                          | Reshape the payload before sending. Takes precedence over the `payload` argument. |
-| `fetcher`   | `(payload) => Promise<unknown>`                            | Delegate the network call                                     |
+| `fetcher`   | `(payload) => Promise<unknown>`                            | Delegate the network call                                                         |
 
 An empty `{}` from `validate` means "no errors" and the submit continues.
 
@@ -377,14 +377,14 @@ const saved = form.recentlySuccessful;
 </template>
 ```
 
-| State                    | Meaning                                                        |
-| ------------------------ | -------------------------------------------------------------- |
-| `form.processing`        | `true` while this form is submitting                           |
-| `form.wasSuccessful`     | `true` after the last success, until the next submit           |
-| `form.recentlySuccessful`| `true` for `recentlySuccessfulDuration` ms after a success     |
-| `form.isDirty`           | `true` when `form.data` differs from the initial defaults      |
-| `form.progress`          | `0..100` during an upload, otherwise `null`                    |
-| `gum.processing`         | `true` while **any** Gum request anywhere is running           |
+| State                     | Meaning                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| `form.processing`         | `true` while this form is submitting                       |
+| `form.wasSuccessful`      | `true` after the last success, until the next submit       |
+| `form.recentlySuccessful` | `true` for `recentlySuccessfulDuration` ms after a success |
+| `form.isDirty`            | `true` when `form.data` differs from the initial defaults  |
+| `form.progress`           | `0..100` during an upload, otherwise `null`                |
+| `gum.processing`          | `true` while **any** Gum request anywhere is running       |
 
 ### Manual field errors
 
@@ -488,9 +488,9 @@ app.use(GumPlugin, {
 });
 ```
 
-| Option                       | Default | Meaning                                          |
-| ---------------------------- | ------- | ------------------------------------------------ |
-| `rememberPrefix`             | `"gum"` | `localStorage` key prefix for `useGumRemember`   |
+| Option                       | Default | Meaning                                           |
+| ---------------------------- | ------- | ------------------------------------------------- |
+| `rememberPrefix`             | `"gum"` | `localStorage` key prefix for `useGumRemember`    |
 | `recentlySuccessfulDuration` | `2000`  | How long `recentlySuccessful` stays `true`, in ms |
 
 ## Lifecycle Order
@@ -526,9 +526,9 @@ Both become `{ email: "taken", password: "too short" }`. Array values use the fi
 
 Throw policy:
 
-| You passed `onError`? | Result                                                              |
-| --------------------- | ------------------------------------------------------------------- |
-| No                    | The error re-throws **after** `onFinish`                            |
+| You passed `onError`? | Result                                                                          |
+| --------------------- | ------------------------------------------------------------------------------- |
+| No                    | The error re-throws **after** `onFinish`                                        |
 | Yes                   | The error is swallowed; the promise resolves `undefined`; `onFinish` still runs |
 
 ## Fetcher Contract
@@ -560,19 +560,18 @@ The `Fetcher` return type is intentionally `Promise<unknown>`; do not rely on th
 
 An object is treated as an `AxiosResponse` only when it has a `data` property **and** a numeric `status`. Anything else is wrapped.
 
-## Complete Example
+## Complete Example — URL-Based (the component owns the URL)
 
 ```vue
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useGum, useGumRemember } from "@/plugins/gum";
 import { usePostsStore } from "@/stores/posts";
 import DataTable from "@/components/datatable/index.vue";
 
 const route = useRoute();
-const router = useRouter();
 const gum = useGum({ title: "", body: "" });
 const store = usePostsStore();
 const { posts } = storeToRefs(store);
@@ -624,7 +623,9 @@ function destroy(id: number) {
   void gum.delete(`/api/posts/${id}`, {
     onBefore: () => window.confirm("Delete this post?"),
     preserveScroll: true,
-    onSuccess: async () => store.fetchPosts(queryParams())
+    onSuccess: async () => {
+      await store.fetchPosts(queryParams());
+    }
   });
 }
 
@@ -668,6 +669,191 @@ watch(
 </template>
 ```
 
+## Complete Example — Store-Owned (the fetcher owns the call)
+
+The previous example lets the page own the URL and the store fetch from `route.query`. The alternative is to let the **store own the endpoint** and hand Gum a `fetcher`. Every mutation becomes a store method call; no URL is duplicated in the component.
+
+```ts
+// stores/posts.ts — the contract this page assumes
+import axios from "axios";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+
+export type PostQuery = { page: number; size: number; search: string };
+export type PostPayload = { title: string; body: string };
+
+export const usePostsStore = defineStore("posts", () => {
+  const posts = ref({
+    data: [],
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0,
+    path: "/api/posts"
+  });
+
+  async function list(params: PostQuery) {
+    const res = await axios.get("/api/posts", { params });
+    posts.value = res.data;
+    return res; // AxiosResponse
+  }
+
+  async function create(payload: PostPayload) {
+    return await axios.post("/api/posts", payload);
+  }
+
+  async function remove(id: number) {
+    return await axios.delete(`/api/posts/${id}`, { data: { force: true } });
+  }
+
+  return { posts, list, create, remove };
+});
+```
+
+The page uses `*With` for submit and delete, and keeps the built-in `DataTable` pagination working by letting the route watcher call `store.list`:
+
+```vue
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
+import { useGum, useGumRemember } from "@/plugins/gum";
+import { usePostsStore, type PostPayload } from "@/stores/posts";
+import DataTable from "@/components/datatable/index.vue";
+
+const route = useRoute();
+const gum = useGum({ title: "", body: "" });
+const store = usePostsStore();
+const { posts } = storeToRefs(store);
+
+const ui = useGumRemember("posts.index.ui", {
+  selected: [] as number[],
+  formOpen: false
+});
+
+const search = computed(() => String(route.query.search || ""));
+const searchText = ref(search.value);
+const processing = gum.form.processing;
+const isDirty = gum.form.isDirty;
+
+function queryParams() {
+  return {
+    page: Number(route.query.page || 1),
+    size: Number(route.query.size || 10),
+    search: search.value
+  };
+}
+
+// Navigation is still URL-based: DataTable/Pagination only change the URL,
+// then the watcher asks the store to fetch. The store owns the endpoint.
+function applySearch() {
+  gum.get("/api/posts", {
+    query: { ...queryParams(), page: 1, search: searchText.value },
+    routePath: route.path,
+    preserveState: true,
+    preserveScroll: true,
+    skipFetch: true
+  });
+}
+
+function openCreate() {
+  gum.form.reset();
+  ui.value.formOpen = true;
+}
+
+// Mutation goes straight through the store — no URL in the component.
+async function submit() {
+  await gum.form.postWith({
+    fetcher: (body) => store.create(body as PostPayload),
+    validate: (data) => (data.title.trim() ? null : { title: "Title is required" }),
+    onSuccess: async () => {
+      ui.value.formOpen = false;
+      await store.list(queryParams());
+    }
+  });
+}
+
+function destroy(id: number) {
+  void gum.deleteWith({
+    fetcher: () => store.remove(id),
+    onBefore: () => window.confirm("Delete this post?"),
+    preserveScroll: true,
+    onSuccess: async () => {
+      await store.list(queryParams());
+    }
+  });
+}
+
+watch(
+  () => route.query,
+  () => store.list(queryParams()),
+  { immediate: true }
+);
+</script>
+```
+
+The template is identical to the URL-based example.
+
+### Fully fetcher-driven listing
+
+If a page has its **own** pagination controls (instead of the built-in `DataTable` footer), the GET can also go through the store and the `route.query` watcher can be dropped:
+
+```ts
+import { onMounted } from "vue";
+
+function applySearch() {
+  const q = { ...queryParams(), page: 1, search: searchText.value };
+  gum.getWith({
+    fetcher: () => store.list(q),
+    query: q,
+    routePath: route.path,
+    preserveState: true,
+    preserveScroll: true
+  });
+}
+
+function goToPage(page: number) {
+  const q = { ...queryParams(), page };
+  gum.getWith({
+    fetcher: () => store.list(q), // the fetcher IS the fetch
+    query: q, // same object, so URL matches data
+    routePath: route.path,
+    preserveState: true,
+    preserveScroll: true
+  });
+}
+
+// Initial load only. No watcher: the fetcher already fetched,
+// so a watcher would double-fetch after each navigation.
+onMounted(() => store.list(queryParams()));
+```
+
+Two rules for this version:
+
+1. **`query` and the fetcher params are separate.** Gum uses `query` to build the router URL; the fetcher uses its own arguments for the store call. Pass the same object to both or the URL will not match the data.
+2. **Gum runs the fetcher before `router.push`.** A fetcher that reads `route.query` sees the old values. Pass the params explicitly.
+
+Do **not** combine `getWith` navigation with `watch(route.query)` — both fetch, so each navigation fires two requests.
+
+### Built-in `DataTable` caveat
+
+The template's `DataTable`, `Pagination` and `SelectOption` components navigate with `gum.get(..., { skipFetch: true })` — they change the URL and rely on the page watcher to fetch. If you use them:
+
+- Keep `watch(route.query)` → `store.list(...)` for the listing (store-owned mutations are still fine).
+- Do **not** drop the watcher and use `getWith`, or pagination/search clicks will only update the URL and never fetch.
+- Do **not** keep the watcher **and** use `getWith` for navigation, or every click fetches twice.
+
+| Concern                     | URL-based                             | Store-owned (`*With`)                          |
+| --------------------------- | ------------------------------------- | ---------------------------------------------- |
+| Who knows the URL           | Component                             | Store                                          |
+| GET/listing                 | `gum.get(url, { skipFetch: true })` + watcher | `gum.getWith({ fetcher })` + no watcher (custom pagination) |
+| Submit                      | `gum.form.post(url, ...)`             | `gum.form.postWith({ fetcher })`               |
+| Delete                      | `gum.delete(url, ...)`                | `gum.deleteWith({ fetcher })`                  |
+| Refresh after mutation      | Required in `onSuccess`               | Optional — only if the store does not update itself |
+| Works with built-in DataTable | Yes                                 | Yes, but keep the watcher for listing          |
+
+Never mix both styles for the same call on one page — one path through the store and one bypassing it will leave the store state out of sync with the URL.
+
 ## Migration from `useGumForm`
 
 `useGumForm` still works and is now a thin alias:
@@ -687,23 +873,23 @@ const form = gum.form;
 
 ## Rules of Thumb
 
-| Situation                                   | Use                                                |
-| ------------------------------------------- | -------------------------------------------------- |
+| Situation                                   | Use                                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------- |
 | Listing page with pagination/search/filters | `gum.get(..., { query, routePath, skipFetch: true })` + store watcher |
-| Dashboard navigation                        | `gum.get("/dashboard")`                            |
-| Login redirect                              | `gum.get("/login", { replace: true })`             |
-| Store owns the endpoint                     | `*With({ fetcher })`                               |
-| Plain REST endpoint                         | URL-based `gum.*` / `gum.form.*`                   |
-| Form submission                             | `useGum(defaults)` + `gum.form.*`                  |
-| Navigate without a request                  | `{ skipFetch: true }`                              |
-| Keep scroll position                        | `{ preserveScroll: true }`                         |
-| Preserve remembered UI state on navigation  | `{ preserveState: true }`                          |
-| Global spinner                              | `gum.processing`                                   |
-| Button spinner                              | `gum.form.processing`                              |
-| "Saved" toast                               | `gum.form.recentlySuccessful`                      |
-| Upload bar                                  | `gum.form.progress` + `onProgress`                 |
-| Local validation                            | `validate` option                                  |
-| Reshape before send                         | `transform` option                                 |
-| Cancel from the UI                          | `onBefore: () => confirm(...)`                     |
-| Handle errors locally                       | pass `onError`                                     |
-| Let errors bubble                           | omit `onError`                                     |
+| Dashboard navigation                        | `gum.get("/dashboard")`                                               |
+| Login redirect                              | `gum.get("/login", { replace: true })`                                |
+| Store owns the endpoint                     | `*With({ fetcher })`                                                  |
+| Plain REST endpoint                         | URL-based `gum.*` / `gum.form.*`                                      |
+| Form submission                             | `useGum(defaults)` + `gum.form.*`                                     |
+| Navigate without a request                  | `{ skipFetch: true }`                                                 |
+| Keep scroll position                        | `{ preserveScroll: true }`                                            |
+| Preserve remembered UI state on navigation  | `{ preserveState: true }`                                             |
+| Global spinner                              | `gum.processing`                                                      |
+| Button spinner                              | `gum.form.processing`                                                 |
+| "Saved" toast                               | `gum.form.recentlySuccessful`                                         |
+| Upload bar                                  | `gum.form.progress` + `onProgress`                                    |
+| Local validation                            | `validate` option                                                     |
+| Reshape before send                         | `transform` option                                                    |
+| Cancel from the UI                          | `onBefore: () => confirm(...)`                                        |
+| Handle errors locally                       | pass `onError`                                                        |
+| Let errors bubble                           | omit `onError`                                                        |

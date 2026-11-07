@@ -22,7 +22,7 @@
 
 ### Documentation
 
-- **Docs**: `guide/resources/gum.md` is rewritten for the unified API — mental model, full method matrix, visit/form options, recipes for every case (`get`/listing/DataTable, mutations, fetcher delegation, reload, `skipFetch`, preserve state/scroll, cancel, throw policy, uploads, validation, reset, dirty, success timing, two forms, mixed calls), lifecycle order, error contract, fetcher contract and migration from `useGumForm`. The `components`, `dialog`, `validation`, `pulse` and `composables` guides now use `useGum(...).form` instead of `useGumForm`.
+- **Docs**: `guide/resources/gum.md` is rewritten for the unified API — mental model, full method matrix, visit/form options, recipes for every case (`get`/listing/DataTable, mutations, fetcher delegation, reload, `skipFetch`, preserve state/scroll, cancel, throw policy, uploads, validation, reset, dirty, success timing, two forms, mixed calls), lifecycle order, error contract, fetcher contract, both complete examples (URL-based and store-owned `*With`, including the built-in `DataTable` caveat) and migration from `useGumForm`. The `components`, `dialog`, `validation`, `pulse` and `composables` guides now use `useGum(...).form` instead of `useGumForm`.
 
 - **Byte identity**: the new `gum.ts` is identical across `template/hono`, `template/express` and both `packages/create-nexwire` copies (SHA-256 `A6527075703AC2FA4AD44BB63F6F153D9B8FF07DDD87129B0F784726E5A0D51A`).
 
