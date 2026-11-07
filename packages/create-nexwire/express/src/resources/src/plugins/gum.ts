@@ -4,21 +4,19 @@ import type { App } from "vue";
 import { computed, nextTick, reactive, ref, toRaw } from "vue";
 import { type LocationQueryRaw, useRoute, useRouter } from "vue-router";
 
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
+
 export type GumPluginOptions = {
   rememberPrefix?: string;
   recentlySuccessfulDuration?: number;
 };
 
 type GumMethod = "get" | "post" | "put" | "patch" | "delete";
-type GumVisitOptions = {
-  method?: GumMethod;
-  data?: Record<string, unknown> | FormData;
-  query?: Record<string, unknown>;
-  routePath?: string;
-  replace?: boolean;
-  preserveState?: boolean;
-  preserveScroll?: boolean;
-  skipFetch?: boolean;
+type FormMethod = "post" | "put" | "patch" | "delete";
+
+type LifecycleHooks = {
   onBefore?: () => boolean | undefined | Promise<boolean | undefined>;
   onStart?: () => void | Promise<void>;
   onProgress?: (event: AxiosProgressEvent) => void;
@@ -27,59 +25,63 @@ type GumVisitOptions = {
   onFinish?: () => void | Promise<void>;
 };
 
-type FormMethod = "post" | "put" | "patch" | "delete";
+/**
+ * A fetcher returns either an AxiosResponse or any plain payload.
+ * Gum wraps plain values into `{ data, status: 200 }`, so store methods
+ * returning `Promise<string>` / `Promise<User>` work without a wrapper.
+ *
+ * Typing is intentionally loose (`Promise<unknown>`); callers should not
+ * rely on the fetcher's return type being narrow.
+ */
+type Fetcher = (payload: Record<string, unknown> | FormData) => Promise<unknown>;
+
+type GumVisitOptions = LifecycleHooks & {
+  method?: GumMethod;
+  data?: Record<string, unknown> | FormData;
+  query?: Record<string, unknown>;
+  routePath?: string;
+  replace?: boolean;
+  preserveState?: boolean;
+  preserveScroll?: boolean;
+  skipFetch?: boolean;
+  fetcher?: Fetcher;
+};
+
+/** URL-less visit: fetcher REQUIRED, method injected by the helper. */
+type VisitWithFetcherOptions = Omit<GumVisitOptions, "method" | "fetcher"> & { fetcher: Fetcher };
+/** For body-carrying methods (post/put/patch/delete). */
+type VisitWithFetcherDataOptions = VisitWithFetcherOptions & {
+  data?: Record<string, unknown> | FormData;
+};
+
+type FormSubmitOptions<T> = LifecycleHooks & {
+  validate?: (data: T) => Record<string, string> | null | undefined;
+  transform?: (data: T) => Record<string, unknown> | FormData;
+  fetcher?: Fetcher;
+};
+
+/** URL-less form submit: fetcher REQUIRED, method injected by the helper. */
+type FormWithFetcherOptions<T> = Omit<FormSubmitOptions<T>, "fetcher"> & { fetcher: Fetcher };
+
 type FormErrors<T> = Partial<Record<keyof T | string, string>>;
 type NormalizedErrors = Record<string, string[] | string>;
-type FormSubmitOptions = {
-  onBefore?: () => boolean | undefined | Promise<boolean | undefined>;
-  onStart?: () => void | Promise<void>;
-  onProgress?: (event: AxiosProgressEvent) => void | Promise<void>;
-  onSuccess?: (response: AxiosResponse) => void | Promise<void>;
-  onError?: (errors: NormalizedErrors, error: AxiosError) => void | Promise<void>;
-  onFinish?: () => void | Promise<void>;
-};
 
 type ValidationErrorPayload = {
   errors?: Record<string, string[] | string>;
-  error?: {
-    issues?: Array<{
-      path?: Array<string | number>;
-      message?: string;
-    }>;
-  };
+  error?: { issues?: Array<{ path?: Array<string | number>; message?: string }> };
 };
 
-function normalizeValidationErrors(payload?: ValidationErrorPayload): NormalizedErrors {
-  const normalized: NormalizedErrors = { ...payload?.errors };
-
-  const issues = payload?.error?.issues;
-  if (Array.isArray(issues)) {
-    issues.forEach((issue) => {
-      const key = issue.path?.map(String).join(".");
-      if (key) normalized[key] = String(issue.message || "Invalid value");
-    });
-  }
-
-  return normalized;
-}
+/* -------------------------------------------------------------------------- */
+/* Config + registry                                                          */
+/* -------------------------------------------------------------------------- */
 
 const config: Required<GumPluginOptions> = {
   rememberPrefix: "gum",
   recentlySuccessfulDuration: 2000
 };
 
-/**
- * Why: preserveState=false should clear only state for one page.
- * When: called by remember registration and GET visits.
- * Where: used in this Gum plugin storage registry.
- */
 const routeRememberKeys = new Map<string, Set<string>>();
 
-/**
- * Why: route keys must be consistent across query changes.
- * When: before read/write in remember key registry.
- * Where: internal helper for Gum path-based state tracking.
- */
 function normalizePath(path: string) {
   const clean = (path || "/").split("?")[0];
   return clean || "/";
@@ -87,15 +89,10 @@ function normalizePath(path: string) {
 
 function registerRememberKey(path: string, key: string) {
   const routePath = normalizePath(path);
-  if (!routeRememberKeys.has(routePath)) routeRememberKeys.set(routePath, new Set<string>());
-  routeRememberKeys.get(routePath)?.add(key);
+  if (!routeRememberKeys.has(routePath)) routeRememberKeys.set(routePath, new Set());
+  routeRememberKeys.get(routePath)!.add(key);
 }
 
-/**
- * Why: emulate Inertia preserveState=false behavior.
- * When: a GET visit requests state reset.
- * Where: removes entries from localStorage using Gum prefix.
- */
 export function clearRememberForPath(path: string) {
   const routePath = normalizePath(path);
   const keys = routeRememberKeys.get(routePath);
@@ -103,38 +100,155 @@ export function clearRememberForPath(path: string) {
   keys.forEach((key) => localStorage.removeItem(`${config.rememberPrefix}:${key}`));
 }
 
+/* -------------------------------------------------------------------------- */
+/* Global processing tracker (shared across all useGum() instances)           */
+/* -------------------------------------------------------------------------- */
+
+const globalProcessing = ref(false);
+let activeRequests = 0;
+
+function trackStart() {
+  activeRequests++;
+  globalProcessing.value = true;
+}
+
+function trackEnd() {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) globalProcessing.value = false;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Small shared helpers                                                       */
+/* -------------------------------------------------------------------------- */
+
+export function normalizeValidationErrors(payload?: ValidationErrorPayload): NormalizedErrors {
+  const normalized: NormalizedErrors = { ...payload?.errors };
+  const issues = payload?.error?.issues;
+  if (Array.isArray(issues)) {
+    issues.forEach((issue) => {
+      const key = issue.path?.map(String).join(".");
+      if (key) normalized[key] = String(issue.message || "Invalid value");
+    });
+  }
+  return normalized;
+}
+
+async function runBefore(onBefore?: LifecycleHooks["onBefore"]) {
+  const allow = await onBefore?.();
+  return allow !== false;
+}
+
+async function restoreScroll(enabled: boolean, y: number) {
+  if (!enabled) return;
+  await nextTick();
+  // Double rAF: survives one layout pass (images/fonts shifting content).
+  requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior })));
+}
+
+function startRecentTimer(target: { recentlySuccessful: { value: boolean } }) {
+  target.recentlySuccessful.value = true;
+  setTimeout(() => {
+    target.recentlySuccessful.value = false;
+  }, config.recentlySuccessfulDuration);
+}
+
+function assertSource(url: string | undefined, fetcher: Fetcher | undefined, ctx: string) {
+  if (!url && !fetcher) {
+    throw new Error(
+      `gum: ${ctx} requires either "url" or "fetcher". ` + `Pass a URL for axios, or a fetcher (e.g. a store method) to delegate the call.`
+    );
+  }
+  if (import.meta.env?.DEV && url && fetcher) {
+    console.warn(`gum: ${ctx} — "url" is ignored when "fetcher" is provided.`);
+  }
+}
+
+/** Read the current scroll position — plain read, no per-instance listeners. */
+function readScrollY(): number {
+  return typeof window !== "undefined" ? window.scrollY : 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared core executor — dumb transport, never swallows errors               */
+/* -------------------------------------------------------------------------- */
+
+type ExecuteOptions = {
+  method: GumMethod;
+  url?: string;
+  payload: Record<string, unknown> | FormData | undefined;
+  query?: Record<string, unknown>;
+  fetcher?: Fetcher;
+  onProgress?: (event: AxiosProgressEvent) => void;
+};
+
 /**
- * Why: persist page-local UI state across navigations/reloads.
- * When: page needs remembered filters/forms.
- * Where: composables/pages calling useGumRemember.
+ * Execute the network call. Throws on error — the caller normalizes and
+ * decides whether to rethrow based on whether `onError` was provided.
+ *
+ * Fetcher results:
+ * - If it looks like an AxiosResponse (object with `data` and a numeric `status`),
+ *   it is returned as-is.
+ * - Otherwise it is wrapped into `{ data: result, status: 200 }`.
  */
+async function execute(options: ExecuteOptions): Promise<AxiosResponse> {
+  if (options.fetcher) {
+    const result = await options.fetcher(options.payload ?? {});
+    const looksLikeResponse =
+      result !== null &&
+      typeof result === "object" &&
+      "data" in (result as Record<string, unknown>) &&
+      typeof (result as { status?: unknown }).status === "number";
+    if (looksLikeResponse) return result as AxiosResponse;
+    return { data: result, status: 200, statusText: "OK", headers: {}, config: {} } as AxiosResponse;
+  }
+
+  return await axios.request({
+    method: options.method,
+    url: options.url,
+    params: options.query,
+    data: options.method === "get" ? undefined : options.payload,
+    onUploadProgress: options.onProgress
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Remember                                                                   */
+/* -------------------------------------------------------------------------- */
+
 export function useGumRemember<T extends object>(key: string, initial: T) {
   const route = useRoute();
   registerRememberKey(route.path, key);
-
   return useStorage<T>(`${config.rememberPrefix}:${key}`, initial, localStorage, {
     mergeDefaults: true
   });
 }
 
-/**
- * Why: provide Inertia-style visit API for requests + navigation.
- * When: pages trigger get/post/put/patch/delete/reload flows.
- * Where: UI pages/composables that import useGum.
- */
-export function useGum() {
+/* -------------------------------------------------------------------------- */
+/* Visit API                                                                  */
+/* -------------------------------------------------------------------------- */
+
+function buildVisitApi() {
   const router = useRouter();
   const route = useRoute();
-  const processing = ref(false);
 
-  /**
-   * Why: unify request lifecycle hooks with router sync.
-   * When: any Gum visit method is executed.
-   * Where: internal core of useGum().
-   */
-  async function visit(url: string, options: GumVisitOptions = {}) {
+  /* ---------------------------- visit core ------------------------------- */
+
+  async function runVisit(params: {
+    method: GumMethod;
+    url?: string;
+    data?: Record<string, unknown> | FormData;
+    query?: Record<string, unknown>;
+    routePath?: string;
+    replace?: boolean;
+    preserveState?: boolean;
+    preserveScroll?: boolean;
+    skipFetch?: boolean;
+    fetcher?: Fetcher;
+    hooks?: GumVisitOptions;
+  }) {
     const {
-      method = "get",
+      method,
+      url,
       data,
       query,
       routePath,
@@ -142,193 +256,354 @@ export function useGum() {
       preserveState = method !== "get",
       preserveScroll = false,
       skipFetch = false,
-      onBefore,
-      onStart,
-      onProgress,
-      onSuccess,
-      onError,
-      onFinish
-    } = options;
+      fetcher,
+      hooks = {}
+    } = params;
 
-    const allow = await onBefore?.();
-    if (allow === false) return;
+    const { onBefore, onStart, onProgress, onSuccess, onError, onFinish } = hooks;
 
-    const scrollY = window.scrollY;
-    processing.value = true;
-    await onStart?.();
+    if (!(await runBefore(onBefore))) return;
+
+    const savedY = readScrollY();
+    trackStart();
 
     let response: AxiosResponse | undefined;
-
     try {
+      // onStart is inside try so a throw still unwinds processing.
+      await onStart?.();
+
       if (!skipFetch) {
-        response = await axios.request({
-          method,
-          url,
-          params: method === "get" ? (query ?? (data as Record<string, unknown> | undefined)) : query,
-          data: method === "get" ? undefined : data,
-          onUploadProgress: (event) => onProgress?.(event)
-        });
+        assertSource(url, fetcher, "visit");
+        try {
+          response = await execute({ method, url, payload: data, query, fetcher, onProgress });
+        } catch (error) {
+          const err = error as AxiosError<ValidationErrorPayload>;
+          const normalized = normalizeValidationErrors(err.response?.data);
+          await onError?.(normalized, err);
+          if (!onError) throw error;
+          return;
+        }
       }
 
       if (method === "get") {
-        const targetRoutePath = routePath ?? route.path;
-        if (!preserveState) clearRememberForPath(targetRoutePath);
-
-        const payload = {
-          path: targetRoutePath,
-          query: (query ?? route.query) as LocationQueryRaw
-        };
-
+        const targetPath = routePath ?? route.path;
+        if (!preserveState) clearRememberForPath(targetPath);
+        const payload = { path: targetPath, query: (query ?? route.query) as LocationQueryRaw };
         if (replace) await router.replace(payload);
         else await router.push(payload);
       }
 
       await onSuccess?.(response!);
       return response;
-    } catch (error) {
-      const err = error as AxiosError<ValidationErrorPayload>;
-      const handled = !!options.onError;
-      await onError?.(normalizeValidationErrors(err.response?.data), error as AxiosError);
-      if (!handled) throw error;
     } finally {
-      processing.value = false;
+      trackEnd();
       await onFinish?.();
-      if (preserveScroll) {
-        await nextTick();
-        requestAnimationFrame(() => window.scrollTo({ top: scrollY }));
-      }
+      await restoreScroll(preserveScroll, savedY);
     }
   }
 
-  return {
-    processing,
-    visit,
-    get: (url: string, options: Omit<GumVisitOptions, "method"> = {}) => visit(url, { ...options, method: "get" }),
-    post: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
-      return visit(url, { ...options, method: "post", data });
-    },
-    put: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
-      return visit(url, { ...options, method: "put", data });
-    },
-    patch: (url: string, data?: Record<string, unknown> | FormData, options: Omit<GumVisitOptions, "method" | "data"> = {}) => {
-      return visit(url, { ...options, method: "patch", data });
-    },
-    delete: (url: string, options: Omit<GumVisitOptions, "method"> = {}) => visit(url, { ...options, method: "delete" }),
-    reload: (options: Omit<GumVisitOptions, "method"> = {}) => {
-      return visit(route.path, {
-        ...options,
-        method: "get",
-        replace: true,
-        query: route.query as Record<string, unknown>
+  function visit(url: string, options?: GumVisitOptions): Promise<AxiosResponse | undefined>;
+  function visit(options: GumVisitOptions & { fetcher: Fetcher }): Promise<AxiosResponse | undefined>;
+  function visit(urlOrOptions: string | (GumVisitOptions & { fetcher: Fetcher }), options: GumVisitOptions = {}) {
+    if (typeof urlOrOptions === "object") {
+      return runVisit({
+        method: urlOrOptions.method ?? "get",
+        fetcher: urlOrOptions.fetcher,
+        data: urlOrOptions.data,
+        query: urlOrOptions.query,
+        routePath: urlOrOptions.routePath,
+        replace: urlOrOptions.replace,
+        preserveState: urlOrOptions.preserveState,
+        preserveScroll: urlOrOptions.preserveScroll,
+        skipFetch: urlOrOptions.skipFetch,
+        hooks: urlOrOptions
       });
     }
+    return runVisit({
+      method: options.method ?? "get",
+      url: urlOrOptions,
+      data: options.data,
+      query: options.query,
+      routePath: options.routePath,
+      replace: options.replace,
+      preserveState: options.preserveState,
+      preserveScroll: options.preserveScroll,
+      skipFetch: options.skipFetch,
+      fetcher: options.fetcher,
+      hooks: options
+    });
+  }
+
+  const api = {
+    processing: globalProcessing,
+    visit,
+    get: (url: string, o: GumVisitOptions = {}) =>
+      runVisit({
+        method: "get",
+        url,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    post: (url: string, data?: GumVisitOptions["data"], o: GumVisitOptions = {}) =>
+      runVisit({
+        method: "post",
+        url,
+        data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    put: (url: string, data?: GumVisitOptions["data"], o: GumVisitOptions = {}) =>
+      runVisit({
+        method: "put",
+        url,
+        data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    patch: (url: string, data?: GumVisitOptions["data"], o: GumVisitOptions = {}) =>
+      runVisit({
+        method: "patch",
+        url,
+        data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    delete: (url: string, o: GumVisitOptions = {}) =>
+      // Forward o.data so DELETE bodies keep working (legacy behavior).
+      runVisit({
+        method: "delete",
+        url,
+        data: o.data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    reload: (o: GumVisitOptions = {}) =>
+      runVisit({
+        method: "get",
+        url: route.path,
+        query: route.query as Record<string, unknown>,
+        replace: true,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+
+    /* URL-less, fetcher-based variants */
+    getWith: (o: VisitWithFetcherOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "get",
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    postWith: (o: VisitWithFetcherDataOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "post",
+        data: o.data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    putWith: (o: VisitWithFetcherDataOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "put",
+        data: o.data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    patchWith: (o: VisitWithFetcherDataOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "patch",
+        data: o.data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    deleteWith: (o: VisitWithFetcherDataOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "delete",
+        data: o.data,
+        query: o.query,
+        routePath: o.routePath,
+        replace: o.replace,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      }),
+    reloadWith: (o: VisitWithFetcherOptions): Promise<AxiosResponse | undefined> =>
+      runVisit({
+        method: "get",
+        query: (o.query ?? route.query) as Record<string, unknown>,
+        routePath: o.routePath,
+        replace: true,
+        preserveState: o.preserveState,
+        preserveScroll: o.preserveScroll,
+        skipFetch: o.skipFetch,
+        fetcher: o.fetcher,
+        hooks: o
+      })
   };
+
+  return api;
 }
 
-/**
- * Why: centralize form state/errors/progress like Inertia useForm.
- * When: create/update/delete forms submit to backend.
- * Where: UI forms using useGumForm.
- */
-export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
+type GumApi = ReturnType<typeof buildVisitApi>;
+
+/* -------------------------------------------------------------------------- */
+/* Form state                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function createForm<T extends Record<string, unknown>>(defaults: T) {
+  /* ------------------------ form state ----------------------------------- */
   const initial = structuredClone(defaults);
   const data = reactive(structuredClone(defaults)) as T;
   const errors = reactive<Record<string, string>>({});
   const progress = ref<number | null>(null);
-  const processing = ref(false);
+  const formProcessing = ref(false);
   const wasSuccessful = ref(false);
   const recentlySuccessful = ref(false);
   const isDirty = computed(() => JSON.stringify(toRaw(data)) !== JSON.stringify(initial));
 
-  /**
-   * Why: allow manual error assignment for custom validations.
-   * When: setting one field error outside server response.
-   * Where: useGumForm consumer code.
-   */
   function setError(field: keyof T | string, message: string) {
     errors[String(field)] = message;
   }
 
-  /**
-   * Why: keep error state in sync with user actions/submits.
-   * When: before submit or after field corrections.
-   * Where: useGumForm internal + consumer calls.
-   */
   function clearErrors(...fields: (keyof T | string)[]) {
     if (!fields.length) {
-      Object.keys(errors).forEach((key) => delete errors[key]);
+      Object.keys(errors).forEach((k) => delete errors[k]);
       return;
     }
-    fields.forEach((field) => delete errors[String(field)]);
+    fields.forEach((f) => delete errors[String(f)]);
   }
 
-  /**
-   * Why: restore form values to initial defaults safely.
-   * When: cancel edit or after successful submission.
-   * Where: useGumForm consumer actions.
-   */
   function reset(...fields: (keyof T)[]) {
     if (!fields.length) {
       Object.assign(data, structuredClone(initial));
       clearErrors();
       return;
     }
-
-    fields.forEach((field) => {
-      data[field] = structuredClone(initial[field]);
-      delete errors[String(field)];
+    fields.forEach((f) => {
+      (data as any)[f] = structuredClone(initial[f]);
+      delete errors[String(f)];
     });
   }
 
-  /**
-   * Why: provide a single submission path with lifecycle hooks.
-   * When: post/put/patch/delete helpers are called.
-   * Where: useGumForm internal request executor.
-   */
-  async function submit(method: FormMethod, url: string, payload?: Record<string, unknown>, options: FormSubmitOptions = {}) {
-    const { onBefore, onStart, onProgress, onSuccess, onError, onFinish } = options;
+  async function submitForm(
+    method: FormMethod,
+    url: string | undefined,
+    payload: Record<string, unknown> | undefined,
+    opts: FormSubmitOptions<T>
+  ): Promise<AxiosResponse | undefined> {
+    const { onBefore, onStart, onProgress, onSuccess, onError, onFinish, validate, transform, fetcher } = opts;
+    const userOnError = onError;
 
-    const allow = await onBefore?.();
-    if (allow === false) return;
+    if (!(await runBefore(onBefore))) return;
+
+    assertSource(url, fetcher, "submit");
+
+    // Local validation — only abort if there ARE errors (empty {} passes through).
+    const validationErrors = validate?.(toRaw(data) as T);
+    if (validationErrors && Object.keys(validationErrors).length > 0) {
+      clearErrors();
+      Object.entries(validationErrors).forEach(([k, v]) => setError(k, v));
+      return;
+    }
+
+    const body = transform ? transform(toRaw(data) as T) : (payload ?? toRaw(data));
 
     wasSuccessful.value = false;
     clearErrors();
-    processing.value = true;
-    await onStart?.();
+    formProcessing.value = true;
+    trackStart();
 
     try {
-      const response = await axios.request({
-        method,
-        url,
-        data: payload ?? toRaw(data),
-        onUploadProgress: (event) => {
-          onProgress?.(event);
-          if (!event.total) return;
-          progress.value = Math.round((event.loaded * 100) / event.total);
-        }
-      });
+      // onStart inside try — a throw still unwinds processing.
+      await onStart?.();
+
+      let response: AxiosResponse;
+      try {
+        response = await execute({
+          method,
+          url,
+          payload: body,
+          fetcher,
+          onProgress: (event) => {
+            onProgress?.(event);
+            if (event.total) progress.value = Math.round((event.loaded * 100) / event.total);
+          }
+        });
+      } catch (error) {
+        const err = error as AxiosError<ValidationErrorPayload>;
+        const normalized = normalizeValidationErrors(err.response?.data);
+        Object.entries(normalized).forEach(([k, v]) => setError(k, Array.isArray(v) ? v[0] : v));
+        await userOnError?.(normalized, err);
+        if (!userOnError) throw error;
+        return;
+      }
 
       wasSuccessful.value = true;
-      recentlySuccessful.value = true;
-      setTimeout(() => {
-        recentlySuccessful.value = false;
-      }, config.recentlySuccessfulDuration);
-      await onSuccess?.(response!);
+      startRecentTimer({ recentlySuccessful });
+      await onSuccess?.(response);
       return response;
-    } catch (error) {
-      const err = error as AxiosError<ValidationErrorPayload>;
-      const normalizedErrors = normalizeValidationErrors(err.response?.data);
-
-      Object.entries(normalizedErrors).forEach(([key, value]) => {
-        errors[String(key)] = Array.isArray(value) ? value[0] : value;
-      });
-
-      const handled = !!options.onError;
-      await onError?.(normalizedErrors, error as AxiosError);
-      if (!handled) throw error;
     } finally {
-      processing.value = false;
+      formProcessing.value = false;
       progress.value = null;
+      trackEnd();
       await onFinish?.();
     }
   }
@@ -337,26 +612,67 @@ export function useGumForm<T extends Record<string, unknown>>(defaults: T) {
     data,
     errors: errors as FormErrors<T>,
     progress,
-    processing,
+    processing: formProcessing,
     wasSuccessful,
     recentlySuccessful,
     isDirty,
     setError,
     clearErrors,
     reset,
-    submit,
-    post: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("post", url, payload, options),
-    put: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("put", url, payload, options),
-    patch: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("patch", url, payload, options),
-    delete: (url: string, payload?: Record<string, unknown>, options?: FormSubmitOptions) => submit("delete", url, payload, options)
+    submit: (method: FormMethod, url: string | undefined, payload?: Record<string, unknown>, opts?: FormSubmitOptions<T>) =>
+      submitForm(method, url, payload, opts ?? {}),
+    post: (url: string, payload?: Record<string, unknown>, opts?: FormSubmitOptions<T>) => submitForm("post", url, payload, opts ?? {}),
+    put: (url: string, payload?: Record<string, unknown>, opts?: FormSubmitOptions<T>) => submitForm("put", url, payload, opts ?? {}),
+    patch: (url: string, payload?: Record<string, unknown>, opts?: FormSubmitOptions<T>) => submitForm("patch", url, payload, opts ?? {}),
+    delete: (url: string, payload?: Record<string, unknown>, opts?: FormSubmitOptions<T>) => submitForm("delete", url, payload, opts ?? {}),
+
+    /* URL-less, fetcher-based variants */
+    postWith: (o: FormWithFetcherOptions<T>) => submitForm("post", undefined, undefined, o),
+    putWith: (o: FormWithFetcherOptions<T>) => submitForm("put", undefined, undefined, o),
+    patchWith: (o: FormWithFetcherOptions<T>) => submitForm("patch", undefined, undefined, o),
+    deleteWith: (o: FormWithFetcherOptions<T>) => submitForm("delete", undefined, undefined, o)
   };
 }
 
+type GumForm<T extends Record<string, unknown>> = ReturnType<typeof createForm<T>>;
+
+/* -------------------------------------------------------------------------- */
+/* useGum — unified visit + form                                              */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Why: configure shared Gum behavior globally.
- * When: app bootstrap calls app.use(GumPlugin, options).
- * Where: src/resources/src/main.ts plugin registration.
+ * Visit API only. `form` is not available when no defaults are passed.
  */
+export function useGum(): GumApi & { form?: undefined };
+
+/**
+ * Visit API plus form state. Pass the form defaults as the first argument.
+ */
+export function useGum<T extends Record<string, unknown>>(defaults: T): GumApi & { form: GumForm<T> };
+
+export function useGum<T extends Record<string, unknown>>(defaults?: T): GumApi & { form?: GumForm<T> } {
+  const api = buildVisitApi();
+  if (defaults === undefined) return api;
+  return { ...api, form: createForm(defaults) };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Backward-compat alias                                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @deprecated Use `useGum(defaults).form` instead.
+ * Kept so existing pages don't break. Will be removed in a future major.
+ */
+export function useGumForm<T extends Record<string, unknown>>(defaults: T): GumForm<T> {
+  const { form } = useGum(defaults);
+  return form;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Plugin                                                                     */
+/* -------------------------------------------------------------------------- */
+
 export const GumPlugin = {
   install(_app: App, options: GumPluginOptions = {}) {
     if (options.rememberPrefix) config.rememberPrefix = options.rememberPrefix;

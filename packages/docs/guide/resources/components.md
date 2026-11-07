@@ -356,11 +356,11 @@ Common pattern: month picker that emits a `"yyyy-MM"` string for API submission.
 </template>
 
 <script setup lang="ts">
-import { useGumForm } from "@/plugins/gum";
+import { useGum } from "@/plugins/gum";
 
-const form = useGumForm({
+const form = useGum({
   taxPeriod: "", // will be "yyyy-MM" string after selection
-});
+}).form;
 </script>
 ```
 
@@ -525,9 +525,9 @@ import { useRoleStore } from "@/stores/role";
 
 type OptionValue = { id: number; title: string } | null;
 
-const form = useGumForm({
+const form = useGum({
   role: null as OptionValue,
-});
+}).form;
 
 const roleStore = useRoleStore();
 </script>
@@ -572,10 +572,10 @@ import Select from "@/components/Select.vue";
 
 type OptionValue = { id: number; title: string } | null;
 
-const form = useGumForm({
+const form = useGum({
   commissionerate: null as OptionValue,
   division: null as OptionValue,
-});
+}).form;
 </script>
 
 <template>
@@ -616,11 +616,11 @@ import Select from "@/components/Select.vue";
 
 type OptionValue = { id: number; title: string } | null;
 
-const form = useGumForm({
+const form = useGum({
   commissionerate: null as OptionValue,
   division: null as OptionValue,
   circle: null as OptionValue,
-});
+}).form;
 </script>
 
 <template>
@@ -714,12 +714,12 @@ import Select from "@/components/Select.vue";
 
 type OptionValue = { id: number; title: string } | null;
 
-const form = useGumForm({
+const form = useGum({
   commissionerate: null as OptionValue,
   division: null as OptionValue,
   circle: null as OptionValue,
   sector: null as OptionValue,
-});
+}).form;
 
 const setForm = async (row: Record<string, any> = {}) => {
   form.data.id = String(row.id || "");

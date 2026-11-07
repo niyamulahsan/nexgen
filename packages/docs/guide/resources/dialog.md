@@ -311,9 +311,9 @@ function renameItem() {
 ```vue
 <script setup lang="ts">
 import { dialog } from "@/plugins/dialog";
-import { useGumForm } from "@/plugins/gum";
+import { useGum } from "@/plugins/gum";
 
-const form = useGumForm({ title: "", body: "" });
+const form = useGum({ title: "", body: "" }).form;
 
 function save() {
   dialog.confirm("Save this post?", (ok) => {

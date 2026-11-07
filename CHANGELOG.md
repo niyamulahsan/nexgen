@@ -1,5 +1,31 @@
 # Changelog
 
+## [4.3.1] — 2026-11-07
+
+### Added
+
+- **Template (both engines)**: `gum.ts` now exposes one `useGum(defaults?)` composable that returns the visit API and, when defaults are passed, a fully typed `form` object. `useGum()` without defaults has no `form` (typed `undefined`), so visit-only pages cannot reach form state by accident. Two forms on one page are two `useGum(defaults)` calls; `gum.processing` stays shared while `gum.form.processing` is per form. Overloads keep `gum.form` non-optional when defaults are present.
+- **Template (both engines)**: every visit and form method has a URL-less `*With` twin — `getWith`, `postWith`, `putWith`, `patchWith`, `deleteWith`, `reloadWith` and the form equivalents — that requires a `fetcher` and delegates the network call to it (for example a store method). `visit({ fetcher, ... })` accepts the same object form.
+- **Template (both engines)**: `fetcher` may return an `AxiosResponse` **or any plain value** (`string`, domain object, `void`). Plain values are wrapped into `{ data, status: 200, statusText: "OK", headers: {}, config: {} }` before `onSuccess` receives them, so existing store methods work without wrappers. An object is treated as a response only when it has `data` and a numeric `status`.
+- **Template (both engines)**: lifecycle hooks (`onBefore`, `onStart`, `onProgress`, `onSuccess`, `onError`, `onFinish`) are shared by visits and forms. `normalizeValidationErrors()` and `clearRememberForPath()` are exported, and `GumPlugin` accepts `rememberPrefix` and `recentlySuccessfulDuration`.
+
+### Changed
+
+- **Template (both engines)**: `gum.visit` in object form now forwards `data`, `query`, `routePath`, `replace`, `preserveState`, `preserveScroll` and `skipFetch` instead of only `method` and `fetcher`.
+- **Template (both engines)**: `query` is sent as axios `params` on **every** method again, not only GET. `gum.delete(url, { data })` and `gum.form.delete(...)` keep sending the DELETE body.
+- **Template (both engines)**: form errors now follow a single throw policy — with `onError` the error is swallowed and `onFinish` still runs; without `onError` it re-throws *after* `onFinish`. `validate` returning `{}` no longer aborts the submit (only a non-empty error map does), and `onStart` runs inside the `try` block so a throw still clears processing state.
+- **Template (both engines)**: scroll position is read with a plain `window.scrollY` instead of a per-instance `useWindowScroll` listener, avoiding extra listeners when a page mounts several `useGum()` instances.
+
+### Deprecated
+
+- **Template (both engines)**: `useGumForm(defaults)` is kept as a thin alias and still returns the same form object. Migrate to `useGum(defaults).form`; the alias will be removed in a future major.
+
+### Documentation
+
+- **Docs**: `guide/resources/gum.md` is rewritten for the unified API — mental model, full method matrix, visit/form options, recipes for every case (`get`/listing/DataTable, mutations, fetcher delegation, reload, `skipFetch`, preserve state/scroll, cancel, throw policy, uploads, validation, reset, dirty, success timing, two forms, mixed calls), lifecycle order, error contract, fetcher contract and migration from `useGumForm`. The `components`, `dialog`, `validation`, `pulse` and `composables` guides now use `useGum(...).form` instead of `useGumForm`.
+
+- **Byte identity**: the new `gum.ts` is identical across `template/hono`, `template/express` and both `packages/create-nexwire` copies (SHA-256 `A6527075703AC2FA4AD44BB63F6F153D9B8FF07DDD87129B0F784726E5A0D51A`).
+
 ## [4.3.0] — 2026-11-05
 
 ### Added

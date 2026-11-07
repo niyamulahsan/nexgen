@@ -19,9 +19,10 @@ The Gum plugin normalises errors from the API into `form.errors`:
 
 ```vue
 <script setup lang="ts">
-import { useGumForm } from "@/plugins/gum";
+import { useGum } from "@/plugins/gum";
 
-const form = useGumForm({ email: "", password: "" });
+const form = useGum({ email: "", password: "" }).form;
+const processing = form.processing;
 
 async function handleSubmit() {
   form.post("/api/auth/login", undefined, {
@@ -35,7 +36,7 @@ async function handleSubmit() {
   <form @submit.prevent="handleSubmit">
     <Input v-model="form.data.email" label="Email" :err="form.errors?.email" />
     <InputPasswordToggle v-model="form.data.password" label="Password" :err="form.errors?.password" />
-    <Button type="submit" label="Sign In" :loading="form.processing" />
+    <Button type="submit" label="Sign In" :loading="processing" />
   </form>
 </template>
 ```

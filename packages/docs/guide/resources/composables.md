@@ -93,7 +93,7 @@ The following composables were previously re-exports and have been removed. Impo
 
 | Removed                          | Replace with                                              |
 | -------------------------------- | --------------------------------------------------------- |
-| `@/composables/useGum`           | `import { useGum, useGumForm } from "@/plugins/gum"`      |
+| `@/composables/useGum`           | `import { useGum } from "@/plugins/gum"`                  |
 | `@/composables/usePulse`         | `import { pulse } from "@/plugins/pulse"`                 |
 | `@/composables/useDialog`        | `import { dialog } from "@/plugins/dialog"`               |
 | `@/composables/useBrowserDetect` | `import { browserDetect } from "@/plugins/browserDetect"` |

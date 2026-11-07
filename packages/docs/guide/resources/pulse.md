@@ -328,12 +328,12 @@ onUnmounted(() => {
 <script setup lang="ts">
 import { ref, onUnmounted } from "vue";
 import { pulse } from "@/plugins/pulse";
-import { useGumForm } from "@/plugins/gum";
+import { useGum } from "@/plugins/gum";
 
 const roomId = "chat:general";
 const messages = ref<string[]>([]);
 
-const form = useGumForm({ message: "" });
+const form = useGum({ message: "" }).form;
 
 const ch = pulse.channel(roomId);
 ch.listen("chat.message", (payload: any) => {
