@@ -15,6 +15,7 @@
 - **Template (both engines)**: `query` is sent as axios `params` on **every** method again, not only GET. `gum.delete(url, { data })` and `gum.form.delete(...)` keep sending the DELETE body.
 - **Template (both engines)**: form errors now follow a single throw policy — with `onError` the error is swallowed and `onFinish` still runs; without `onError` it re-throws *after* `onFinish`. `validate` returning `{}` no longer aborts the submit (only a non-empty error map does), and `onStart` runs inside the `try` block so a throw still clears processing state.
 - **Template (both engines)**: scroll position is read with a plain `window.scrollY` instead of a per-instance `useWindowScroll` listener, avoiding extra listeners when a page mounts several `useGum()` instances.
+- **Template (both engines)**: the auth pages now submit through the auth store with `gum.form.postWith` / `gum.postWith` (`auth.login`, `auth.register`, `auth.forgotPassword`, `auth.resetPassword`, `auth.verifyEmail`) instead of duplicating `/api/auth/*` URLs. Login and register no longer need the extra `auth.bootstrap()` round-trip because the store already syncs the user. `stores/auth.ts` exports its payload types and rethrows the original `AxiosError` with the API message attached, so Gum still normalizes field errors while the pages keep showing the server message.
 
 ### Deprecated
 
@@ -24,7 +25,7 @@
 
 - **Docs**: `guide/resources/gum.md` is rewritten for the unified API — mental model, full method matrix, visit/form options, recipes for every case (`get`/listing/DataTable, mutations, fetcher delegation, reload, `skipFetch`, preserve state/scroll, cancel, throw policy, uploads, validation, reset, dirty, success timing, two forms, mixed calls), lifecycle order, error contract, fetcher contract, both complete examples (URL-based and store-owned `*With`, including the built-in `DataTable` caveat) and migration from `useGumForm`. The `components`, `dialog`, `validation`, `pulse` and `composables` guides now use `useGum(...).form` instead of `useGumForm`.
 
-- **Byte identity**: the new `gum.ts` is identical across `template/hono`, `template/express` and both `packages/create-nexwire` copies (SHA-256 `A6527075703AC2FA4AD44BB63F6F153D9B8FF07DDD87129B0F784726E5A0D51A`).
+- **Byte identity**: the new `gum.ts` is identical across `template/hono`, `template/express` and both `packages/create-nexwire` copies (SHA-256 `A6527075703AC2FA4AD44BB63F6F153D9B8FF07DDD87129B0F784726E5A0D51A`). The rewritten auth store and auth pages are identical across all four copies as well.
 
 ## [4.3.0] — 2026-11-05
 

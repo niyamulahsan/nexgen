@@ -3,11 +3,11 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { type AuthUser, clearUser, setUser } from "@/composables/useAuth";
 
-type LoginPayload = { email?: string; phone?: string; password: string; remember?: boolean };
-type VerifyEmailPayload = { email: string; token: string };
-type ForgotPayload = { email: string };
+export type LoginPayload = { email?: string; phone?: string; password: string; remember?: boolean };
+export type VerifyEmailPayload = { email: string; token: string };
+export type ForgotPayload = { email: string };
 
-type RegisterPayload = {
+export type RegisterPayload = {
   name: string;
   email?: string;
   phone?: string;
@@ -15,7 +15,7 @@ type RegisterPayload = {
   password_confirmation: string;
 };
 
-type ResetPayload = {
+export type ResetPayload = {
   email: string;
   token: string;
   password: string;
@@ -36,7 +36,10 @@ async function request<T>(method: "GET" | "POST", path: string, payload?: unknow
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      throw new Error(String(error.response?.data?.message || error.message || "Request failed"));
+      // Keep the AxiosError so Gum can read `response.data` and populate
+      // form.errors, but show the API's message instead of axios's generic one.
+      error.message = String(error.response?.data?.message || error.message || "Request failed");
+      throw error;
     }
     throw new Error("Request failed");
   }
