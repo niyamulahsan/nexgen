@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import scalarApiReference from "@scalar/fastify-api-reference";
 import swagger from "@fastify/swagger";
+import scalarApiReference from "@scalar/fastify-api-reference";
 import type { FastifyInstance } from "fastify";
 import { jsonSchemaTransform } from "fastify-type-provider-zod";
 import { openApiConfig } from "@/config/index.js";

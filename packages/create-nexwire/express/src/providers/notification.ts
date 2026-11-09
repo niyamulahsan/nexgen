@@ -1,4 +1,4 @@
-import { registerChannel, mailChannel, broadcastChannel } from "@/framework/facade.js";
+import { broadcastChannel, mailChannel, registerChannel } from "@/framework/facade.js";
 
 registerChannel(mailChannel);
 registerChannel(broadcastChannel);

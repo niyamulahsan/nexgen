@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import createError from "http-errors";
-import { logger } from "@/framework/support/logger.js";
 import { openApiConfig } from "@/config/index.js";
+import { logger } from "@/framework/support/logger.js";
 
 function requestIp(req: Parameters<RequestHandler>[0]) {
   const forwarded = req.headers["x-forwarded-for"];

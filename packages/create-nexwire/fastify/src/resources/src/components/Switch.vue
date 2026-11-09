@@ -4,12 +4,7 @@
       <span v-html="statusHtml"></span>
     </label>
     <div class="form-check form-switch d-inline-block">
-      <input
-        class="form-check-input shadow-none border-primary"
-        type="checkbox"
-        role="switch"
-        :checked="isChecked"
-        v-bind="$attrs" />
+      <input class="form-check-input shadow-none border-primary" type="checkbox" :checked="isChecked" v-bind="$attrs">
       <label :class="props.vertical ? 'd-none' : 'form-check-label'">
         <span v-html="statusHtml"></span>
       </label>
@@ -49,7 +44,7 @@ const statusHtml = computed(() => {
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .indicator {
   width: 4px;
   height: 4px;

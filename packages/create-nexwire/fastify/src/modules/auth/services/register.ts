@@ -50,7 +50,7 @@ export const registerService = {
     const hashedPassword = await password.hashPassword(body.password);
     const now = new Date();
 
-    const created = await db.transaction(async (tx) => {
+    const created = await db.transaction(async (tx: any) => {
       const [inserted] = await tx
         .insert(users)
         .values({
