@@ -29,6 +29,9 @@ const FORCED_ENV_DEFAULTS = {
   // developer-local, so a local SOCKET=true would otherwise ship to npm and
   // make the UI open `/socket.io` even though the documented default is off.
   SOCKET: "false",
+  // The template `.env` is toggled while testing both modes. A local
+  // OPEN_API=false must not reach npm and turn the docs UI off for everyone.
+  OPEN_API: "true",
 };
 
 /** Parse the uncommented KEY=VALUE pairs of an env file. */

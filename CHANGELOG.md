@@ -28,6 +28,7 @@
 
 - **Template (Fastify)**: request ids are now `crypto.randomUUID()` values, matching Hono and Express, instead of Fastify's built-in `req-1`, `req-2` counter. The id is used in the `X-Request-ID` header and the structured access-log line, so the same request can be correlated across engines and log sinks.
 - **Template (all engines)**: health, readiness and liveness probes (`/health`, `/ready`, `/live`) are no longer written to the HTTP access log. Previously this depended on route registration order — the OpenAPI mode registered `/health` before the logger and skipped it, while `OPEN_API=false` registered it after and logged it — so the same app logged probes differently depending on OpenAPI mode, and Fastify logged the dev CLI's startup health poll. The skip is now explicit in the logger for Hono, Express and Fastify.
+- **Scaffolder**: `OPEN_API` is pinned to `true` in the published `.env`, next to `REDIS` and `SOCKET`. The template `.env` is developer-local and is toggled while testing API-only mode; without the pin, a local `OPEN_API=false` was copied into `packages/create-nexwire/<engine>/.env` and would have shipped as the default, turning the Scalar docs off for every new project.
 
 ### Deprecated
 
