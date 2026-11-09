@@ -28,6 +28,7 @@ export { command, dispatchCommand, dispatchEvent } from "@/framework/events/disp
 // ==========================================
 // 3. HTTP & Routing
 // ==========================================
+export { loginLimiter } from "@/framework/http/ratelimiter.js";
 export { createRouter, group } from "@/framework/http/router.js";
 export { validate } from "@/framework/http/validation.js";
 export { broadcastChannel } from "@/framework/notification/channels/broadcast.js";

@@ -26,6 +26,7 @@ export { command, dispatchCommand, dispatchEvent } from "@/framework/events/disp
 // ==========================================
 // 3. HTTP & Routing
 // ==========================================
+export { loginLimiter } from "@/framework/http/ratelimiter.js";
 export { ValidationErrorSchema, validate } from "@/framework/http/validation.js";
 export { broadcastChannel } from "@/framework/notification/channels/broadcast.js";
 export { mailChannel } from "@/framework/notification/channels/mail.js";

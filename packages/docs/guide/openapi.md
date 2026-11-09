@@ -296,12 +296,12 @@ import {
   createRoute,
   HttpStatusCodes,
   jsonContent,
+  loginLimiter,
 } from "@/framework/facade.js";
 import {
   RegisterSchema,
   UserSchema,
 } from "@/modules/auth/controllers/auth.schema.js";
-import { loginLimiter } from "@/framework/http/ratelimiter.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
 const registerRoute = createRoute({

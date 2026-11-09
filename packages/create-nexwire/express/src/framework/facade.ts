@@ -28,6 +28,7 @@ export type { RouteConfig } from "@/framework/http/router.js";
 // ==========================================
 // 3. HTTP & Routing
 // ==========================================
+export { loginLimiter } from "@/framework/http/ratelimiter.js";
 export { createRoute, createRouter, group, jsonContent } from "@/framework/http/router.js";
 export { validate } from "@/framework/http/validation.js";
 export { broadcastChannel } from "@/framework/notification/channels/broadcast.js";

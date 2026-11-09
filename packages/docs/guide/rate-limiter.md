@@ -44,7 +44,7 @@ app.register(rateLimit, {
 
 ## Login Limiter
 
-The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`).
+The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`). Import it from `@/framework/facade.js`.
 
 On Hono and Express it is a group middleware:
 

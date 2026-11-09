@@ -1,6 +1,5 @@
 import type { Context, Next } from "hono";
-import { cookie, HttpStatusCodes, jwt } from "@/framework/facade.js";
-import { resolveAuthProvider } from "@/framework/providers/adapter.js";
+import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 
 export async function authMiddleware(c: Context, next: Next) {
   const provider = await resolveAuthProvider();

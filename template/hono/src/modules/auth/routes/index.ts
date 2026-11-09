@@ -1,5 +1,4 @@
-import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
-import { loginLimiter } from "@/framework/http/ratelimiter.js";
+import { createRoute, createRouter, HttpStatusCodes, jsonContent, loginLimiter, z } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import {
   forgotPassword,

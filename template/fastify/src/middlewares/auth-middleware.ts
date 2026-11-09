@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { cookie, HttpStatusCodes, jwt } from "@/framework/facade.js";
-import { resolveAuthProvider } from "@/framework/providers/adapter.js";
+import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 
 function unauthorized(reply: FastifyReply, message = "Unauthorized") {
   return reply.code(HttpStatusCodes.UNAUTHORIZED).send({ message });

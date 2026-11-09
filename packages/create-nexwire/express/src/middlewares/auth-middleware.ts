@@ -1,6 +1,5 @@
 import { type NextFunction, type Request, type Response } from "express";
-import { cookie, HttpStatusCodes, jwt } from "@/framework/facade.js";
-import { resolveAuthProvider } from "@/framework/providers/adapter.js";
+import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const provider = await resolveAuthProvider();

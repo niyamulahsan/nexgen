@@ -2,22 +2,14 @@
 
 ## [4.4.0] — 2026-11-09
 
+> 4.3.1 was tagged on `main` but never published to npm; its changes ship in 4.4.0.
+
 ### Added
 
 - **Template (new Fastify engine)**: `create-nexwire --engine=fastify` now scaffolds a genuinely native Fastify 5 application instead of a Hono/Express-shaped shim. Route files export `FastifyPluginAsyncZod` plugins, controllers use `(request, reply)`, and services take `(request, reply, body)`. Route groups map to scoped `app.addHook("preHandler", …)` or per-route `preHandler`, one-off limits use `config.rateLimit`, and schemas go straight into `app.route({ schema })`. The engine ships `@fastify/cookie`, `@fastify/cors`, `@fastify/rate-limit`, `@fastify/static`, `@fastify/multipart`, `@fastify/swagger`, `fastify-type-provider-zod` and `@scalar/fastify-api-reference`; `@bull-board/fastify` serves the queue dashboard. Validation failures return `422` with `{ success: false, error: { name: "ZodError", issues } }`, declared through `ValidationErrorSchema` so Fastify's response serializer never throws. Request state is reachable as `request.auth` / `request.sessionId` / `request.upload` / `request.uploads`, typed in `src/framework/http/fastify.d.ts`. Fastify is **Node-only**; the template omits Bun support.
 - **Maker CLI (Fastify)**: every web-shaped generator stub is rewritten for Fastify — `module:make` and `module:make-route` (OpenAPI and plain), `module:make-controller`, `middleware:make`, `module:make-middleware`, and `module:make-notification`. Generated route plugins register native `app.route({ method, url, schema, preHandler, handler })` calls, generated controllers use `FastifyRequest` / `FastifyReply` and `HttpStatusCodes`, and generated middleware are async `(request, reply)` hooks that return nothing to continue or return a reply to stop. The `middleware:make` hint now says `app.addHook("preHandler", …)` instead of `group(…)`.
 - **Scaffolder (`create-nexwire`)**: Fastify is a first-class backend in the interactive picker, `--engine=fastify`, help text and the missing-engine message. `scripts/sync-template.mjs` and the package `files` list publish `packages/create-nexwire/fastify`.
 - **Docs**: new [Fastify Engine](/guide/fastify) guide covering native plugins, hooks, route schemas, request state, the validation contract, SPA fallback, uploads, the Bull Board adapter and the Fastify-specific maker output. `guide/routing.md`, `guide/middleware.md`, `guide/openapi.md`, `guide/rate-limiter.md`, `guide/support/upload.md`, `guide/quick-start.md`, `guide/introduction.md` and the home page are updated to document all three engines.
-
-### Fixed
-
-- **Template (Fastify)**: request ids are now `crypto.randomUUID()` values, matching Hono and Express, instead of Fastify's built-in `req-1`, `req-2` counter. The id is used in the `X-Request-ID` header and the structured access-log line, so the same request can be correlated across engines and log sinks.
-- **Template (all engines)**: health, readiness and liveness probes (`/health`, `/ready`, `/live`) are no longer written to the HTTP access log. Previously this depended on route registration order — the OpenAPI mode registered `/health` before the logger and skipped it, while `OPEN_API=false` registered it after and logged it — so the same app logged probes differently depending on OpenAPI mode, and Fastify logged the dev CLI's startup health poll. The skip is now explicit in the logger for Hono, Express and Fastify.
-
-## [4.3.1] — 2026-11-07
-
-### Added
-
 - **Template (both engines)**: `gum.ts` now exposes one `useGum(defaults?)` composable that returns the visit API and, when defaults are passed, a fully typed `form` object. `useGum()` without defaults has no `form` (typed `undefined`), so visit-only pages cannot reach form state by accident. Two forms on one page are two `useGum(defaults)` calls; `gum.processing` stays shared while `gum.form.processing` is per form. Overloads keep `gum.form` non-optional when defaults are present.
 - **Template (both engines)**: every visit and form method has a URL-less `*With` twin — `getWith`, `postWith`, `putWith`, `patchWith`, `deleteWith`, `reloadWith` and the form equivalents — that requires a `fetcher` and delegates the network call to it (for example a store method). `visit({ fetcher, ... })` accepts the same object form.
 - **Template (both engines)**: `fetcher` may return an `AxiosResponse` **or any plain value** (`string`, domain object, `void`). Plain values are wrapped into `{ data, status: 200, statusText: "OK", headers: {}, config: {} }` before `onSuccess` receives them, so existing store methods work without wrappers. An object is treated as a response only when it has `data` and a numeric `status`.
@@ -25,11 +17,17 @@
 
 ### Changed
 
+- **Template (all engines)**: application-layer code imports `loginLimiter` and `resolveAuthProvider` from `@/framework/facade.js` instead of reaching into `@/framework/http/ratelimiter.js` and `@/framework/providers/adapter.js`. Both are facade exports on Hono, Express and Fastify, so `src/modules/**` and `src/middlewares/**` use one public surface — the auth routes and `auth-middleware.ts` are now identical in shape across the three engines. The guides use the same facade import.
 - **Template (both engines)**: `gum.visit` in object form now forwards `data`, `query`, `routePath`, `replace`, `preserveState`, `preserveScroll` and `skipFetch` instead of only `method` and `fetcher`.
 - **Template (both engines)**: `query` is sent as axios `params` on **every** method again, not only GET. `gum.delete(url, { data })` and `gum.form.delete(...)` keep sending the DELETE body.
 - **Template (both engines)**: form errors now follow a single throw policy — with `onError` the error is swallowed and `onFinish` still runs; without `onError` it re-throws *after* `onFinish`. `validate` returning `{}` no longer aborts the submit (only a non-empty error map does), and `onStart` runs inside the `try` block so a throw still clears processing state.
 - **Template (both engines)**: scroll position is read with a plain `window.scrollY` instead of a per-instance `useWindowScroll` listener, avoiding extra listeners when a page mounts several `useGum()` instances.
 - **Template (both engines)**: the auth pages now submit through the auth store with `gum.form.postWith` / `gum.postWith` (`auth.login`, `auth.register`, `auth.forgotPassword`, `auth.resetPassword`, `auth.verifyEmail`) instead of duplicating `/api/auth/*` URLs. Login and register no longer need the extra `auth.bootstrap()` round-trip because the store already syncs the user. `stores/auth.ts` exports its payload types and rethrows the original `AxiosError` with the API message attached, so Gum still normalizes field errors while the pages keep showing the server message.
+
+### Fixed
+
+- **Template (Fastify)**: request ids are now `crypto.randomUUID()` values, matching Hono and Express, instead of Fastify's built-in `req-1`, `req-2` counter. The id is used in the `X-Request-ID` header and the structured access-log line, so the same request can be correlated across engines and log sinks.
+- **Template (all engines)**: health, readiness and liveness probes (`/health`, `/ready`, `/live`) are no longer written to the HTTP access log. Previously this depended on route registration order — the OpenAPI mode registered `/health` before the logger and skipped it, while `OPEN_API=false` registered it after and logged it — so the same app logged probes differently depending on OpenAPI mode, and Fastify logged the dev CLI's startup health poll. The skip is now explicit in the logger for Hono, Express and Fastify.
 
 ### Deprecated
 
@@ -38,7 +36,6 @@
 ### Documentation
 
 - **Docs**: `guide/resources/gum.md` is rewritten for the unified API — mental model, full method matrix, visit/form options, recipes for every case (`get`/listing/DataTable, mutations, fetcher delegation, reload, `skipFetch`, preserve state/scroll, cancel, throw policy, uploads, validation, reset, dirty, success timing, two forms, mixed calls), lifecycle order, error contract, fetcher contract, both complete examples (URL-based and store-owned `*With`, including the built-in `DataTable` caveat) and migration from `useGumForm`. The `components`, `dialog`, `validation`, `pulse` and `composables` guides now use `useGum(...).form` instead of `useGumForm`.
-
 - **Byte identity**: the new `gum.ts` is identical across `template/hono`, `template/express` and both `packages/create-nexwire` copies (SHA-256 `A6527075703AC2FA4AD44BB63F6F153D9B8FF07DDD87129B0F784726E5A0D51A`). The rewritten auth store and auth pages are identical across all four copies as well.
 
 ## [4.3.0] — 2026-11-05
