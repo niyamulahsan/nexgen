@@ -1,18 +1,19 @@
 # Routing
 
-nexwire uses one of two HTTP engines for routing: **Hono** (default) or **Express**. `create-nexwire` asks interactively when you don't pass `--engine`; pass `--engine=hono` or `--engine=express` to skip the prompt. Routes are defined per module and auto-registered at startup.
+nexwire uses one of three HTTP engines for routing: **Hono** (default), **Express**, or **Fastify**. `create-nexwire` asks interactively when you don't pass `--engine`; pass `--engine=hono`, `--engine=express`, or `--engine=fastify` to skip the prompt. Routes are defined per module and auto-registered at startup.
 
-The framework exposes the same facade (`createRoute`, `group`, `HttpStatusCodes`, `jsonContent`, ...) on both engines — only the request handler signature differs:
+Hono and Express share the same facade (`createRoute`, `group`, `HttpStatusCodes`, `jsonContent`, ...) and differ only in the handler signature. Fastify is a native Fastify application: route files export a plugin, and schemas go straight into the route object. Read [Fastify Engine](./fastify) for the full Fastify shape.
 
-| Concern             | Hono                                   | Express                             |
-| ------------------- | -------------------------------------- | ----------------------------------- |
-| Handler signature   | `(c: Context)`                         | `(req: Request, res: Response)`     |
-| Validated body      | `c.req.valid("json")`                  | `req.body`                          |
-| Path param          | `c.req.param("id")`                    | `req.params.id`                     |
-| Query param         | `c.req.query("page")`                  | `req.query.page`                    |
-| JSON response       | `c.json(data, status)`                 | `res.status(status).json(data)`     |
-| Middleware context  | `c.set("key", value)` / `c.get("key")` | `res.locals.key`                    |
-| Types imported from | `"hono"` (`Handler`, `Context`)        | `"express"` (`Request`, `Response`) |
+| Concern             | Hono                                   | Express                             | Fastify                                              |
+| ------------------- | -------------------------------------- | ----------------------------------- | ---------------------------------------------------- |
+| Route unit          | `group().api(route, handler)`          | `group().api(route, handler)`       | `FastifyPluginAsyncZod` plugin                       |
+| Handler signature   | `(c: Context)`                         | `(req: Request, res: Response)`     | `(request: FastifyRequest, reply: FastifyReply)`     |
+| Validated body      | `c.req.valid("json")`                  | `req.body`                          | `request.body`                                       |
+| Path param          | `c.req.param("id")`                    | `req.params.id`                     | `request.params.id`                                  |
+| Query param         | `c.req.query("page")`                  | `req.query.page`                    | `request.query.page`                                 |
+| JSON response       | `c.json(data, status)`                 | `res.status(status).json(data)`     | `reply.code(status).send(data)`                      |
+| Middleware context  | `c.set("key", value)` / `c.get("key")` | `res.locals.key`                    | `request.auth` / `request.sessionId`                 |
+| Types imported from | `"hono"` (`Handler`, `Context`)        | `"express"` (`Request`, `Response`) | `"fastify"` (`FastifyRequest`, `FastifyReply`)       |
 
 ## Basic Route
 
@@ -57,9 +58,34 @@ export default group().api(listRoute, (_req: Request, res: Response) =>
 
 :::
 
+On Fastify the route file exports a plugin and puts the schema directly on the route. There is no `createRoute()` step:
+
+```ts
+// src/modules/posts/routes/index.ts
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+import { index } from "@/modules/posts/controllers/post.js";
+import { PostSchema } from "@/modules/posts/schemas/post.js";
+
+const postRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["Posts"],
+      description: "List all posts",
+      response: { [HttpStatusCodes.OK]: z.array(PostSchema) },
+    },
+    handler: index,
+  });
+};
+
+export default postRoutes;
+```
+
 ## Route Groups
 
-Use `group()` to organize routes into logical groups with shared middleware — identical on both engines:
+Use `group()` to organize routes into logical groups with shared middleware — identical on Hono and Express:
 
 ```ts
 import { group } from "@/framework/facade.js";
@@ -99,6 +125,15 @@ const protectedRoutes = createRouter().group(authMiddleware).api(meRoute, me);
 export default createRouter().route("/", publicRoutes).route("/", protectedRoutes);
 ```
 
+On Fastify, the same split is a child plugin with a scoped `preHandler` hook:
+
+```ts
+await app.register(async (scope) => {
+  scope.addHook("preHandler", authMiddleware);
+  scope.get("/me", me);
+});
+```
+
 ## Handlers
 
 A handler receives the request and must return/send a response. Read the input, then respond:
@@ -127,11 +162,22 @@ export const show = (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyReply, FastifyRequest } from "fastify";
+
+export const show = async (request: FastifyRequest, reply: FastifyReply) => {
+  const id = request.params.id; // path param
+  const page = request.query.page; // query param
+  const data = { id, page }; // ... your logic
+  return reply.code(200).send(data);
+};
+```
+
 :::
 
 ## OpenAPI Mode
 
-When `OPEN_API=true`, routes use `createRoute()` with `.api()` for full OpenAPI documentation at `/api-docs` — shared by both engines:
+On Hono and Express, `OPEN_API=true` routes use `createRoute()` with `.api()` for full OpenAPI documentation at `/api-docs`:
 
 ```ts
 const showRoute = createRoute({
@@ -147,7 +193,22 @@ const showRoute = createRoute({
 export default group().api(showRoute, show);
 ```
 
-When `OPEN_API=false`, routes use plain verb methods without metadata — identical on both engines:
+On Fastify the Zod schemas are the documentation — put them in `schema.body`, `schema.params`, `schema.querystring`, and `schema.response`:
+
+```ts
+app.route({
+  method: "GET",
+  url: "/:id",
+  schema: {
+    tags: ["Posts"],
+    params: PostIdParamsSchema,
+    response: { [HttpStatusCodes.OK]: PostResponseSchema },
+  },
+  handler: show,
+});
+```
+
+When `OPEN_API=false`, routes use plain verb methods without metadata — identical on Hono and Express, and `app.get` / `app.post` on Fastify:
 
 ```ts
 export default group()
@@ -188,7 +249,7 @@ This creates `src/modules/blog/routes/post.ts` and auto-links it to the most rec
 
 ## Middleware
 
-Middleware runs before route handlers. Apply it to a group or to a single route — identical on both engines:
+Middleware runs before route handlers. On Hono and Express, apply it to a group or to a single route:
 
 ```ts
 import { group } from "@/framework/facade.js";
@@ -198,6 +259,19 @@ import { requireRole } from "@/middlewares/role-middleware.js";
 export default group(authMiddleware) // all routes require auth
   .api(listRoute, index)
   .api(showRoute, [requireRole("admin")], show); // admin only
+```
+
+On Fastify it is a scoped hook or a route `preHandler`:
+
+```ts
+await app.register(async (scope) => {
+  scope.addHook("preHandler", authMiddleware);
+  scope.addHook("preHandler", requireRole("admin"));
+  scope.get("/", index);
+});
+
+// or per route
+app.route({ method: "GET", url: "/", preHandler: authMiddleware, handler: me });
 ```
 
 `authMiddleware` authenticates; `requireRole` authorises. Order matters — run auth first.
@@ -230,9 +304,19 @@ export const store = (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+// Controller receives validated data
+import type { FastifyReply, FastifyRequest } from "fastify";
+
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body; // validated against CreateSchema
+  // body is typed — no manual validation needed
+};
+```
+
 :::
 
-Without OpenAPI, use the `validate()` helper (identical on both engines):
+Without OpenAPI, use the `validate()` helper (identical on all engines):
 
 ::: code-group
 
@@ -252,6 +336,14 @@ export const store = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import { validate } from "@/framework/facade.js";
+
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = await validate(CreatePostSchema, request.body);
+};
+```
+
 :::
 
 ## File Uploads
@@ -260,6 +352,7 @@ Multipart parsing is engine-specific:
 
 - **Hono** — `await c.req.parseBody()` returns the raw body; files arrive as `File` instances.
 - **Express** — attach the `upload({ field })` / `fields()` facade middlewares to the route; files arrive as in-memory buffers on `req.file` / `req.files`.
+- **Fastify** — attach the same `upload()` / `fields()` helpers as a `preHandler`; files arrive as in-memory buffers on `request.upload` / `request.uploads`.
 
 ::: code-group
 
@@ -294,9 +387,32 @@ export default group().api(
 );
 ```
 
+```ts [Fastify]
+// Fastify route file
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { upload } from "@/framework/facade.js";
+import { store } from "@/modules/files/controllers/file.js";
+
+const fileRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "POST",
+    url: "/",
+    preHandler: upload({ field: "file", maxSize: 2 * 1024 * 1024 }),
+    handler: store,
+  });
+};
+
+// Controller: request.upload is an in-memory buffer
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const file = request.upload!;
+  const path = await storage.disk("public").putFile("uploads", file);
+  return reply.code(200).send({ path, url: storage.disk("public").url(path) });
+};
+```
+
 :::
 
-See [Upload — Express only](/guide/support/upload) and [Storage: Multipart File Upload](/guide/storage#multipart-file-upload) for the full detail.
+See [Upload — Express and Fastify](/guide/support/upload) and [Storage: Multipart File Upload](/guide/storage#multipart-file-upload) for the full detail.
 
 ## UI Routes
 

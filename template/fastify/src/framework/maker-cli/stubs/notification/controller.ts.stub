@@ -1,0 +1,79 @@
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { HttpStatusCodes, resolveNotificationProvider } from "@/framework/facade.js";
+import type { NotifiableTarget } from "@/framework/providers/contracts.js";
+
+type IdRequest = FastifyRequest<{ Params: { id: string } }>;
+type ListRequest = FastifyRequest<{ Querystring: { page?: string; perPage?: string } }>;
+
+/** Read the authenticated owner. A missing auth context means the request is anonymous. */
+function targetFrom(request: FastifyRequest): NotifiableTarget | null {
+  const auth = request.auth;
+  if (!auth || auth.id === undefined || auth.id === null) return null;
+  return { type: "{{notifiable}}", id: auth.id };
+}
+
+function unavailable(reply: FastifyReply) {
+  return reply.code(HttpStatusCodes.SERVICE_UNAVAILABLE).send({
+    message: "Notification provider not available. Restore src/modules/notification or register one in src/providers/."
+  });
+}
+
+function unauthorized(reply: FastifyReply) {
+  return reply.code(HttpStatusCodes.UNAUTHORIZED).send({ message: "Unauthorized" });
+}
+
+export const list = async (request: ListRequest, reply: FastifyReply) => {
+  const provider = await resolveNotificationProvider();
+  if (!provider) return unavailable(reply);
+
+  const target = targetFrom(request);
+  if (!target) return unauthorized(reply);
+
+  const page = Math.max(1, Number(request.query.page) || 1);
+  const perPage = Math.min(50, Math.max(1, Number(request.query.perPage) || 20));
+
+  return reply.code(HttpStatusCodes.OK).send(await provider.list(target, { page, perPage }));
+};
+
+export const unreadCount = async (request: FastifyRequest, reply: FastifyReply) => {
+  const provider = await resolveNotificationProvider();
+  if (!provider) return unavailable(reply);
+
+  const target = targetFrom(request);
+  if (!target) return unauthorized(reply);
+
+  return reply.code(HttpStatusCodes.OK).send({ count: await provider.unreadCount(target) });
+};
+
+export const markRead = async (request: IdRequest, reply: FastifyReply) => {
+  const provider = await resolveNotificationProvider();
+  if (!provider) return unavailable(reply);
+
+  const target = targetFrom(request);
+  if (!target) return unauthorized(reply);
+
+  await provider.markRead(target, String(request.params.id));
+  return reply.code(HttpStatusCodes.OK).send({ ok: true });
+};
+
+export const markAllRead = async (request: FastifyRequest, reply: FastifyReply) => {
+  const provider = await resolveNotificationProvider();
+  if (!provider) return unavailable(reply);
+
+  const target = targetFrom(request);
+  if (!target) return unauthorized(reply);
+
+  await provider.markAllRead(target);
+  return reply.code(HttpStatusCodes.OK).send({ ok: true });
+};
+
+export const remove = async (request: IdRequest, reply: FastifyReply) => {
+  const provider = await resolveNotificationProvider();
+  if (!provider) return unavailable(reply);
+
+  const target = targetFrom(request);
+  if (!target) return unauthorized(reply);
+
+  await provider.remove(target, String(request.params.id));
+  return reply.code(HttpStatusCodes.OK).send({ ok: true });
+};

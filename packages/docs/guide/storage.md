@@ -124,7 +124,7 @@ await disk.exists("invoices/42.pdf");
 
 ## Examples
 
-> **Engine note:** the storage calls below are identical on both engines. Handlers are shown with Hono's `(c)` signature; on Express write `(req: Request, res: Response)` and use `req.body` / `req.params.id` / `res.status(n).json(...)` instead of `c.req.valid(...)` / `c.req.param(...)` / `c.json(...)`. Only multipart parsing differs — see the tabs below (Hono `parseBody` vs Express `upload()`).
+> **Engine note:** the storage calls below are identical on all three engines. Handlers are shown with Hono's `(c)` signature; on Express write `(req: Request, res: Response)` and use `req.body` / `req.params.id` / `res.status(n).json(...)` instead of `c.req.valid(...)` / `c.req.param(...)` / `c.json(...)`. On Fastify write `(request: FastifyRequest, reply: FastifyReply)` and use `request.body` / `request.params.id` / `reply.code(n).send(...)`. Only multipart parsing differs — see the tabs below (Hono `parseBody`, Express `upload()`, Fastify `preHandler: upload()`).
 >
 > **Excel** examples use [`exceljs`](https://www.npmjs.com/package/exceljs) — install with `npm run|pnpm|yarn|bun add exceljs`.  
 > **PDF** examples use [`playwright`](https://www.npmjs.com/package/playwright) — install with `npm run|pnpm|yarn|bun add playwright && npm run|pnpm|yarn|bun playwright install chromium`.
@@ -185,9 +185,46 @@ export default group().api(
 );
 ```
 
+```ts [Fastify]
+// under route folder *.ts file
+
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { upload } from "@/framework/facade.js";
+import { uploadFile } from "../controllers/file.js";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "POST",
+    url: "/",
+    preHandler: upload({
+      field: "file",
+      maxSize: 2 * 1024 * 1024,
+      allowedExtensions: [".jpg", ".png"],
+    }),
+    handler: uploadFile,
+  });
+};
+
+export default routes;
+
+// controller
+export const uploadFile = async (request: FastifyRequest, reply: FastifyReply) => {
+  const file = request.upload; // in-memory buffer provided by @fastify/multipart
+  if (!file) return reply.code(422).send({ message: "File is required" });
+
+  const path = await storage.disk("public").putFile("uploads", file);
+
+  return reply.code(200).send({
+    message: "File uploaded successfully",
+    path,
+    url: storage.disk("public").url(path),
+  });
+};
+```
+
 :::
 
-> The Express engine exposes the `upload()` / `fields()` middleware factories for multipart parsing (built on `multer`). See [Upload — Express only](./support/upload).
+> The Express and Fastify engines expose the `upload()` / `fields()` middleware factories for multipart parsing (built on `multer` and `@fastify/multipart` respectively). See [Upload — Express and Fastify](./support/upload).
 
 ### Import Excel (parse uploaded .xlsx)
 

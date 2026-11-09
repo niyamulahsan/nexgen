@@ -1,6 +1,6 @@
 # Introduction
 
-nexwire is a full-stack TypeScript framework that combines a Hono (default) or Express API server, a Vite UI (Vue 3 by default, swappable for React/Svelte/Solid/etc.), Drizzle ORM for the database, and Redis for caching, sessions, queues, and realtime — all wired together with a single CLI.
+nexwire is a full-stack TypeScript framework that combines a Hono (default), Express, or Fastify API server, a Vite UI (Vue 3 by default, swappable for React/Svelte/Solid/etc.), Drizzle ORM for the database, and Redis for caching, sessions, queues, and realtime — all wired together with a single CLI.
 
 ## Why nexwire?
 
@@ -8,7 +8,7 @@ Full-stack TypeScript today means choosing ten libraries and gluing them togethe
 
 nexwire makes those choices for you, and lets you override the ones that matter.
 
-- HTTP engine — Hono (default) or Express. Pick at scaffold time. Same module code either way.
+- HTTP engine — Hono (default), Express, or Fastify. Pick at scaffold time. Same module code either way; Fastify is a native Fastify application with its own hooks and route schemas.
 - UI framework — Vue 3 by default, swappable for React/Svelte/Solid.
 - Database — Drizzle ORM with SQLite, MySQL, or PostgreSQL. Dialect auto-detected from DATABASE_URL.
 - Redis — one client, one config, powering sessions, cache, queues, rate limiting, and pub/sub.
@@ -58,7 +58,7 @@ The route file is picked up automatically. The model is used by the migration sy
 
 - Solo developers building SaaS, internal tools, or client projects who want a batteries-included stack without weeks of architecture decisions.
 - Growing teams that need consistent conventions and clear module boundaries — so a codebase can expand without becoming a pile of glue code.
-- Backend developers moving into full-stack who want a familiar server setup (Hono/Express + Drizzle + Redis) with a UI that just works.
+- Backend developers moving into full-stack who want a familiar server setup (Hono/Express/Fastify + Drizzle + Redis) with a UI that just works.
 - Startup founders who need to move fast — scaffold, run dev, ship features.
 - Developers coming from Rails, Django, or similar stacks who want routing, ORM, queues, cache, auth, realtime, and deployment in one TypeScript package.
 - Teams scaling past their first architecture who want module isolation, engine choice, and one-command deployment without adopting a heavyweight DI framework.
@@ -131,9 +131,37 @@ import {
 } from "@/framework/facade.js";
 ```
 
+```ts [Fastify]
+import {
+  db,
+  cache,
+  session,
+  queue,
+  queueJob,
+  shouldQueue,
+  defineSchedule,
+  broadcast,
+  notify,
+  storage,
+  jwt,
+  cookie,
+  mail,
+  password,
+  logger,
+  urls,
+  paginate,
+  validate,
+  HttpStatusCodes,
+  ValidationErrorSchema,
+  z,
+  fields, // @fastify/multipart field parsing
+  upload, // @fastify/multipart file upload preHandler
+} from "@/framework/facade.js";
+```
+
 :::
 
-The Hono engine parses multipart natively via `c.req.parseBody()` — no `upload`/`fields` helpers needed. The Express engine relies on `multer`; see [Upload](../api/upload).
+The Hono engine parses multipart natively via `c.req.parseBody()` — no `upload`/`fields` helpers needed. The Express engine relies on `multer`, and the Fastify engine on `@fastify/multipart`; see [Upload](/guide/support/upload).
 
 ## Minimal example
 
@@ -184,6 +212,29 @@ export default group().api(listRoute, (_req: Request, res: Response) =>
 );
 ```
 
+```ts [Fastify]
+// src/modules/posts/routes/index.ts
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+
+const PostSchema = z.object({ id: z.number(), title: z.string() });
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["Posts"],
+      response: { [HttpStatusCodes.OK]: z.array(PostSchema) },
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.OK).send([{ id: 1, title: "Hello" }]),
+  });
+};
+
+export default routes;
+```
+
 :::
 
 With `OPEN_API=false`, the same route looks like:
@@ -205,9 +256,19 @@ export default group().get("/", (_req: Request, res: Response) =>
 );
 ```
 
+```ts [Fastify]
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.get("/", async (_request, reply) => reply.code(200).send([{ id: 1, title: "Hello" }]));
+};
+
+export default routes;
+```
+
 :::
 
-The above example auto-registers the route — no manual wiring needed. Create a file, export a group, and it works.
+The above example auto-registers the route — no manual wiring needed. Create a file, export a group (or a Fastify plugin), and it works.
 
 ## API-Only Mode
 
@@ -383,6 +444,19 @@ export default group().api(
 );
 ```
 
+```ts [Fastify]
+app.route({
+  method: "POST",
+  url: "/",
+  preHandler: upload({ field: "file" }),
+  handler: async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.upload) return reply.code(422).send({ message: "File is required" });
+    await storage.disk("public").putFile("uploads", request.upload);
+    return reply.code(200).send({ message: "Uploaded", path: "uploads/" + request.upload.originalname });
+  },
+});
+```
+
 :::
 
 ## Realtime
@@ -464,6 +538,18 @@ const result = await paginateModel(req, {
 });
 ```
 
+```ts [Fastify]
+import { db, paginateModel } from "@/framework/facade.js";
+
+// Query
+const posts = await db.query.posts.findMany({ with: { author: true } });
+// Returns: { current_page, data, total, links, ... }
+const result = await paginateModel(request, {
+  findMany: (opts) => db.query.posts.findMany(opts),
+  with: { author: true },
+});
+```
+
 :::
 
 Seeders are auto-discovered and sorted by foreign key dependencies — no manual ordering needed.
@@ -516,6 +602,27 @@ const remember = await jwt.generateToken({ userId: 1 }, "refresh", 2592000);
 
 cookie.setAuth(res, access.token);
 cookie.setRefresh(res, refresh.token);
+```
+
+```ts [Fastify]
+import { jwt, cookie, password } from "@/framework/facade.js";
+
+// Hash a password
+const hash = await password.hashPassword("user-password");
+
+// Verify
+const valid = await password.verifyPassword("user-password", hash);
+
+// Generate tokens — defaults: access 15 min, refresh 1 hour (config/jwt.ts)
+const access = await jwt.generateToken({ userId: 1 }, "access");
+const refresh = await jwt.generateToken({ userId: 1 }, "refresh");
+
+// "Remember me" — refresh token lives 30 days
+const remember = await jwt.generateToken({ userId: 1 }, "refresh", 2592000);
+
+// Set cookies on the reply (handles SameSite automatically for cross-origin)
+cookie.setAuth(reply, access.token);
+cookie.setRefresh(reply, refresh.token);
 ```
 
 :::

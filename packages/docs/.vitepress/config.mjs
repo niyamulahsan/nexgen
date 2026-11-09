@@ -116,6 +116,7 @@ const config = defineConfig({
             { text: mi("globe", "Environment"), link: "/guide/env" },
             { text: mi("settings", "Configuration"), link: "/guide/configuration" },
             { text: mi("route", "Routing"), link: "/guide/routing" },
+            { text: mi("zap", "Fastify Engine"), link: "/guide/fastify" },
             { text: mi("layered", "Middleware"), link: "/guide/middleware" },
             { text: mi("book", "OpenAPI"), link: "/guide/openapi" },
             { text: mi("grid4", "Modules"), link: "/guide/modules" },

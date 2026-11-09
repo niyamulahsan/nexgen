@@ -27,10 +27,10 @@ You only touch the provider when you want a different user store. Everything els
 
 ## Protect a route
 
-Attach `authMiddleware` to the group, or to a single route with an array. Identical on both engines:
+Attach `authMiddleware` to the group, or to a single route with an array. Hono and Express share the same form; Fastify uses a scoped hook or a route `preHandler`:
 
 ```ts
-// src/modules/posts/routes/index.ts
+// src/modules/posts/routes/index.ts — Hono / Express
 import { createRouter } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import { requireRole } from "@/middlewares/role-middleware.js";
@@ -39,6 +39,27 @@ export default createRouter()
   .api(listRoute, list) // public
   .api(createRouteDef, [authMiddleware], create) // any signed-in user
   .api(adminRoute, [authMiddleware, requireRole("admin")], remove); // admin only
+```
+
+```ts
+// src/modules/posts/routes/index.ts — Fastify
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.get("/", list); // public
+
+  app.route({ method: "POST", url: "/", preHandler: authMiddleware, handler: create });
+  app.route({
+    method: "DELETE",
+    url: "/:id",
+    preHandler: [authMiddleware, requireRole("admin")],
+    handler: remove,
+  });
+};
+
+export default routes;
 ```
 
 The handler reads the authenticated user from the request context:
@@ -62,6 +83,16 @@ export const create = async (req: Request, res: Response) => {
   const auth = res.locals.auth;
   // auth.id, auth.email, auth.roleId, auth.role, ...provider fields
   res.json({ message: `Hello ${auth.email}` });
+};
+```
+
+```ts [Fastify]
+import type { FastifyReply, FastifyRequest } from "fastify";
+
+export const create = async (request: FastifyRequest, reply: FastifyReply) => {
+  const auth = request.auth;
+  // auth.id, auth.email, auth.roleId, auth.role, ...provider fields
+  return reply.code(200).send({ message: `Hello ${auth.email}` });
 };
 ```
 

@@ -1,0 +1,15 @@
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { db } from "@/framework/facade.js";
+
+/**
+ * Why: Runs before route handlers to enforce cross-cutting rules for {{name}}.
+ * When: Attach to a route scope or a specific route.
+ * Where: Add it globally: app.addHook("preHandler", {{camel}}Middleware), or per route:
+ *        app.route({ ..., preHandler: {{camel}}Middleware, handler })
+ * How: request.auth is populated when authMiddleware ran first; db gives
+ *      typed access to your module models. Return nothing to continue, or
+ *      return a reply to stop the request.
+ */
+export async function {{camel}}Middleware(_request: FastifyRequest, _reply: FastifyReply) {
+  // Guard the request here; send a reply to stop, or return to continue.
+}

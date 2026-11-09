@@ -1,0 +1,50 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+
+/**
+ * {{module}} routes for {{controller}}.
+ *
+ * Wire each handler to a controller:
+ *   import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.js";
+ *   app.get("/", index);
+ *
+ * Add validation with the validate() helper:
+ *   import { validate } from "@/framework/facade.js";
+ *   import { {{ClassName}}IdParamsSchema } from "@/modules/{{module}}/schemas/{{controller}}.js";
+ *   const params = await validate({{ClassName}}IdParamsSchema, request.params);
+ */
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.get("/", async (_request, reply) =>
+    reply.code(HttpStatusCodes.OK).send({ message: "{{module}} list not implemented", data: [] })
+  );
+
+  app.get("/:id", async (_request, reply) =>
+    reply.code(HttpStatusCodes.OK).send({ message: "{{module}} item not implemented", data: { id: 0, name: "" } })
+  );
+
+  app.post("/", async (_request, reply) =>
+    reply.code(HttpStatusCodes.CREATED).send({ message: "{{module}} create not implemented" })
+  );
+
+  app.put("/:id", async (_request, reply) =>
+    reply.code(HttpStatusCodes.OK).send({ message: "{{module}} update not implemented" })
+  );
+
+  app.delete("/:id", async (_request, reply) =>
+    reply.code(HttpStatusCodes.OK).send({ message: "{{module}} delete not implemented" })
+  );
+
+  // Gate the whole plugin (authMiddleware resolves the session once for every route):
+  //   app.addHook("preHandler", authMiddleware);
+  //
+  // Or gate a single route by role. requireRole reads the role authMiddleware set,
+  // so authMiddleware must run first:
+  //   app.route({ method: "DELETE", url: "/:id", preHandler: [authMiddleware, requireRole("admin")], handler: destroy });
+  //
+  // Delete the imports above when you do not need them.
+};
+
+export default routes;

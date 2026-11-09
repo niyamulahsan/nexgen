@@ -1,0 +1,15 @@
+import type { FastifyReply, FastifyRequest } from "fastify";
+
+/**
+ * Why: Route-scoped middleware for the {{module}} module.
+ * When: Attach to a route or route scope inside routes/*.ts.
+ * Where: src/modules/{{module}}/middlewares/{{name}}.ts
+ *
+ * Register it in a route file:
+ *   import { {{camel}}Middleware } from "@/modules/{{module}}/middlewares/{{name}}.js";
+ *   scope.addHook("preHandler", {{camel}}Middleware);
+ *   // or: app.route({ ..., preHandler: {{camel}}Middleware, handler })
+ */
+export async function {{camel}}Middleware(_request: FastifyRequest, _reply: FastifyReply) {
+  // Guard the route here; send a reply to stop, or return to continue the chain.
+}

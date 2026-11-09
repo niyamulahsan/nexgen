@@ -1,0 +1,67 @@
+import { eq } from "drizzle-orm";
+import { db } from "@/framework/facade.js";
+
+/**
+ * Why: Returns every {{controller}} row for list screens.
+ * When: Called by the controller's index() handler.
+ * Where: GET /{{controller}} route.
+ *
+ * TODO: import your model and query it, for example:
+ *   import { {{tableVariable}} } from "@/modules/{{module}}/database/models/{{controller}}.js";
+ *   return db.select().from({{tableVariable}});
+ */
+export const {{ServiceName}} = {  
+  /**
+  * Why: CRUD service for {{controller}}.
+  * When: Consumed directly by the controller as `{{ServiceName}}.list()`, etc.
+  * Where: Wired into the module's controller handlers.
+  */
+  list: async () => {
+    void db;
+    return [];
+  },
+
+  /**
+   * Why: Returns one {{controller}} row by primary key.
+   * When: Called by the controller's show/update/destroy handlers.
+   * Where: Reused across GET/PUT/DELETE /{{controller}}/{id} routes.
+   *
+   * TODO: query the model by id and return the row, or null when missing.
+   */
+  findOne: async (_id: number) => {
+    return null;
+  },
+
+  /**
+   * Why: Persists a new {{controller}} row.
+   * When: Called by the controller's store() handler.
+   * Where: POST /{{controller}} route.
+   *
+   * TODO: insert the validated payload and return the created row.
+   */
+  create: async (_data: Record<string, unknown>) => {
+    return null;
+  },
+
+  /**
+   * Why: Applies a partial change to one {{controller}} row.
+   * When: Called by the controller's update() handler.
+   * Where: PUT/PATCH /{{controller}}/{id} route.
+   *
+   * TODO: update by id, refresh updatedAt, and return the row, or null when missing.
+   */
+  update: async (_id: number, _data: Record<string, unknown>) => {
+    return null;
+  },
+
+  /**
+   * Why: Removes one {{controller}} row.
+   * When: Called by the controller's destroy() handler.
+   * Where: DELETE /{{controller}}/{id} route.
+   *
+   * TODO: delete by id and return the removed row, or null when missing.
+   */
+  remove: async (_id: number) => {
+    return null;
+  },
+};

@@ -1,0 +1,15 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { list, unreadCount, markRead, markAllRead, remove } from "../controllers/{{leaf}}.js";
+
+const notificationRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.addHook("preHandler", authMiddleware);
+
+  app.get("/", list);
+  app.get("/unread-count", unreadCount);
+  app.patch("/:id/read", markRead);
+  app.patch("/read-all", markAllRead);
+  app.delete("/:id", remove);
+};
+
+export default notificationRoutes;

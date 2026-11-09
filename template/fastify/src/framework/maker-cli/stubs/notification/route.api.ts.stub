@@ -1,0 +1,71 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { list, markAllRead, markRead, remove, unreadCount } from "../controllers/{{leaf}}.js";
+import { PaginatedNotificationsSchema, UnreadCountSchema } from "../schemas/{{leaf}}.js";
+
+const notificationId = z.object({ id: z.string().min(1) });
+const okResponse = z.object({ ok: z.boolean() });
+
+const notificationRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.addHook("preHandler", authMiddleware);
+
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["Notifications"],
+      description: "List notifications",
+      response: { [HttpStatusCodes.OK]: PaginatedNotificationsSchema }
+    },
+    handler: list
+  });
+
+  app.route({
+    method: "GET",
+    url: "/unread-count",
+    schema: {
+      tags: ["Notifications"],
+      description: "Count unread notifications",
+      response: { [HttpStatusCodes.OK]: UnreadCountSchema }
+    },
+    handler: unreadCount
+  });
+
+  app.route({
+    method: "PATCH",
+    url: "/:id/read",
+    schema: {
+      tags: ["Notifications"],
+      description: "Mark a notification as read",
+      params: notificationId,
+      response: { [HttpStatusCodes.OK]: okResponse }
+    },
+    handler: markRead
+  });
+
+  app.route({
+    method: "PATCH",
+    url: "/read-all",
+    schema: {
+      tags: ["Notifications"],
+      description: "Mark every notification as read",
+      response: { [HttpStatusCodes.OK]: okResponse }
+    },
+    handler: markAllRead
+  });
+
+  app.route({
+    method: "DELETE",
+    url: "/:id",
+    schema: {
+      tags: ["Notifications"],
+      description: "Delete a notification",
+      params: notificationId,
+      response: { [HttpStatusCodes.OK]: okResponse }
+    },
+    handler: remove
+  });
+};
+
+export default notificationRoutes;

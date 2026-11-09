@@ -36,12 +36,13 @@ bun create nexwire@latest my-project
 
 ### Choosing an HTTP engine
 
-When `--engine` is not passed, `create-nexwire` shows a list and asks which backend to scaffold — **Hono** (the default) or **Express**. Arrow keys move the highlight, `1`/`2` jumps, Enter confirms:
+When `--engine` is not passed, `create-nexwire` shows a list and asks which backend to scaffold — **Hono** (the default), **Express**, or **Fastify**. Arrow keys move the highlight, `1`/`2`/`3` jumps, Enter confirms:
 
 ```
 Choose a backend:
 ❯ Hono      Hono-based HTTP layer and OpenAPI
   Express   Express-based HTTP layer and OpenAPI
+  Fastify   Fastify-based HTTP layer and OpenAPI
 ```
 
 To skip the question and pick one directly, pass `--engine`:
@@ -68,7 +69,11 @@ bun create nexwire@latest my-project --engine=express
 
 For CI or scripts, `-y` / `--yes` skips every prompt and accepts the defaults (a project name is still required).
 
-See [Routing: Hono vs Express](/guide/routing) for how the two engines differ.
+See [Routing](/guide/routing) for how the engines differ, and [Fastify Engine](/guide/fastify) for the native Fastify shape.
+
+::: tip
+**Fastify is Node-only.** The Fastify template omits Bun support, so run it with Node (`npm`, `pnpm` or `yarn`). Hono and Express support both Node and Bun.
+:::
 
 ### Scaffold into the current directory
 
@@ -95,7 +100,7 @@ bun create nexwire@latest .
 :::
 
 ::: tip
-`--engine=express` works the same way: `npm create nexwire@latest . -- --engine=express`, or `bun create nexwire@latest . --engine=express` for the other managers.
+`--engine=express` and `--engine=fastify` work the same way: `npm create nexwire@latest . -- --engine=fastify`, or `bun create nexwire@latest . --engine=express` for the other managers.
 :::
 
 The project name is derived from the current folder name.

@@ -1,0 +1,101 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, ValidationErrorSchema } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+import { destroy, index, show, store, update } from "@/modules/{{module}}/controllers/{{controller}}.js";
+import {
+  Create{{ClassName}}Schema,
+  {{ClassName}}IdParamsSchema,
+  {{ClassName}}ListResponseSchema,
+  {{ClassName}}MessageSchema,
+  {{ClassName}}ResponseSchema,
+  Update{{ClassName}}Schema
+} from "@/modules/{{module}}/schemas/{{controller}}.js";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "List {{module}}",
+      response: {
+        [HttpStatusCodes.OK]: {{ClassName}}ListResponseSchema
+      }
+    },
+    handler: index
+  });
+
+  app.route({
+    method: "GET",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Get one {{module}}",
+      params: {{ClassName}}IdParamsSchema,
+      response: {
+        [HttpStatusCodes.OK]: {{ClassName}}ResponseSchema,
+        [HttpStatusCodes.NOT_FOUND]: {{ClassName}}MessageSchema
+      }
+    },
+    handler: show
+  });
+
+  app.route({
+    method: "POST",
+    url: "/",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Create {{module}}",
+      body: Create{{ClassName}}Schema,
+      response: {
+        [HttpStatusCodes.CREATED]: {{ClassName}}ResponseSchema,
+        [HttpStatusCodes.UNPROCESSABLE_ENTITY]: ValidationErrorSchema
+      }
+    },
+    handler: store
+  });
+
+  app.route({
+    method: "PUT",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Update {{module}}",
+      params: {{ClassName}}IdParamsSchema,
+      body: Update{{ClassName}}Schema,
+      response: {
+        [HttpStatusCodes.OK]: {{ClassName}}ResponseSchema,
+        [HttpStatusCodes.NOT_FOUND]: {{ClassName}}MessageSchema,
+        [HttpStatusCodes.UNPROCESSABLE_ENTITY]: ValidationErrorSchema
+      }
+    },
+    handler: update
+  });
+
+  app.route({
+    method: "DELETE",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Delete {{module}}",
+      params: {{ClassName}}IdParamsSchema,
+      response: {
+        [HttpStatusCodes.OK]: {{ClassName}}MessageSchema,
+        [HttpStatusCodes.NOT_FOUND]: {{ClassName}}MessageSchema
+      }
+    },
+    handler: destroy
+  });
+
+  // Gate the whole plugin (authMiddleware resolves the session once for every route):
+  //   app.addHook("preHandler", authMiddleware);
+  //
+  // Or gate a single route by role. requireRole reads the role authMiddleware set,
+  // so authMiddleware must run first:
+  //   app.route({ ..., preHandler: [authMiddleware, requireRole("admin")], handler: destroy });
+  //
+  // Delete the imports above when you do not need them.
+};
+
+export default routes;

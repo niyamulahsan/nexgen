@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.4.0] — 2026-11-09
+
+### Added
+
+- **Template (new Fastify engine)**: `create-nexwire --engine=fastify` now scaffolds a genuinely native Fastify 5 application instead of a Hono/Express-shaped shim. Route files export `FastifyPluginAsyncZod` plugins, controllers use `(request, reply)`, and services take `(request, reply, body)`. Route groups map to scoped `app.addHook("preHandler", …)` or per-route `preHandler`, one-off limits use `config.rateLimit`, and schemas go straight into `app.route({ schema })`. The engine ships `@fastify/cookie`, `@fastify/cors`, `@fastify/rate-limit`, `@fastify/static`, `@fastify/multipart`, `@fastify/swagger`, `fastify-type-provider-zod` and `@scalar/fastify-api-reference`; `@bull-board/fastify` serves the queue dashboard. Validation failures return `422` with `{ success: false, error: { name: "ZodError", issues } }`, declared through `ValidationErrorSchema` so Fastify's response serializer never throws. Request state is reachable as `request.auth` / `request.sessionId` / `request.upload` / `request.uploads`, typed in `src/framework/http/fastify.d.ts`. Fastify is **Node-only**; the template omits Bun support.
+- **Maker CLI (Fastify)**: every web-shaped generator stub is rewritten for Fastify — `module:make` and `module:make-route` (OpenAPI and plain), `module:make-controller`, `middleware:make`, `module:make-middleware`, and `module:make-notification`. Generated route plugins register native `app.route({ method, url, schema, preHandler, handler })` calls, generated controllers use `FastifyRequest` / `FastifyReply` and `HttpStatusCodes`, and generated middleware are async `(request, reply)` hooks that return nothing to continue or return a reply to stop. The `middleware:make` hint now says `app.addHook("preHandler", …)` instead of `group(…)`.
+- **Scaffolder (`create-nexwire`)**: Fastify is a first-class backend in the interactive picker, `--engine=fastify`, help text and the missing-engine message. `scripts/sync-template.mjs` and the package `files` list publish `packages/create-nexwire/fastify`.
+- **Docs**: new [Fastify Engine](/guide/fastify) guide covering native plugins, hooks, route schemas, request state, the validation contract, SPA fallback, uploads, the Bull Board adapter and the Fastify-specific maker output. `guide/routing.md`, `guide/middleware.md`, `guide/openapi.md`, `guide/rate-limiter.md`, `guide/support/upload.md`, `guide/quick-start.md`, `guide/introduction.md` and the home page are updated to document all three engines.
+
 ## [4.3.1] — 2026-11-07
 
 ### Added

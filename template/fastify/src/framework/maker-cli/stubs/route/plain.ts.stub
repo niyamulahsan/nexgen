@@ -1,0 +1,23 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.js";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.get("/", index);
+  app.get("/:id", show);
+  app.post("/", store);
+  app.put("/:id", update);
+  app.delete("/:id", destroy);
+
+  // Gate the whole plugin (authMiddleware resolves the session once for every route):
+  //   app.addHook("preHandler", authMiddleware);
+  //
+  // Or gate a single route by role. requireRole reads the role authMiddleware set,
+  // so authMiddleware must run first:
+  //   app.route({ method: "DELETE", url: "/:id", preHandler: [authMiddleware, requireRole("admin")], handler: destroy });
+  //
+  // Delete the imports above when you do not need them.
+};
+
+export default routes;

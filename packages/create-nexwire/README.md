@@ -39,9 +39,10 @@ npm create nexwire@latest my-app
 Choose a backend:
 ❯ Hono      Hono-based HTTP layer and OpenAPI
   Express   Express-based HTTP layer and OpenAPI
+  Fastify   Fastify-based HTTP layer and OpenAPI
 ```
 
-Arrow keys to move, `1`/`2` to jump, Enter to confirm. Press Enter to accept the default (**Hono**). Point at a specific one and the prompt is skipped:
+Arrow keys to move, `1`/`2`/`3` to jump, Enter to confirm. Press Enter to accept the default (**Hono**). Point at a specific one and the prompt is skipped:
 
 ```bash
 # Hono (default)
@@ -49,6 +50,9 @@ npm create nexwire@latest my-app
 
 # Express
 npm create nexwire@latest my-app -- --engine=express
+
+# Fastify
+npm create nexwire@latest my-app -- --engine=fastify
 ```
 
 For CI or scripts, `-y` / `--yes` skips every prompt and accepts the defaults (a project name is still required):
@@ -61,7 +65,7 @@ Your API is live at `http://localhost:3000`, Scalar docs at `/api-docs`, and the
 
 The scaffold already ships a pre-migrated, pre-seeded SQLite database, so there is no migration step before `maker dev`. If you point `DATABASE_URL` at MySQL or PostgreSQL, run `npm run maker db:migrate -- --seed` once to build and populate that database instead.
 
-Requires **Node.js >= 22** or **Bun >= 1.3**.
+Requires **Node.js >= 22**. Hono and Express also support **Bun >= 1.3**; Fastify is Node-only.
 
 ### Current directory
 
@@ -70,6 +74,7 @@ Scaffold directly into the current directory:
 ```bash
 npm create nexwire@latest .
 npm create nexwire@latest . -- --engine=express
+npm create nexwire@latest . -- --engine=fastify
 ```
 
 Works with any package manager: `pnpm`, `yarn`, or `bun`.
@@ -92,8 +97,8 @@ nexwire runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 
 | Runtime     | Minimum version | Notes                                                                 |
 | ----------- | --------------- | --------------------------------------------------------------------- |
-| **Node.js** | `>= 22`         | Default. Uses `node` in Dockerfile.                                   |
-| **Bun**     | `>= 1.3`        | Pass `--runtime=bun` to `deploy:init`. Uses `oven/bun` in Dockerfile. |
+| **Node.js** | `>= 22`         | Default. Uses `node` in Dockerfile. Required by Fastify.              |
+| **Bun**     | `>= 1.3`        | Hono and Express only. Pass `--runtime=bun` to deploy:init.           |
 
 ## Demo
 
@@ -115,7 +120,7 @@ Real recordings from a freshly scaffolded project — no mockups, no staging dat
 
 | Category            | What you get                                                                                                                                  |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **API**             | Hono/Express HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting                                                        |
+| **API**             | Hono/Express/Fastify HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting                                                |
 | **Database**        | Drizzle ORM — SQLite by default, shipped pre-migrated and seeded; MySQL/PostgreSQL also supported, dialect auto-detected from `DATABASE_URL`. |
 | **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware                                                                 |
 | **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard                                                                  |

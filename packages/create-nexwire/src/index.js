@@ -23,7 +23,8 @@ function ask(query) {
 // own prefix inside extractTarGz.
 const BACKENDS = [
   { value: "hono", label: "Hono", hint: "Hono-based HTTP layer and OpenAPI" },
-  { value: "express", label: "Express", hint: "Express-based HTTP layer and OpenAPI" }
+  { value: "express", label: "Express", hint: "Express-based HTTP layer and OpenAPI" },
+  { value: "fastify", label: "Fastify", hint: "Fastify-based HTTP layer and OpenAPI" }
 ];
 
 const BACKEND_NAMES = BACKENDS.map((b) => b.value);
@@ -154,7 +155,8 @@ function octalToInt(str) {
 
 const ENGINE_PREFIXES = {
   hono: "package/hono/",
-  express: "package/express/"
+  express: "package/express/",
+  fastify: "package/fastify/"
 };
 
 function extractTarGz(tgzBuffer, destDir, engine) {
@@ -223,19 +225,20 @@ async function main() {
     console.log(`create-nexwire v${version}`);
     console.log();
     console.log("Usage:");
-    console.log("  npm create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
-    console.log("  pnpm create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
-    console.log("  bun create nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
-    console.log("  npx create-nexwire@latest <project-name|.> [--engine=<hono|express>] [--yes]");
+    console.log("  npm create nexwire@latest <project-name|.> [--engine=<hono|express|fastify>] [--yes]");
+    console.log("  pnpm create nexwire@latest <project-name|.> [--engine=<hono|express|fastify>] [--yes]");
+    console.log("  bun create nexwire@latest <project-name|.> [--engine=<hono|express|fastify>] [--yes]");
+    console.log("  npx create-nexwire@latest <project-name|.> [--engine=<hono|express|fastify>] [--yes]");
     console.log();
     console.log("Options:");
-    console.log("  --engine=<hono|express>  Backend to scaffold. Asked interactively when omitted.");
+    console.log("  --engine=<hono|express|fastify>  Backend to scaffold. Asked interactively when omitted.");
     console.log("  -y, --yes                Skip prompts and accept the defaults (requires a project name).");
     console.log("  -h, --help               Show this help.");
     console.log();
     console.log("Backends:");
     console.log("  hono     (default) Hono-based HTTP layer and OpenAPI");
     console.log("  express  Express-based HTTP layer and OpenAPI");
+    console.log("  fastify  Fastify-based HTTP layer and OpenAPI");
     console.log();
     console.log("Tip:");
     console.log("  Use '.' to scaffold into the current directory (must be empty).");
@@ -243,7 +246,7 @@ async function main() {
   }
 
   if (engineArg === undefined && args.includes("--engine")) {
-    console.error('Error: Missing value for --engine. Use --engine=hono or --engine=express.');
+    console.error('Error: Missing value for --engine. Use --engine=hono, --engine=express, or --engine=fastify.');
     process.exit(1);
   }
 

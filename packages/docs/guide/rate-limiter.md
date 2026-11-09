@@ -2,27 +2,51 @@
 
 ## Overview
 
-The rate limiter protects your API from burst abuse and accidental flooding. It applies a **global rate limit** per session (Hono) or per IP (Express) and a **stricter login limiter** on public auth routes to mitigate brute-force attacks.
+The rate limiter protects your API from burst abuse and accidental flooding. It applies a **global rate limit** and a **stricter login limiter** on public auth routes to mitigate brute-force attacks.
 
-The store differs per engine — the **Hono** engine keeps limits in Redis when available and falls back to in-memory storage; the **Express** engine uses `express-rate-limit` with its built-in memory store.
+The key and store differ per engine:
+
+| Engine  | Global limiter | Key | Store |
+| ------- | -------------- | --- | ----- |
+| Hono    | `rateLimiterMiddleware` | `sessionId` when authenticated, else `x-forwarded-for` | Redis when available, else in-memory |
+| Express | `rateLimiterMiddleware` (`express-rate-limit`) | IP | in-memory |
+| Fastify | `@fastify/rate-limit` | IP | in-memory |
 
 ## Global Rate Limiter
 
-Registered automatically in the HTTP middleware stack via `rateLimiterMiddleware`. Every request consumes from the same per-session/IP bucket:
+Registered automatically during HTTP setup. Every request consumes from the same per-session/IP bucket:
 
-```ts
+::: code-group
+
+```ts [Hono / Express]
 // src/framework/http/app.ts — applied globally
 app.use("*", rateLimiterMiddleware);
 ```
+
+```ts [Fastify]
+// src/framework/http/ratelimiter.ts
+app.register(rateLimit, {
+  global: true,
+  max: rateLimitConfig.maxRequests,
+  timeWindow: rateLimitConfig.windowMs,
+  enableDraftSpec: true,
+  allowList: (request) => isInfrastructurePath(request.url.split("?")[0]),
+});
+```
+
+:::
 
 ### Key generation
 
 - **Hono** — authenticated requests are keyed by `sessionId`; anonymous requests fall back to the `x-forwarded-for` header.
 - **Express** — requests are keyed by IP (`req.ip`, honoring trust proxy) via `express-rate-limit`.
+- **Fastify** — requests are keyed by IP through `@fastify/rate-limit`. Infrastructure paths (`/health`, `/ready`, `/live`, `/metrics`, `/api-docs`, `/doc`, `/queues`, `/storage`, `/socket.io`) are allow-listed.
 
 ## Login Limiter
 
-The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`) in `src/modules/auth/routes/index.ts`:
+The `loginLimiter` is applied to all public auth routes (`/register`, `/login`, `/forgot-password`, `/reset-password`, `/verify-email`, `/refresh-token`).
+
+On Hono and Express it is a group middleware:
 
 ```ts
 const publicRoute = createRouter()
@@ -30,6 +54,18 @@ const publicRoute = createRouter()
   .api(registerRoute, register)
   .api(loginRoute, login);
 // ...
+```
+
+On Fastify it is a per-route `config.rateLimit`:
+
+```ts
+app.route({
+  method: "POST",
+  url: "/login",
+  schema: { body: LoginSchema },
+  config: { rateLimit: loginLimiter },
+  handler: login,
+});
 ```
 
 It uses **IP-based** keying so a single IP cannot exceed the login limit regardless of how many sessions it opens.
@@ -81,6 +117,17 @@ const uploadLimiter = rateLimit({
 router.post("/upload", uploadLimiter, uploadHandler);
 ```
 
+```ts [Fastify]
+const uploadLimiter = { max: 20, timeWindow: 60_000 };
+
+app.route({
+  method: "POST",
+  url: "/upload",
+  config: { rateLimit: uploadLimiter },
+  handler: uploadHandler,
+});
+```
+
 :::
 
 ### Source files
@@ -88,9 +135,9 @@ router.post("/upload", uploadLimiter, uploadHandler);
 | File                                | What it controls                                                     |
 | ----------------------------------- | -------------------------------------------------------------------- |
 | `src/config/rateLimit.ts`           | Rate limit settings (window, max, login max)                         |
-| `src/framework/http/ratelimiter.ts` | Core limiter logic — lazy singleton, store selection, key generation |
-| `src/framework/http/app.ts`         | Where `rateLimiterMiddleware` is registered globally                 |
-| `src/modules/auth/routes/index.ts`    | Where `loginLimiter` is applied to public auth routes              |
+| `src/framework/http/ratelimiter.ts` | Core limiter logic — store selection, key generation, skip list      |
+| `src/framework/http/app.ts`         | Where the limiter is registered globally                             |
+| `src/modules/auth/routes/index.ts`  | Where `loginLimiter` is applied to public auth routes                |
 
 ## Environment Variables
 
@@ -104,6 +151,6 @@ router.post("/upload", uploadLimiter, uploadHandler);
 
 When Redis is available (`REDIS=true`), the **Hono** engine stores limits in Redis under keys prefixed with `{REDIS_PREFIX}:rl:`. This ensures limits survive server restarts and are consistent across multiple instances.
 
-When Redis is unavailable (Hono) — or on the `express-rate-limit` memory store (Express) — limits reset on server restart.
+When Redis is unavailable (Hono) — or on the `express-rate-limit` / `@fastify/rate-limit` memory stores (Express/Fastify) — limits reset on server restart.
 
-Both limiters send standard `RateLimit-*` headers (`draft-6`/`draft-7` format) so clients can programmatically back off.
+The limiters send standard `RateLimit-*` headers so clients can programmatically back off.

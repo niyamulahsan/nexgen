@@ -123,7 +123,7 @@ Each facade function has its own page. Every export below is a documented part o
 | [`mail`](./mail)                       | SMTP `sendMail` transport                            | [Mail](./../guide/support/mail)                               |
 | [`logger`](./logger)                   | Leveled structured logging + rotating files          | [Logger](./../guide/support/logger)                           |
 | [`urls`](./urls)                       | Absolute URL building from `APP_URL`                 | [URL](./../guide/support/url)                                 |
-| [`upload`](./upload)                   | File upload middleware (Express only, `multer`)      | [Upload](./../guide/support/upload)                           |
+| [`upload`](./upload)                   | File upload middleware (Express/Fastify)             | [Upload](./../guide/support/upload)                           |
 | [`lodash`](./lodash)                   | Full Lodash re-export                                | [libraries](./../guide/others/string)                         |
 
 ## When do I use which?

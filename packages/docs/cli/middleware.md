@@ -9,17 +9,23 @@ Middleware lives in `src/middlewares/*.ts` and is applied to route groups or ind
 ```ts
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 
-// Group-wide (everything after group())
+// Hono / Express — group-wide (everything after group())
 export default createRouter()
   .group(authMiddleware)
   .api(usersIndexRoute, usersIndex);
 
-// Per-route
+// Hono / Express — per-route
 export default createRouter().api(
   userDestroyRoute,
   [authMiddleware, requireRole("admin")],
   userDestroy,
 );
+```
+
+```ts
+// Fastify — scoped hook and per-route preHandler
+app.addHook("preHandler", authMiddleware);
+app.route({ ..., preHandler: [authMiddleware, requireRole("admin")], handler: userDestroy });
 ```
 
 See [Middleware](/guide/middleware) for the full middleware API.
@@ -62,7 +68,7 @@ bun maker middleware:make rate-limit --force
 
 ### Generated output
 
-The file uses your engine's middleware signature — fill in the checks, then `next()` (Express) / `return await next()` (Hono) to continue:
+The file uses your engine's middleware signature — fill in the checks, then `next()` (Express) / `return await next()` (Hono) / return normally (Fastify) to continue:
 
 ::: code-group
 
@@ -106,6 +112,28 @@ export function rateLimitMiddleware(
 }
 ```
 
+```ts [Fastify]
+// src/middlewares/rate-limit-middleware.ts
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { db } from "@/framework/facade.js";
+
+/**
+ * Why: Runs before route handlers to enforce cross-cutting rules for rate-limit.
+ * When: Attach to a route scope or a specific route.
+ * Where: Add it globally: app.addHook("preHandler", rateLimitMiddleware), or per route:
+ *        app.route({ ..., preHandler: rateLimitMiddleware, handler })
+ * How: request.auth is populated when authMiddleware ran first; db gives
+ *      typed access to your module models. Return nothing to continue, or
+ *      return a reply to stop the request.
+ */
+export async function rateLimitMiddleware(
+  _request: FastifyRequest,
+  _reply: FastifyReply,
+) {
+  // Guard the request here; send a reply to stop, or return to continue.
+}
+```
+
 :::
 
-Middleware shares state between handlers via the request context — `c.set`/`c.get` on Hono, `res.locals` on Express. The generated stub's doc comment notes which fields `authMiddleware` already populated.
+Middleware shares state between handlers via the request context — `c.set`/`c.get` on Hono, `res.locals` on Express, and the extended `request` on Fastify. The generated stub's doc comment notes which fields `authMiddleware` already populated.

@@ -1,0 +1,120 @@
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+import { authMiddleware } from "@/middlewares/auth-middleware.js";
+import { requireRole } from "@/middlewares/role-middleware.js";
+
+/**
+ * {{module}} routes for {{controller}}.
+ *
+ * Wire each route to a handler:
+ *   import { index, show, store, update, destroy } from "@/modules/{{module}}/controllers/{{controller}}.js";
+ *   app.get("/", index);
+ *
+ * Wire each route to its validation schema:
+ *   import {
+ *     Create{{ClassName}}Schema,
+ *     {{ClassName}}IdParamsSchema,
+ *     {{ClassName}}ListResponseSchema,
+ *     {{ClassName}}MessageSchema,
+ *     {{ClassName}}ResponseSchema,
+ *     Update{{ClassName}}Schema
+ *   } from "@/modules/{{module}}/schemas/{{controller}}.js";
+ */
+
+const listResponse = z.object({
+  message: z.string(),
+  data: z.array(z.object({ id: z.number(), name: z.string() }))
+});
+
+const itemResponse = z.object({
+  message: z.string(),
+  data: z.object({ id: z.number(), name: z.string() })
+});
+
+const messageResponse = z.object({ message: z.string() });
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "List {{module}}",
+      response: {
+        [HttpStatusCodes.OK]: listResponse
+      }
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.OK).send({ message: "{{module}} list not implemented", data: [] })
+  });
+
+  app.route({
+    method: "GET",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Get one {{module}}",
+      response: {
+        [HttpStatusCodes.OK]: itemResponse,
+        [HttpStatusCodes.NOT_FOUND]: messageResponse
+      }
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.OK).send({ message: "{{module}} item not implemented", data: { id: 0, name: "" } })
+  });
+
+  app.route({
+    method: "POST",
+    url: "/",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Create {{module}}",
+      response: {
+        [HttpStatusCodes.CREATED]: messageResponse
+      }
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.CREATED).send({ message: "{{module}} create not implemented" })
+  });
+
+  app.route({
+    method: "PUT",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Update {{module}}",
+      response: {
+        [HttpStatusCodes.OK]: messageResponse,
+        [HttpStatusCodes.NOT_FOUND]: messageResponse
+      }
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.OK).send({ message: "{{module}} update not implemented" })
+  });
+
+  app.route({
+    method: "DELETE",
+    url: "/:id",
+    schema: {
+      tags: ["{{ModuleClass}}"],
+      description: "Delete {{module}}",
+      response: {
+        [HttpStatusCodes.OK]: messageResponse,
+        [HttpStatusCodes.NOT_FOUND]: messageResponse
+      }
+    },
+    handler: async (_request, reply) =>
+      reply.code(HttpStatusCodes.OK).send({ message: "{{module}} delete not implemented" })
+  });
+
+  // Gate the whole plugin (authMiddleware resolves the session once for every route):
+  //   app.addHook("preHandler", authMiddleware);
+  //
+  // Or gate a single route by role. requireRole reads the role authMiddleware set,
+  // so authMiddleware must run first:
+  //   app.route({ ..., preHandler: [authMiddleware, requireRole("admin")], handler: destroy });
+  //
+  // Delete the imports above when you do not need them.
+};
+
+export default routes;

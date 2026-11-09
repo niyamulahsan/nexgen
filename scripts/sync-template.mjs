@@ -11,6 +11,7 @@ const PKG = join(ROOT, "packages", "create-nexwire");
 const ENGINES = {
   hono: { src: join(ROOT, "template", "hono"), dest: join(PKG, "hono") },
   express: { src: join(ROOT, "template", "express"), dest: join(PKG, "express") },
+  fastify: { src: join(ROOT, "template", "fastify"), dest: join(PKG, "fastify") },
 };
 
 /**
@@ -207,7 +208,7 @@ function syncEngine(name, { src, dest }) {
 
 const requested = process.argv[2]?.toLowerCase();
 if (requested && !ENGINES[requested]) {
-  console.error(`Error: Unknown engine "${requested}". Supported engines: hono, express.`);
+  console.error(`Error: Unknown engine "${requested}". Supported engines: hono, express, fastify.`);
   process.exit(1);
 }
 

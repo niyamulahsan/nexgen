@@ -108,6 +108,6 @@ const loginRoute = createRoute({
 
 ## Notes
 
-- `createRoute` is exported from the facade on both engines (from `@hono/zod-openapi` on Hono; a passthrough over `ExpressRouteConfig` from `@asteasolutions/zod-to-openapi` on Express). It pairs with the facade's `z` — see [z](./z) for `.openapi()`.
+- `createRoute` is exported from the facade on Hono and Express (from `@hono/zod-openapi` on Hono; a passthrough over `ExpressRouteConfig` from `@asteasolutions/zod-to-openapi` on Express). It pairs with the facade's `z` - see [z](./z) for `.openapi()`. Fastify does not export `createRoute`; its route schemas are the documentation.
 - Requires `OPEN_API=true` to drive the Scalar UI at `/api-docs`.
 - Mount it with `createRouter().api(route, handler)` or `group().api(route, handler)` — see [createRouter](./createRouter).

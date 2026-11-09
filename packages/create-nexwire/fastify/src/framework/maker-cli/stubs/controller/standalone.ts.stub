@@ -1,0 +1,51 @@
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { HttpStatusCodes } from "@/framework/facade.js";
+
+type IdRequest = FastifyRequest<{ Params: { id: number } }>;
+
+/**
+ * Why: Returns collection response shape for list pages.
+ * When: Used by GET list endpoint.
+ * Where: GET /{{controller}} route.
+ */
+export const index = async (_request: FastifyRequest, reply: FastifyReply) => {
+  return reply.code(HttpStatusCodes.OK).send({ message: "{{controller}} list fetched successfully", data: [] });
+};
+
+/**
+ * Why: Returns one resource by validated route id.
+ * When: Used by detail screens or fetch-by-id calls.
+ * Where: GET /{{controller}}/:id route.
+ */
+export const show = async (request: IdRequest, reply: FastifyReply) => {
+  return reply
+    .code(HttpStatusCodes.OK)
+    .send({ message: "{{controller}} fetched successfully", data: { id: request.params.id, name: "" } });
+};
+
+/**
+ * Why: Creates a new resource from validated request body.
+ * When: Used by create form submissions.
+ * Where: POST /{{controller}} route.
+ */
+export const store = async (_request: FastifyRequest, reply: FastifyReply) => {
+  return reply.code(HttpStatusCodes.CREATED).send({ message: "{{controller}} created successfully" });
+};
+
+/**
+ * Why: Updates an existing resource using id + body validation.
+ * When: Used by edit/update form submissions.
+ * Where: PUT/PATCH /{{controller}}/:id route.
+ */
+export const update = async (_request: FastifyRequest, reply: FastifyReply) => {
+  return reply.code(HttpStatusCodes.OK).send({ message: "{{controller}} updated successfully" });
+};
+
+/**
+ * Why: Deletes one resource by validated route id.
+ * When: Used by delete actions.
+ * Where: DELETE /{{controller}}/:id route.
+ */
+export const destroy = async (_request: FastifyRequest, reply: FastifyReply) => {
+  return reply.code(HttpStatusCodes.OK).send({ message: "{{controller}} deleted successfully" });
+};

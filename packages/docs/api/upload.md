@@ -1,10 +1,10 @@
-# `upload` / `fields` — file upload middleware (Express only)
+# `upload` / `fields` — file upload middleware (Express and Fastify)
 
-> **Express engine only.** On Hono, use `c.req.parseBody()` instead. See [Upload guide](./../guide/support/upload).
+> **Express and Fastify engines.** Backed by `multer` (memory storage) on Express and `@fastify/multipart` on Fastify. On Hono, use `c.req.parseBody()` instead. See [Upload guide](./../guide/support/upload).
 
 Imported from the facade: `import { upload, fields } from "@/framework/facade.js"`.
 
-Parser factories for `multipart/form-data` requests. They wrap `multer` (memory storage) so controllers receive ready-to-use buffers (`req.file` / `req.files`) with size/extension/MIME rules already enforced.
+Parser factories for `multipart/form-data` requests. They parse before the controller runs so handlers receive ready-to-use buffers (`req.file` / `req.files` on Express, `request.upload` / `request.uploads` on Fastify) with size/extension/MIME rules already enforced.
 
 ## Functions
 
@@ -12,6 +12,8 @@ Parser factories for `multipart/form-data` requests. They wrap `multer` (memory 
 | -------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `upload` | `(options: UploadOptions) => RequestHandler`           | Parse a single file (or up to `multiple` files) from one form field into `req.file` / `req.files` |
 | `fields` | `(spec: UploadFieldsSpec, options?) => RequestHandler` | Parse multiple labeled file fields into `req.files` (object keyed by field name)                  |
+
+On Fastify both factories return a `preHandler` hook of the same shape.
 
 ### `UploadOptions`
 
@@ -42,7 +44,7 @@ Parser factories for `multipart/form-data` requests. They wrap `multer` (memory 
 
 ### Route-level enforcement
 
-Enforce rules before the controller runs by passing the middleware into `.api()`:
+On Express, enforce rules before the controller runs by passing the middleware into `.api()`:
 
 ```ts
 import { createRoute, group, z, upload } from "@/framework/facade.js";
@@ -63,16 +65,47 @@ export default group().api(
 );
 ```
 
-### Combined with other middleware
-
-`upload()` composes with auth/role middleware like any other `RequestHandler`:
+On Fastify, pass the same factory as a `preHandler`:
 
 ```ts
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { upload } from "@/framework/facade.js";
+
+const routes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "POST",
+    url: "/",
+    preHandler: upload({
+      field: "file",
+      maxSize: 2 * 1024 * 1024,
+      allowedExtensions: [".jpg", ".png"],
+    }),
+    handler: async (request, reply) => reply.code(200).send(request.upload),
+  });
+};
+
+export default routes;
+```
+
+### Combined with other middleware
+
+`upload()` composes with auth/role middleware like any other middleware:
+
+```ts
+// Express
 export default group().api(
   avatarRoute,
   [requireRole("user"), upload({ field: "avatar" })],
   storeAvatar,
 );
+
+// Fastify
+app.route({
+  method: "POST",
+  url: "/avatar",
+  preHandler: [requireRole("user"), upload({ field: "avatar" })],
+  handler: storeAvatar,
+});
 ```
 
 ### Failure shape
@@ -90,5 +123,5 @@ Failures surface as `422` before the controller runs, so handlers never receive 
 
 ## Notes
 
-- Memory storage only — buffers live in `req.file` / `req.files`; persist with `storage.putFile` etc. (see [Storage > Multipart File Upload](/guide/storage#multipart-file-upload)).
-- Express-only export: importing from a Hono project fails at type-check; Hono apps parse bodies via `c.req.parseBody()`.
+- Memory storage only — buffers live in `req.file` / `req.files` (Express) or `request.upload` / `request.uploads` (Fastify); persist with `storage.putFile` etc. (see [Storage > Multipart File Upload](/guide/storage#multipart-file-upload)).
+- Both exports are available on Express and Fastify only; Hono apps parse bodies via `c.req.parseBody()`.

@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "nexwire"
   text: "Full-stack TypeScript Framework"
-  tagline: Hono or Express API + Vue 3 UI + Drizzle ORM + Redis services
+  tagline: Hono, Express or Fastify API + Vue 3 UI + Drizzle ORM + Redis services
   image:
     src: /nexwire-logo.png
     alt: nexwire
@@ -18,8 +18,8 @@ hero:
 
 features:
   - icon: ⚡
-    title: Hono & Express API
-    details: Dual-engine HTTP server — Hono (default) or Express — with Zod OpenAPI validation and middleware support.
+    title: Hono, Express & Fastify API
+    details: Triple-engine HTTP server — Hono (default), Express, or native Fastify — with Zod OpenAPI validation and middleware/hook support.
   - icon: 🖼️
     title: Vue 3 UI
     details: Component-based UI with Pinia state management, Vue Router, and Vite.

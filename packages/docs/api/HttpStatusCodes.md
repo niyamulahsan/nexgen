@@ -78,7 +78,7 @@ res
 ## Notes
 
 - Keys must match OpenAPI numeric keys for `createRoute` responses.
-- **Coverage differs by engine:** Hono re-exports the **full** `stoker/http-status-codes` set (every name). Express ships a **curated subset** (the common codes above plus `GONE`/`PAYLOAD_TOO_LARGE`/`URI_TOO_LONG`/`UNSUPPORTED_MEDIA_TYPE`/`GATEWAY_TIMEOUT`, defined in `src/framework/facade.ts`). The docs use only a handful of names — all present on both engines.
+- **Coverage differs by engine:** Hono re-exports the **full** `stoker/http-status-codes` set (every name). Express ships a **curated subset** (the common codes above plus `GONE`/`PAYLOAD_TOO_LARGE`/`URI_TOO_LONG`/`UNSUPPORTED_MEDIA_TYPE`/`GATEWAY_TIMEOUT`, defined in `src/framework/facade.ts`). Fastify ships its own curated set in `src/framework/support/status-codes.ts`. The docs use only a handful of names - all present on every engine.
 - **Adding a missing code on Express:** append it to `HttpStatusCodes` in `src/framework/facade.ts` with the stoker-matching numeric value.
 
 ## Related

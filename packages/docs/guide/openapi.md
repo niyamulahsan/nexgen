@@ -1,6 +1,6 @@
 # OpenAPI
 
-nexwire has built-in OpenAPI 3.0 support so your routes automatically generate an interactive API documentation UI at `/api-docs` using Scalar. The engine underneath depends on your HTTP engine: the **Hono** engine uses `@hono/zod-openapi` + `stoker`, the **Express** engine uses `@asteasolutions/zod-to-openapi` + `@scalar/express-api-reference`. Either way, you write routes with the same facade helpers (`createRoute`, `z`, `jsonContent`) and get the docs for free.
+nexwire has built-in OpenAPI 3.0 support so your routes automatically generate an interactive API documentation UI at `/api-docs` using Scalar. The engine underneath depends on your HTTP engine: the **Hono** engine uses `@hono/zod-openapi` + `stoker`, the **Express** engine uses `@asteasolutions/zod-to-openapi` + `@scalar/express-api-reference`, and the **Fastify** engine uses `@fastify/swagger` + `fastify-type-provider-zod` + `@scalar/fastify-api-reference`. Hono and Express share the same facade helpers (`createRoute`, `z`, `jsonContent`); on Fastify the route's Zod schemas are the documentation.
 
 ## Enable / Disable
 
@@ -80,6 +80,33 @@ export default group().api(listRoute, async (_req: Request, res: Response) => {
 
 :::
 
+On Fastify, skip `createRoute()` and put the same schemas on the route:
+
+```ts
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+
+const postRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["Posts"],
+      summary: "List all posts",
+      response: {
+        [HttpStatusCodes.OK]: z.array(PostSchema),
+      },
+    },
+    handler: async (_request, reply) => {
+      const posts = await db.query.posts.findMany();
+      return reply.code(HttpStatusCodes.OK).send(posts);
+    },
+  });
+};
+
+export default postRoutes;
+```
+
 This route appears in the Scalar UI at `/api-docs` with full request/response schemas.
 
 ## Without OpenAPI
@@ -104,7 +131,7 @@ No documentation is generated, but the routes still work exactly the same way. I
 Schemas are Zod objects with `.openapi()` metadata for docs:
 
 ```ts
-import { z } from "@/framework/facade.js"; // extended with .openapi() on both engines
+import { z } from "@/framework/facade.js"; // extended with .openapi() on Hono and Express
 
 export const PostSchema = z
   .object({
@@ -187,7 +214,7 @@ const storeRoute = createRoute({
 
 ## Registering Routes
 
-Use `.api()` on the group to register OpenAPI-documented routes:
+On Hono and Express, use `.api()` on the group to register OpenAPI-documented routes:
 
 ```ts
 export default group()
@@ -195,6 +222,8 @@ export default group()
   .api(showRoute, show)
   .api(storeRoute, store);
 ```
+
+On Fastify, register each schema-bearing route with `app.route()` (or `app.get` / `app.post`). `schema.response` keys are the status codes Fastify serializes:
 
 ## Per-Route Middleware
 
@@ -347,6 +376,15 @@ import type { Request, Response } from "express";
 
 export const store = (req: Request, res: Response) => {
   const body = req.body; // validated against CreatePostSchema
+  // body is typed — no manual validation needed
+};
+```
+
+```ts [Fastify]
+import type { FastifyReply, FastifyRequest } from "fastify";
+
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body; // validated against CreatePostSchema
   // body is typed — no manual validation needed
 };
 ```
