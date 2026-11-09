@@ -6,14 +6,14 @@ import fastifyPlugin from "fastify-plugin";
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { appConfig, cookieConfig, loggingConfig, rateLimitConfig, redisConfig } from "@/config/index.js";
+import { database } from "@/framework/database/connection.js";
 import { corsOrigins } from "@/framework/http/cors.js";
-import { incrementRequestCount, getMetrics } from "@/framework/http/metrics.js";
 import { registerErrorHandler, registerRequestLogger } from "@/framework/http/logger.js";
+import { getMetrics, incrementRequestCount } from "@/framework/http/metrics.js";
 import { configureOpenApi } from "@/framework/http/openapi.js";
 import { registerRateLimit } from "@/framework/http/ratelimiter.js";
 import { securityHook } from "@/framework/http/security.js";
 import { hasUiBuild, registerStatic } from "@/framework/http/static.js";
-import { database } from "@/framework/database/connection.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
 import { sessionMiddleware } from "@/framework/session/session.js";
 
@@ -61,7 +61,12 @@ const infrastructure = fastifyPlugin(async (app) => {
  * How: Native Fastify plugins and hooks; no Express/Hono compatibility layer.
  */
 export function createHttpApp() {
-  const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
+  const app = Fastify({
+    logger: false,
+    // Match Hono and Express: a UUID per request instead of Fastify's `req-1`
+    // counter, so request ids are comparable across engines and log sinks.
+    genReqId: () => crypto.randomUUID()
+  }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);

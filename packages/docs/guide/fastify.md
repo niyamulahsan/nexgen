@@ -173,7 +173,7 @@ Fastify's request object is extended by the template (`src/framework/http/fastif
 | `request.sessionId` | `sessionMiddleware` | Guest/user session id                                     |
 | `request.upload`  | `upload()`         | Single uploaded file                                        |
 | `request.uploads` | `upload()` / `fields()` | Array (or labeled map) of uploaded files              |
-| `request.id`      | Fastify            | Per-request id, also echoed in `X-Request-ID`               |
+| `request.id`      | Fastify            | UUID per request (`crypto.randomUUID()`), also echoed in `X-Request-ID` |
 
 `request.sessionId` replaces the Express `req.sessionId` and Hono `c.get("sessionId")`; there is no `res.locals` on Fastify.
 

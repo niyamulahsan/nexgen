@@ -50,3 +50,5 @@ Logging settings are in `src/config/logging.ts`:
 | -------------- | -------- | ---------------------------------------------------------------------- |
 | `level`        | `"info"` | Minimum log level (`debug`, `info`, `warn`, `error`, `fatal`, `trace`) |
 | `httpRequests` | `true`   | Log per-request HTTP access lines                                      |
+
+Health, readiness and liveness probes (`/health`, `/ready`, `/live`) and the queue dashboard (`/queues*`) are skipped by the access log on every engine, so boot polling and dashboards do not bury application requests. Express and Fastify also skip the OpenAPI spec/docs pages and `favicon.ico`.

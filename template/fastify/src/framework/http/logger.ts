@@ -8,8 +8,14 @@ function requestIp(request: FastifyRequest) {
   return String(request.headers["cf-connecting-ip"] || forwarded || request.headers["x-real-ip"] || request.ip || "");
 }
 
+// Probe endpoints and the queue dashboard are infrastructure traffic, not
+// application requests. Skip them on every engine so the access log stays
+// useful (the dev CLI polls /health while it boots).
+const PROBE_PATHS = new Set(["/health", "/ready", "/live"]);
+
 function shouldSkipHttpLog(pathname: string) {
   return (
+    PROBE_PATHS.has(pathname) ||
     pathname.startsWith("/queues") ||
     pathname === "/favicon.ico" ||
     pathname === openApiConfig.scalar.specUrl ||

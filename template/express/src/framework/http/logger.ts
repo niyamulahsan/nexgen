@@ -8,10 +8,19 @@ function requestIp(req: Parameters<RequestHandler>[0]) {
   return String(req.headers["cf-connecting-ip"] || forwarded || req.headers["x-real-ip"] || req.socket.remoteAddress || "");
 }
 
-// এই ফাংশনটি Express-এর জন্য তৈরি করা হয়েছে, তাই এটি কিছু অতিরিক্ত পাথও বাদ দেয় যা Hono-তে প্রযোজ্য নয়।
+// Express has no "route registered before the logger" behaviour to lean on, so
+// the skips are explicit: probes, the queue dashboard, favicon and OpenAPI
+// assets.
+const PROBE_PATHS = new Set(["/health", "/ready", "/live"]);
+
 function shouldSkipHttpLog(pathname: string) {
-  // /queues, /queues/..., /favicon.ico বাদ দিন
-  return pathname.startsWith("/queues") || pathname === "/favicon.ico" || pathname === openApiConfig.scalar.specUrl || pathname === openApiConfig.scalar.docsPath;
+  return (
+    PROBE_PATHS.has(pathname) ||
+    pathname.startsWith("/queues") ||
+    pathname === "/favicon.ico" ||
+    pathname === openApiConfig.scalar.specUrl ||
+    pathname === openApiConfig.scalar.docsPath
+  );
 }
 
 export const loggerMiddleware: RequestHandler = (req, res, next) => {

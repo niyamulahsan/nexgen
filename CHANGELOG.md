@@ -9,6 +9,11 @@
 - **Scaffolder (`create-nexwire`)**: Fastify is a first-class backend in the interactive picker, `--engine=fastify`, help text and the missing-engine message. `scripts/sync-template.mjs` and the package `files` list publish `packages/create-nexwire/fastify`.
 - **Docs**: new [Fastify Engine](/guide/fastify) guide covering native plugins, hooks, route schemas, request state, the validation contract, SPA fallback, uploads, the Bull Board adapter and the Fastify-specific maker output. `guide/routing.md`, `guide/middleware.md`, `guide/openapi.md`, `guide/rate-limiter.md`, `guide/support/upload.md`, `guide/quick-start.md`, `guide/introduction.md` and the home page are updated to document all three engines.
 
+### Fixed
+
+- **Template (Fastify)**: request ids are now `crypto.randomUUID()` values, matching Hono and Express, instead of Fastify's built-in `req-1`, `req-2` counter. The id is used in the `X-Request-ID` header and the structured access-log line, so the same request can be correlated across engines and log sinks.
+- **Template (all engines)**: health, readiness and liveness probes (`/health`, `/ready`, `/live`) are no longer written to the HTTP access log. Previously this depended on route registration order — the OpenAPI mode registered `/health` before the logger and skipped it, while `OPEN_API=false` registered it after and logged it — so the same app logged probes differently depending on OpenAPI mode, and Fastify logged the dev CLI's startup health poll. The skip is now explicit in the logger for Hono, Express and Fastify.
+
 ## [4.3.1] — 2026-11-07
 
 ### Added

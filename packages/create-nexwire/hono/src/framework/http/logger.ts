@@ -6,8 +6,13 @@ function ip(c: Context) {
   return c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || null;
 }
 
+// Probe endpoints and the queue dashboard are infrastructure traffic, not
+// application requests. Skip them on every engine so the access log stays
+// useful (the dev CLI polls /health while it boots).
+const PROBE_PATHS = new Set(["/health", "/ready", "/live"]);
+
 function shouldSkipHttpLog(pathname: string) {
-  return pathname.startsWith("/queues");
+  return PROBE_PATHS.has(pathname) || pathname.startsWith("/queues");
 }
 
 /**
