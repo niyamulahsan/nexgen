@@ -80,11 +80,47 @@ import {
 } from "@/framework/facade.js";
 ```
 
+```ts [Fastify]
+import {
+  z, // Zod schemas (via fastify-type-provider-zod)
+  ValidationErrorSchema, // structured 422 error shape
+  validate, // schema validation outside routes
+  database, // init/access the Drizzle instance
+  db, // global query proxy
+  paginate, // request-driven pagination
+  paginateModel, // eager-loading pagination
+  paginateQuery, // custom count/data pagination
+  paginateTable, // single-table pagination
+  cache, // Redis key-value cache
+  command, // register in-process handler
+  dispatchCommand, // run an in-process handler
+  dispatchEvent, // broadcast and/or enqueue an event
+  queue, // access a BullMQ queue
+  queueJob, // enqueue a background job
+  shouldQueue, // register a job handler
+  broadcast, // Socket.IO broadcast
+  defineSchedule, // named cron schedules
+  session, // server-side sessions
+  storage, // file storage
+  notify, // persisted + realtime notifications
+  password, // bcrypt hashing
+  jwt, // token generation/verification
+  cookie, // auth cookie helpers
+  mail, // SMTP transport
+  logger, // structured logging
+  urls, // absolute URL building
+  lodash, // full Lodash library
+  fields, // @fastify/multipart field parsing
+  upload, // @fastify/multipart file upload preHandler
+  loginLimiter, // route-level login rate limit
+} from "@/framework/facade.js";
+```
+
 :::
 
-The difference between engines is **only** `upload`/`fields` — the Hono engine parses multipart natively via `c.req.parseBody()`, so it has no multer helpers. See [Upload](./upload) and the [Upload guide](../guide/support/upload).
+The difference between engines is **only** `upload`/`fields` — the Hono engine parses multipart natively via `c.req.parseBody()`, so it has no multer helpers. The Express engine uses `multer`, and the Fastify engine uses `@fastify/multipart`; both export the `upload` and `fields` helpers from the facade. See [Upload](./upload) and the [Upload guide](../guide/support/upload).
 
-> **Express engine** additionally exports `upload` and `fields` — multipart parsing middleware built on `multer`. See [Upload](./upload) and the [Upload guide](./../guide/support/upload). The Hono engine parses multipart natively via `c.req.parseBody()`.
+> **Express engine** additionally exports `upload` and `fields` — multipart parsing middleware built on `multer`. The **Fastify engine** exports them built on `@fastify/multipart`. The Hono engine parses multipart natively via `c.req.parseBody()`.
 
 ## Function reference
 
