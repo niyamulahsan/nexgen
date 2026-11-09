@@ -59,9 +59,30 @@ export const getStoredPdf = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const getStoredPdf = async (request: FastifyRequest, reply: FastifyReply) => {
+  const path = "reports/" + request.params.file; // e.g. reports/quarterly.pdf
+  const disk = storage.disk("public");
+
+  if (!(await disk.exists(path))) return reply.code(404).send(null);
+  const mime = await disk.mime(path);
+  const stream = await disk.readStream(path);
+
+  return reply
+    .code(200)
+    .header("content-type", mime)
+    .header("content-disposition", "inline")
+    .header("content-length", String(await disk.size(path)))
+    .send(stream);
+};
+```
+
 :::
 
-> **Don't** use `consumeGenerated` for a file you keep stored under a permanent disk — that helper is for **one-time temp downloads** where the file is deleted after reading. A persisted file that should be re-readable lives on a persistent disk and is served with `readStream` (or `read` for small files) as above.
+> **Don't** use `consumeGenerated` for a file you keep stored under a permanent disk — that helper is for **one-time temp downloads** where the file is deleted after reading. A persisted file that should be re-readable lives on a persistent disk and is served with `readStream` (or `read` for small files) as above. Fastify streams it with `reply.send(stream)` after setting the headers.
 
 ## Read Back an Uploaded Text File (Show in `<pre>`)
 
@@ -90,6 +111,18 @@ export const getStoredText = async (req: Request, res: Response) => {
   const disk = storage.disk("private");
   res.set("content-type", await disk.mime(path));
   res.send(await disk.read(path));
+};
+```
+
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const getStoredText = async (request: FastifyRequest, reply: FastifyReply) => {
+  const path = "imports/" + request.params.file;
+  const disk = storage.disk("private");
+  const mime = await disk.mime(path); // "text/plain", "application/json", ...
+  return reply.code(200).header("content-type", mime).send(await disk.read(path));
 };
 ```
 
@@ -149,6 +182,23 @@ export const getStoredWorkbook = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const getStoredWorkbook = async (request: FastifyRequest, reply: FastifyReply) => {
+  const path = "uploads/" + request.params.file; // e.g. uploads/store-list.xlsx
+  const disk = storage.disk("public");
+  const mime = await disk.mime(path);
+  const stream = await disk.readStream(path);
+  return reply
+    .code(200)
+    .header("content-type", mime)
+    .header("content-disposition", `attachment; filename="${request.params.file}"`)
+    .send(stream);
+};
+```
+
 :::
 
 ```vue
@@ -187,6 +237,23 @@ export const getStoredImage = async (req: Request, res: Response) => {
   res.set("content-type", await disk.mime(path));
   res.set("content-disposition", "inline");
   (await disk.readStream(path)).pipe(res);
+};
+```
+
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const getStoredImage = async (request: FastifyRequest, reply: FastifyReply) => {
+  const path = "avatars/" + request.params.file;
+  const disk = storage.disk("public");
+  const mime = await disk.mime(path);
+  const stream = await disk.readStream(path);
+  return reply
+    .code(200)
+    .header("content-type", mime)
+    .header("content-disposition", "inline")
+    .send(stream);
 };
 ```
 

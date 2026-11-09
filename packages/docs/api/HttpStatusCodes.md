@@ -73,6 +73,16 @@ res
   .json({ message: "User logged in successfully", data });
 ```
 
+```ts [Fastify]
+if (!user || !(await password.verifyPassword(body.password, user.password))) {
+  return reply.code(HttpStatusCodes.UNAUTHORIZED).send({ message: "Invalid credentials" });
+}
+if (authConfig.requireEmailVerification && !user.emailVerifiedAt) {
+  return reply.code(HttpStatusCodes.FORBIDDEN).send({ message: "Please verify your email before logging in" });
+}
+return reply.code(HttpStatusCodes.OK).send({ message: "User logged in successfully", data });
+```
+
 :::
 
 ## Notes

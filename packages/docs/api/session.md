@@ -2,7 +2,7 @@
 
 Imported from the facade: `import { session } from "@/framework/facade.js"`.
 
-Redis-backed server-side session documents with an automatic httpOnly cookie. Distinct from auth — works for guests and logged-in users. `sessionMiddleware` attaches `sessionId` to every request (`c.get("sessionId")` on Hono, `res.locals.sessionId` on Express). See [Session](./../guide/session).
+Redis-backed server-side session documents with an automatic httpOnly cookie. Distinct from auth — works for guests and logged-in users. `sessionMiddleware` attaches `sessionId` to every request (`c.get("sessionId")` on Hono, `res.locals.sessionId` on Express, `request.sessionId` on Fastify). See [Session](./../guide/session).
 
 ## Functions
 
@@ -28,6 +28,10 @@ const sessionId = c.get("sessionId"); // set by sessionMiddleware
 
 ```ts [Express]
 const sessionId = res.locals.sessionId; // set by sessionMiddleware
+```
+
+```ts [Fastify]
+const sessionId = request.sessionId; // set by sessionMiddleware
 ```
 
 :::

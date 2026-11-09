@@ -82,7 +82,7 @@ export default group().api(listRoute, async (_req: Request, res: Response) => {
 
 On Fastify, skip `createRoute()` and put the same schemas on the route:
 
-```ts
+```ts [Fastify]
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { HttpStatusCodes, z } from "@/framework/facade.js";
 
@@ -410,6 +410,15 @@ import { validate } from "@/framework/facade.js";
 
 export const store = async (req: Request, res: Response) => {
   const body = await validate(CreatePostSchema, req.body);
+};
+```
+
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { validate } from "@/framework/facade.js";
+
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = await validate(CreatePostSchema, request.body);
 };
 ```
 

@@ -546,6 +546,15 @@ const query = db.select().from(posts).orderBy(desc(posts.id));
 const result = await paginate(req, query, 15);
 ```
 
+```ts [Fastify]
+import { desc } from "drizzle-orm";
+import { db, paginate } from "@/framework/facade.js";
+import { posts } from "@/modules/blog/database/models/post.js";
+
+const query = db.select().from(posts).orderBy(desc(posts.id));
+const result = await paginate(request, query, 15);
+```
+
 :::
 
 Request example: `GET /posts?page=2&per_page=20`
@@ -594,6 +603,26 @@ const query = db
 const result = await paginate(req, query, 15);
 ```
 
+```ts [Fastify]
+import { desc, eq } from "drizzle-orm";
+import { db, paginate } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { posts } from "@/modules/blog/database/models/post.js";
+
+const query = db
+  .select({
+    id: posts.id,
+    title: posts.title,
+    authorName: users.name,
+  })
+  .from(posts)
+  .leftJoin(users, eq(posts.authorId, users.id))
+  .where(eq(posts.published, true))
+  .orderBy(desc(posts.id));
+
+const result = await paginate(request, query, 15);
+```
+
 :::
 
 ### `paginateModel(c, options)` — Relational Eager Loading
@@ -640,6 +669,44 @@ const result = await paginateModel(req, {
 });
 ```
 
+```ts [Fastify]
+import { desc, eq } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+const result = await paginateModel(request, {
+  table: users,
+  query: db.query.users,
+  where: eq(users.status, "1"),
+  with: {
+    role: true,
+    profile: true,
+  },
+  orderBy: desc(users.id),
+  perPage: 10,
+  path: request.url,
+});
+```
+
+```ts [Fastify]
+import { desc, eq } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+
+const result = await paginateModel(request, {
+  table: users,
+  query: db.query.users,
+  where: eq(users.status, "1"),
+  with: {
+    role: true,
+    profile: true,
+  },
+  orderBy: desc(users.id),
+  perPage: 10,
+  path: request.url,
+});
+```
+
 :::
 
 Internally, `paginateModel` runs a count query against the base table, then runs `findMany` with `limit`, `offset`, and your eager-loaded relations.
@@ -674,6 +741,30 @@ const result = await paginateModel(c, {
 
 ```ts [Express]
 const result = await paginateModel(req, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: {
+    role: true,
+    profile: {
+      with: {
+        address: {
+          with: {
+            region: true,
+            district: true,
+            block: true,
+            ward: true,
+          },
+        },
+      },
+    },
+  },
+  orderBy: desc(users.id),
+});
+```
+
+```ts [Fastify]
+const result = await paginateModel(request, {
   table: users,
   query: db.query.users,
   where,
@@ -748,6 +839,29 @@ const result = await paginateModel(req, {
 });
 ```
 
+```ts [Fastify]
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+import { users } from "@/modules/auth/database/models/user.js";
+import { roles } from "@/modules/auth/database/models/role.js";
+
+const where = and(
+  eq(users.status, "1"),
+  inArray(
+    users.roleId,
+    db.select({ id: roles.id }).from(roles).where(eq(roles.name, "admin")),
+  ),
+);
+
+const result = await paginateModel(request, {
+  table: users,
+  query: db.query.users,
+  where,
+  with: { role: true },
+  orderBy: desc(users.id),
+});
+```
+
 :::
 
 If a query needs special count or data behavior, provide callbacks:
@@ -780,6 +894,26 @@ import { count, desc } from "drizzle-orm";
 
 // c on Hono, req on Express
 const result = await paginateModel(req, {
+  total: async () => {
+    const [row] = await db.select({ total: count() }).from(users).where(where);
+    return Number(row?.total ?? 0);
+  },
+  data: async ({ limit, offset }) => {
+    return db.query.users.findMany({
+      where,
+      with: { role: true },
+      limit,
+      offset,
+      orderBy: desc(users.id),
+    });
+  },
+});
+```
+
+```ts [Fastify]
+import { count, desc } from "drizzle-orm";
+
+const result = await paginateModel(request, {
   total: async () => {
     const [row] = await db.select({ total: count() }).from(users).where(where);
     return Number(row?.total ?? 0);

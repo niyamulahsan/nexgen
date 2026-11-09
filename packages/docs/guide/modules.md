@@ -291,6 +291,22 @@ export const show = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { HttpStatusCodes } from "@/framework/facade.js";
+import { postService } from "@/modules/blog/services/post.js";
+
+export const show = async (request: FastifyRequest, reply: FastifyReply) => {
+  const data = await postService.findOne(Number(request.params.id)); // validated by route schema
+
+  if (!data) {
+    return reply.code(HttpStatusCodes.NOT_FOUND).send({ message: "post not found" });
+  }
+
+  return reply.code(HttpStatusCodes.OK).send({ message: "post fetched successfully", data });
+};
+```
+
 :::
 
 Validation comes from the route definition — the controller reads validated data and delegates to the service.
@@ -372,6 +388,24 @@ export const show = async (req: Request, res: Response) => {
   }
 
   res.json({ message: "post fetched successfully", data });
+};
+```
+
+```ts [Fastify]
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { HttpStatusCodes, validate } from "@/framework/facade.js";
+import { PostIdParamsSchema } from "@/modules/blog/schemas/post.js";
+import { postService } from "@/modules/blog/services/post.js";
+
+export const show = async (request: FastifyRequest, reply: FastifyReply) => {
+  const params = await validate(PostIdParamsSchema, request.params);
+  const data = await postService.findOne(params.id);
+
+  if (!data) {
+    return reply.code(HttpStatusCodes.NOT_FOUND).send({ message: "post not found" });
+  }
+
+  return reply.code(HttpStatusCodes.OK).send({ message: "post fetched successfully", data });
 };
 ```
 

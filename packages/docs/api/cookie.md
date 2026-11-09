@@ -6,14 +6,14 @@ Guide: [Cookie](./../guide/support/cookie).
 
 ## Signature
 
-| Function               | Hono                                   | Express                                  | Description                               |
-| ---------------------- | -------------------------------------- | ---------------------------------------- | ----------------------------------------- |
-| `cookie.setAuth`       | `(c, token) => Promise<void>`          | `(res, token) => Promise<void>`          | Sets the `{name}_access` httpOnly cookie  |
-| `cookie.setRefresh`    | `(c, token, maxAge?) => Promise<void>` | `(res, token, maxAge?) => Promise<void>` | Sets the `{name}_refresh` httpOnly cookie |
-| `cookie.getAuth`       | `(c) => Promise<string \| undefined>`  | `(req) => Promise<string \| undefined>`  | Reads the access cookie                   |
-| `cookie.getRefresh`    | `(c) => Promise<string \| undefined>`  | `(req) => Promise<string \| undefined>`  | Reads the refresh cookie                  |
-| `cookie.deleteAuth`    | `(c) => void`                          | `(res) => void`                          | Clears the access cookie                  |
-| `cookie.deleteRefresh` | `(c) => void`                          | `(res) => void`                          | Clears the refresh cookie                 |
+| Function               | Hono                                   | Express                                  | Fastify                                     | Description                               |
+| ---------------------- | -------------------------------------- | ---------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| `cookie.setAuth`       | `(c, token) => Promise<void>`          | `(res, token) => Promise<void>`          | `(reply, token) => Promise<void>`           | Sets the `{name}_access` httpOnly cookie  |
+| `cookie.setRefresh`    | `(c, token, maxAge?) => Promise<void>` | `(res, token, maxAge?) => Promise<void>` | `(reply, token, maxAge?) => Promise<void>`  | Sets the `{name}_refresh` httpOnly cookie |
+| `cookie.getAuth`       | `(c) => Promise<string \| undefined>`  | `(req) => Promise<string \| undefined>`  | `(request) => Promise<string \| undefined>` | Reads the access cookie                   |
+| `cookie.getRefresh`    | `(c) => Promise<string \| undefined>`  | `(req) => Promise<string \| undefined>`  | `(request) => Promise<string \| undefined>` | Reads the refresh cookie                  |
+| `cookie.deleteAuth`    | `(c) => void`                          | `(res) => void`                          | `(reply) => void`                           | Clears the access cookie                  |
+| `cookie.deleteRefresh` | `(c) => void`                          | `(res) => void`                          | `(reply) => void`                           | Clears the refresh cookie                 |
 
 ## Use cases
 
@@ -37,6 +37,15 @@ cookie.deleteAuth(res);
 cookie.deleteRefresh(res); // logout
 ```
 
+```ts [Fastify]
+import { cookie } from "@/framework/facade.js";
+
+await cookie.setAuth(reply, accessToken);
+await cookie.setRefresh(reply, refreshToken, 604800); // override refresh maxAge (7 days)
+await cookie.deleteAuth(reply);
+await cookie.deleteRefresh(reply); // logout
+```
+
 :::
 
 ### Real world — set after issuing tokens
@@ -51,6 +60,11 @@ await cookie.setRefresh(c, refreshToken.token, refreshExpiry);
 ```ts [Express]
 await cookie.setAuth(res, accessToken.token);
 await cookie.setRefresh(res, refreshToken.token, refreshExpiry);
+```
+
+```ts [Fastify]
+await cookie.setAuth(reply, accessToken.token);
+await cookie.setRefresh(reply, refreshToken.token, refreshExpiry);
 ```
 
 :::

@@ -36,6 +36,16 @@ export const store = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { validate } from "@/framework/facade.js";
+
+export const store = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = await validate(CreatePostSchema, request.body);
+  // body is inferred from CreatePostSchema — no casts needed
+};
+```
+
 :::
 
 ### Structured failure shape

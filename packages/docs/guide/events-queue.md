@@ -451,6 +451,48 @@ export const notifyUser = (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+// under controller folder *.controller.ts file
+
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { dispatchEvent } from "@/framework/facade.js";
+
+export const publishPost = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body;
+
+  // Queue the heavy work — response is instant
+  await dispatchEvent("post.publish", body, { queue: "default" });
+
+  return reply.code(202).send({ message: "Post queued for publishing" });
+};
+
+export const broadcastStatus = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body;
+
+  // Broadcast directly to Socket.IO clients
+  await dispatchEvent("system.status", body, {
+    broadcast: { roles: ["admin"] },
+  });
+
+  return reply.code(200).send({ message: "Status broadcast to admins" });
+};
+
+export const notifyUser = async (request: FastifyRequest, reply: FastifyReply) => {
+  const { userId, message } = request.body;
+
+  // Notify a specific user via socket
+  await dispatchEvent(
+    "user.notification",
+    { message },
+    {
+      broadcast: { users: [userId] },
+    },
+  );
+
+  return reply.code(200).send({ message: "Notification sent" });
+};
+```
+
 :::
 
 ### 2. Route

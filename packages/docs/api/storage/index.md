@@ -110,9 +110,40 @@ export default group().api(
 );
 ```
 
+```ts [Fastify]
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage, upload } from "@/framework/facade.js";
+
+const uploadRoute: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "POST",
+    url: "/",
+    preHandler: upload({ field: "file" }),
+    handler: uploadFile,
+  });
+};
+
+export default uploadRoute;
+
+// controller
+export const uploadFile = async (request: FastifyRequest, reply: FastifyReply) => {
+  const file = request.upload; // in-memory buffer from upload({ field: "file" }) as preHandler
+  if (!file)
+    return reply.code(422).send({ message: "File required" });
+
+  const path = await storage.disk("public").putFile("uploads", file);
+  return reply.code(200).send({
+    message: "File uploaded successfully",
+    path,
+    url: storage.disk("public").url(path),
+  });
+};
+```
+
 :::
 
-> Express: `req.file` is an `Express.Multer.File` with a `buffer`. Hono: files arrive as web `File` instances via `c.req.parseBody()`. See [Upload](../upload) and [Storage guide > Multipart](/guide/storage#multipart-file-upload).
+> Express: `req.file` is an `Express.Multer.File` with a `buffer`. Hono: files arrive as web `File` instances via `c.req.parseBody()`. Fastify: files arrive as in-memory buffers via `upload({ field })` as a `preHandler` and land on `request.upload`. See [Upload](../upload) and [Storage guide > Multipart](/guide/storage#multipart-file-upload).
 
 ### One-time generated download
 
@@ -207,6 +238,31 @@ export default group().api(
 );
 ```
 
+```ts [Fastify]
+// modules/report/controllers/files.controller.ts (condensed)
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { db, storage } from "@/framework/facade.js";
+
+export const uploadFile = async (request: FastifyRequest, reply: FastifyReply) => {
+  const file = request.upload; // in-memory buffer from upload({ field: "file" }) as preHandler
+  if (!file)
+    return reply.code(422).send({ message: "File required" });
+
+  const buffer = file.buffer;
+  const path = `uploads/${Date.now()}-${file.originalname}`;
+  await storage.put(path, buffer);
+
+  try {
+    await db.insert(reports).values({ name: file.originalname, path, size: formatSize(file.size) });
+  } catch (error) {
+    await storage.delete(path).catch(() => {});
+    throw error;
+  }
+
+  return reply.code(200).send({ message: "File uploaded successfully", path });
+};
+```
+
 :::
 
 Downloads stream the stored file straight back as an attachment — identical signature on both engines:
@@ -267,6 +323,21 @@ export const download = async (req: Request, res: Response) => {
   }
   const buffer = await storage.consumeGenerated(token); // read and delete — one-time link
   res.status(200).set("Content-Type", "application/octet-stream").send(buffer);
+};
+```
+
+```ts [Fastify]
+// modules/report/controllers/report-export.controller.ts (download route)
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const download = async (request: FastifyRequest, reply: FastifyReply) => {
+  const token = request.params.token; // validated in place
+  const auth = request.auth;
+  if (!token.includes(`report_${auth.id}`))
+    return reply.code(403).send({ message: "Unauthorized" });
+  const buffer = await storage.consumeGenerated(token); // read and delete - one-time link
+  return reply.code(200).header("Content-Type", "application/octet-stream").send(buffer);
 };
 ```
 

@@ -303,9 +303,48 @@ export const importExcel = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+
+export const importExcel = async (request: FastifyRequest, reply: FastifyReply) => {
+  const ExcelJS = (await import("exceljs")).default;
+
+  const file = request.upload; // in-memory buffer from upload({ field: "file" }) as preHandler
+  if (!file) return reply.code(422).send({ message: "File is required" });
+
+  const buffer = file.buffer;
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  const sheet = workbook.worksheets[0];
+  const headers = sheet
+    .getRow(1)
+    .values.slice(1)
+    .map((v: unknown) => String(v || "").trim());
+
+  const rows: Record<string, any>[] = [];
+  sheet.eachRow((row: any, rowNumber: number) => {
+    if (rowNumber === 1) return;
+    const record: Record<string, any> = {};
+    headers.forEach((key, i) => {
+      record[key] = row.values[i + 1];
+    });
+    rows.push(record);
+  });
+
+  return reply.code(200).send({
+    message: "Excel imported",
+    totalRows: rows.length,
+    preview: rows.slice(0, 20),
+  });
+};
+```
+
 :::
 
 > Express: read the uploaded bytes directly from `req.file.buffer` (in-memory) and process. `req.file` is `Express.Multer.File` in memory storage.
+>
+> Fastify: read the uploaded bytes from `request.upload.buffer` (in-memory buffer from `upload()` as a `preHandler`).
 
 ### Stream a File
 

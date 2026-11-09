@@ -565,6 +565,27 @@ export const createComment = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { notify } from "@/framework/facade.js";
+
+export const createComment = async (request: FastifyRequest, reply: FastifyReply) => {
+  const { postId, content } = request.body;
+  const post = await getPost(postId);
+
+  // Notify the post author
+  await notify(post.authorId, {
+    type: "info",
+    title: "New Comment",
+    body: `${request.auth.name} commented on your post.`,
+    link: `/posts/${postId}`,
+    broadcast: true,
+  });
+
+  return reply.code(201).send({ message: "Comment created" });
+};
+```
+
 :::
 
 ## `dispatchEvent` vs. `notify`

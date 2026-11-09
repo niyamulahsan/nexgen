@@ -68,9 +68,29 @@ export const downloadCsv = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+// GET /download/:token — serve once and delete
+export const downloadCsv = async (request: FastifyRequest, reply: FastifyReply) => {
+  const token = decodeURIComponent(request.params.token);
+  try {
+    const file = await storage.consumeGenerated(token);
+    return reply
+      .code(200)
+      .header("content-type", "text/csv; charset=utf-8")
+      .header("content-disposition", "attachment; filename=report.csv")
+      .send(file);
+  } catch {
+    return reply.code(404).send({ message: "Download token expired or invalid" });
+  }
+};
+```
+
 :::
 
-> `storage.consumeGenerated()` returns a `Buffer` in both engines. Hono sends it via `new Response(file, ...)`; Express sends it with `res.send(file)` after setting the content headers.
+> `storage.consumeGenerated()` returns a `Buffer` in all engines. Hono sends it via `new Response(file, ...)`, Express via `res.send(file)`, Fastify via `reply.send(file)` after setting the content headers.
 
 ### Generate Styled Excel
 
@@ -189,6 +209,60 @@ export const generateExcel = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const generateExcel = async (request: FastifyRequest, reply: FastifyReply) => {
+  const ExcelJS = (await import("exceljs")).default;
+  const body = request.body; // validated in place
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Data");
+
+  // Title row
+  sheet.mergeCells("A1:C1");
+  sheet.getCell("A1").value = body.title;
+  sheet.getCell("A1").font = { bold: true, size: 14 };
+
+  // Header row
+  sheet.addRow(["ID", "Title", "Length"]);
+  sheet.getRow(2).font = { bold: true };
+
+  // Data rows
+  const rows = [
+    { id: 1, title: "nexwire framework" },
+    { id: 2, title: "file generation" },
+  ];
+  for (const row of rows) {
+    sheet.addRow([row.id, row.title, row.title.length]);
+  }
+
+  // Totals
+  sheet.addRow([
+    "Subtotal",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
+  sheet.addRow([
+    "Grand Total",
+    rows.length,
+    { formula: `SUM(C3:C${2 + rows.length})` },
+  ]);
+
+  sheet.columns = [{ width: 10 }, { width: 38 }, { width: 14 }];
+
+  const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+  const token = await storage.generateForDownload({
+    prefix: "report",
+    extension: "xlsx",
+    data: buffer,
+  });
+
+  return reply.code(200).send({ token, downloadUrl: `/download/excel/${encodeURIComponent(token)}` });
+};
+```
+
 :::
 
 ### Stream Excel for Very Large Data (`generateForDownloadStream`)
@@ -259,9 +333,35 @@ export const exportReport = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+import { PassThrough } from "node:stream";
+import ExcelJS from "exceljs";
+
+// POST /report/export - streaming Excel for very large data
+export const exportReport = async (request: FastifyRequest, reply: FastifyReply) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Report");
+  // ...fill the sheet row by row...
+
+  const bridge = new PassThrough();
+  const pendingToken = storage.generateForDownloadStream({
+    prefix: `report_${request.params.id}`,
+    extension: "xlsx",
+    stream: bridge,
+  });
+
+  await workbook.xlsx.write(bridge);
+  const token = await pendingToken;
+
+  return reply.code(200).send({ token, downloadUrl: `/download/excel/${encodeURIComponent(token)}` });
+};
+```
+
 :::
 
-> Both engines resolve `pendingToken` only after the piped stream reaches `close` (file fully written). Keep the token pending **before** writing into the bridge — iterating rows first, then `await workbook.xlsx.write(bridge)` inflates the workbook fully in memory instead of streaming.
+> Both engines resolve `pendingToken` only after the piped stream reaches `close` (file fully written). Keep the token pending **before** writing into the bridge — iterating rows first, then `await workbook.xlsx.write(bridge)` inflates the workbook fully in memory instead of streaming. Fastify resolves the same pending token over the `PassThrough` bridge.
 >
 > Use `generateForDownloadStream` whenever the data size is unknown / very large (100 MB+). Use `generateForDownload({ data })` only when you already hold a small `Buffer` in hand.
 
@@ -320,6 +420,32 @@ export const generatePdf = async (req: Request, res: Response) => {
       token,
       downloadUrl: `/download/pdf/${encodeURIComponent(token)}`,
     });
+  } finally {
+    await browser.close();
+  }
+};
+```
+
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const generatePdf = async (request: FastifyRequest, reply: FastifyReply) => {
+  const { chromium } = await import("playwright");
+  const body = request.body; // validated in place
+
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(buildHtml(body), { waitUntil: "networkidle" });
+    const pdf = await page.pdf({ format: "A4", printBackground: true });
+
+    const token = await storage.generateForDownload({
+      prefix: "report",
+      extension: "pdf",
+      data: pdf,
+    });
+    return reply.code(200).send({ token, downloadUrl: `/download/pdf/${encodeURIComponent(token)}` });
   } finally {
     await browser.close();
   }
@@ -427,6 +553,55 @@ export const downloadPdf = async (req: Request, res: Response) => {
     .status(200)
     .set("content-type", "application/pdf")
     .set("content-disposition", "attachment; filename=report.pdf")
+    .send(file);
+};
+```
+
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage, cache, dispatchCommand } from "@/framework/facade.js";
+import crypto from "node:crypto";
+
+// Controller: queue the work
+export const generatePdfQueued = async (request: FastifyRequest, reply: FastifyReply) => {
+  const body = request.body;
+  const requestId = crypto.randomUUID();
+
+  await cache.put(`pdf:status:${requestId}`, { state: "pending" }, 1800);
+  await dispatchCommand(
+    "report.pdf.generate",
+    { requestId, ...body },
+    {
+      async: true,
+      queue: "default",
+    },
+  );
+
+  return reply.code(202).send({
+    requestId,
+    statusUrl: `/pdf/${requestId}`,
+    downloadUrl: `/pdf/${requestId}`,
+  });
+};
+
+// Controller: poll status, then serve
+export const downloadPdf = async (request: FastifyRequest, reply: FastifyReply) => {
+  const requestId = request.params.requestId;
+  const status = await cache.get(`pdf:status:${requestId}`);
+
+  if (!status)
+    return reply.code(404).send({ message: "Unknown request" });
+  if (status.state === "pending")
+    return reply.code(202).send({ state: "pending" });
+  if (status.state === "failed")
+    return reply.code(500).send({ message: status.message });
+
+  const file = await storage.consumeGenerated(status.token);
+  await cache.forget(`pdf:status:${requestId}`);
+  return reply
+    .code(200)
+    .header("content-type", "application/pdf")
+    .header("content-disposition", "attachment; filename=report.pdf")
     .send(file);
 };
 ```

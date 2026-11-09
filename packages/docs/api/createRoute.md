@@ -62,6 +62,29 @@ export default group().api(listRoute, async (_req, res) =>
 );
 ```
 
+```ts [Fastify]
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { HttpStatusCodes, z } from "@/framework/facade.js";
+import { listPosts } from "@/modules/posts/controllers/post.js";
+import { PostSchema } from "@/modules/posts/schemas/post.js";
+
+const listRoute: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: {
+      tags: ["Posts"],
+      summary: "List all posts",
+      response: { [HttpStatusCodes.OK]: z.array(PostSchema) },
+    },
+    handler: listPosts,
+  });
+};
+
+export default listRoute;
+```
+
 :::
 
 ### Request bodies & params

@@ -283,6 +283,32 @@ export default createRouter()
   });
 ```
 
+```ts [Fastify]
+import { db, paginate, z, HttpStatusCodes } from "@/framework/facade.js";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { desc } from "drizzle-orm";
+import { posts } from "@/modules/blog/database/models/post.js";
+import { PostSchema } from "@/modules/blog/schemas/post.js";
+
+const listHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+  const query = db.select().from(posts).orderBy(desc(posts.id));
+  const result = await paginate(request, query, 15);
+  return reply.code(HttpStatusCodes.OK).send({ message: "Posts fetched successfully", data: result });
+};
+
+const postRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.route({
+    method: "GET",
+    url: "/",
+    schema: { tags: ["Posts"], response: { [HttpStatusCodes.OK]: z.array(PostSchema) } },
+    handler: listHandler,
+  });
+};
+
+export default postRoutes;
+```
+
 :::
 
 ### Throttle background work and broadcast the result

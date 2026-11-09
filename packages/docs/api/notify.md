@@ -6,25 +6,25 @@ Creates a user-visible notification through the registered notification provider
 
 ## Functions
 
-| Function | Signature                                                  | Description                                                        |
-| -------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| Function | Signature                                                  | Description                                                                                                  |
+| -------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `notify` | `(target, options) => Promise<NotificationRecord \| null>` | Stores a notification, then dispatches it to every registered channel. `null` when no provider is available. |
 
 `target` is `number | string | { type?: string; id: number | string }`. A bare number/string becomes `{ type: "user", id }`.
 
 `NotificationOptions`:
 
-| Option      | Type      | Default  | Description                                              |
-| ----------- | --------- | -------- | -------------------------------------------------------- |
-| `type`      | `string`  | `"info"` | Free-form category — `info`, `success`, `warning`, `error`, or any key you choose (`"invoice.paid"`) |
-| `title`     | `string`  | —        | **Required.** Notification title                         |
-| `body`      | `string`  | —        | Body text                                                |
-| `link`      | `string`  | —        | Click-through URL                                        |
-| `data`      | `object`  | —        | Arbitrary JSON stored in the `data` column               |
-| `broadcast` | `boolean` | `false`  | Emit `"notification.created"` to the user's socket room  |
+| Option      | Type      | Default  | Description                                                                                                   |
+| ----------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `type`      | `string`  | `"info"` | Free-form category — `info`, `success`, `warning`, `error`, or any key you choose (`"invoice.paid"`)          |
+| `title`     | `string`  | —        | **Required.** Notification title                                                                              |
+| `body`      | `string`  | —        | Body text                                                                                                     |
+| `link`      | `string`  | —        | Click-through URL                                                                                             |
+| `data`      | `object`  | —        | Arbitrary JSON stored in the `data` column                                                                    |
+| `broadcast` | `boolean` | `false`  | Emit `"notification.created"` to the user's socket room                                                       |
 | `mail`      | `object`  | —        | `{ subject?, html?, to? }` — sends email through the `mail` queue when Redis is available, directly otherwise |
-| `sms`       | `object`  | —        | `{ to?, message? }` — consumed by a custom `sms` channel; ignored by the built-ins |
-| `push`      | `object`  | —        | `{ token?, payload? }` — consumed by a custom `push` channel; ignored by the built-ins |
+| `sms`       | `object`  | —        | `{ to?, message? }` — consumed by a custom `sms` channel; ignored by the built-ins                            |
+| `push`      | `object`  | —        | `{ token?, payload? }` — consumed by a custom `push` channel; ignored by the built-ins                        |
 
 ### Recipient resolution
 
@@ -34,11 +34,11 @@ When `mail` is set, the recipient is resolved in this order: `mail.to` → the a
 
 After the provider stores the record, `notify()` sends it to every channel in the registry in parallel (`Promise.allSettled`):
 
-| Function            | Signature                                  | Description                                        |
-| ------------------- | ------------------------------------------ | -------------------------------------------------- |
-| `registerChannel`   | `(channel: NotificationChannel) => void`   | Register or replace a channel by name              |
-| `mailChannel`       | `NotificationChannel`                      | Built-in; sends only when `mail` is set            |
-| `broadcastChannel`  | `NotificationChannel`                      | Built-in; emits only when `broadcast` is set       |
+| Function           | Signature                                | Description                                  |
+| ------------------ | ---------------------------------------- | -------------------------------------------- |
+| `registerChannel`  | `(channel: NotificationChannel) => void` | Register or replace a channel by name        |
+| `mailChannel`      | `NotificationChannel`                    | Built-in; sends only when `mail` is set      |
+| `broadcastChannel` | `NotificationChannel`                    | Built-in; emits only when `broadcast` is set |
 
 ```ts
 interface NotificationChannel {
@@ -121,6 +121,22 @@ export const createComment = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+export const createComment: FastifyPluginAsyncZod = async (app) => {
+  app.post("/", async (request, reply) => {
+    const { postId, content } = request.body;
+    await notify(post.authorId, {
+      type: "info",
+      title: "New Comment",
+      body: `${request.auth.name} commented on your post.`,
+      link: `/posts/${postId}`,
+      broadcast: true,
+    });
+    return reply.code(201).send({ message: "Comment created" });
+  });
+};
+```
+
 :::
 
 ### Client-side pickup
@@ -157,11 +173,11 @@ notify(target, { broadcast: true, mail: { ... } })
 
 ## `dispatchEvent` vs `notify`
 
-|                     | `dispatchEvent`                                     | `notify`                                                                  |
-| ------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
-| **Persistence**     | No — fire-and-forget signal                         | Yes — stores through the notification provider, returns the normalized record |
-| **Broadcast scope** | Flexible (`all`, `auth`, `roles`, `users`, `rooms`) | Always to a single user (`users: [userId]`)                               |
-| **Email delivery**  | No                                                  | Yes — via `mail: { subject, html, to? }`                                  |
+|                     | `dispatchEvent`                                     | `notify`                                                                                |
+| ------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Persistence**     | No — fire-and-forget signal                         | Yes — stores through the notification provider, returns the normalized record           |
+| **Broadcast scope** | Flexible (`all`, `auth`, `roles`, `users`, `rooms`) | Always to a single user (`users: [userId]`)                                             |
+| **Email delivery**  | No                                                  | Yes — via `mail: { subject, html, to? }`                                                |
 | **Queue option**    | Yes                                                 | Yes — internally calls `dispatchEvent` with `{ queue: "mail" }` when Redis is available |
 
 ## Notes

@@ -75,6 +75,30 @@ cookie.setAuth(res, accessToken.token);
 cookie.setRefresh(res, refreshToken.token, refreshExpiry);
 ```
 
+```ts [Fastify]
+const accessToken = await jwt.generateToken(
+  { id: user.id, email: user.email, remember },
+  "access",
+);
+const refreshToken = await jwt.generateToken(
+  { id: user.id, email: user.email, remember },
+  "refresh",
+  refreshExpiry,
+);
+
+if (refreshToken.jti) {
+  await db.insert(refreshTokens).values({
+    userId: user.id,
+    jti: refreshToken.jti,
+    revoked: 0,
+    expiresAt: new Date(refreshToken.exp * 1000),
+  });
+}
+
+await cookie.setAuth(reply, accessToken.token);
+await cookie.setRefresh(reply, refreshToken.token, refreshExpiry);
+```
+
 :::
 
 ### Real world — revoke on logout
@@ -105,6 +129,19 @@ if (token) {
 }
 cookie.deleteAuth(res);
 cookie.deleteRefresh(res);
+```
+
+```ts [Fastify]
+const token = await cookie.getRefresh(request);
+if (token) {
+  const payload = await jwt.verifyToken(token, "refresh");
+  if (payload?.jti)
+    await db
+      .delete(refreshTokens)
+      .where(eq(refreshTokens.jti, payload.jti as string));
+}
+await cookie.deleteAuth(reply);
+await cookie.deleteRefresh(reply);
 ```
 
 :::

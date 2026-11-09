@@ -59,11 +59,26 @@ const result = await paginateModel(req, {
 });
 ```
 
+```ts [Fastify]
+import { desc } from "drizzle-orm";
+import { db, paginateModel } from "@/framework/facade.js";
+
+const result = await paginateModel(request, {
+  table: users,
+  query: db.query.users,
+  where: eq(users.status, "1"),
+  with: { role: true, profile: true }, // nested eager loading works too
+  orderBy: desc(users.id),
+  perPage: 10,
+  path: request.url, // Fastify — raw URL path
+});
+```
+
 :::
 
 ### Real world — deep nested relations
 
-The `entity` module composes the full option surface in one call — `with` relation objects built per role, plus `where`, `columns`, `orderBy`, and `path`:
+The 'entity' module composes the full option surface in one call — 'with' relation objects built per role, plus 'where', 'columns', 'orderBy', and 'path':
 
 ::: code-group
 

@@ -252,6 +252,22 @@ export const publishPost = (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+// src/modules/posts/controllers/post.controller.ts
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { dispatchEvent } from "@/framework/facade.js";
+
+export const publishPost = async (request: FastifyRequest, reply: FastifyReply) => {
+  const { id, title } = request.body;
+
+  // Queue the heavy work (image processing, notifications)
+  await dispatchEvent("post.publish", { postId: id }, { queue: "default" });
+
+  // Immediately confirm to the author
+  return reply.code(202).send({ message: "Post queued for publishing" });
+};
+```
+
 :::
 
 ```ts

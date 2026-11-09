@@ -84,6 +84,41 @@ export const streamMedia = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage } from "@/framework/facade.js";
+
+export const streamMedia = async (request: FastifyRequest, reply: FastifyReply) => {
+  const path = "videos/" + request.params.file; // e.g. videos/tutorial.mp4
+  const disk = storage.disk("public");
+
+  if (!(await disk.exists(path))) return reply.code(404).send(null);
+  const mime = await disk.mime(path);
+  const total = await disk.size(path);
+
+  const range = request.headers.range;
+  if (!range) {
+    // First request: learn duration
+    return reply.code(200).send({ size: total, type: mime });
+  }
+
+  const [_, spec] = range.replace(/bytes=/, "").split("-");
+  const start = Number(spec.split(",")[0]);
+  const end = Number(spec.split(",")[1]) || total - 1;
+  const chunkSize = end - start + 1;
+
+  const stream = await disk.readStream(path, { start, end });
+
+  return reply
+    .code(206)
+    .header("content-type", mime)
+    .header("content-range", `bytes ${start}-${end}/${total}`)
+    .header("accept-ranges", "bytes")
+    .header("content-length", String(chunkSize))
+    .send(stream);
+};
+```
+
 :::
 
 ## Frontend — Vue `<video>` / `<audio>`

@@ -155,6 +155,25 @@ export const importExcelUpload = async (
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { storage, dispatchEvent } from "@/framework/facade.js";
+
+// Fastify - POST /import/excel
+export const importExcelUpload = async (request: FastifyRequest, reply: FastifyReply) => {
+  const file = request.upload; // in-memory buffer from upload({ field: "file" }) as preHandler
+  if (!file)
+    return reply.code(422).send({ message: "File is required" });
+
+  const path = await storage.disk("tmp").putFile("imports", file); // streamed to tmp
+  const requestId = await dispatchEvent("report.import", {
+    filePath: path,
+    disk: "tmp",
+  });
+  return reply.code(200).send({ requestId, status: "queued" });
+};
+```
+
 :::
 
 > **Same-page note — it will run under `shouldQueue`:** the upload only enqueues. The actual import work lives in the worker registered with `shouldQueue("report.import", …)` (see the `importExcelJob` worker at the top of this page) — the upload route never reads the workbook itself.

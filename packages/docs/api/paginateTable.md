@@ -95,6 +95,30 @@ export const index = async (req: Request, res: Response) => {
 };
 ```
 
+```ts [Fastify]
+import type { FastifyRequest, FastifyReply } from "fastify";
+import { desc, ilike, or } from "drizzle-orm";
+import { db, HttpStatusCodes, paginateTable } from "@/framework/facade.js";
+
+export const index = async (request: FastifyRequest, reply: FastifyReply) => {
+  const query = request.query; // validated in place by the route schema
+  const search = String(query.search || "").trim();
+
+  const clauses: any[] = [];
+  if (search) clauses.push(ilike(reports.name, `%${search}%`));
+
+  const result = await paginateTable(db, reports, {
+    page: Number(query.page || 1),
+    perPage: Number(query.size || 10),
+    where: clauses.length ? or(...clauses) : undefined,
+    orderBy: [desc(reports.id)],
+    path: request.url,
+  });
+
+  return reply.code(HttpStatusCodes.OK).send({ message: "Files fetched successfully", data: result });
+};
+```
+
 :::
 
 ## Notes

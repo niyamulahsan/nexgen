@@ -54,6 +54,15 @@ if (!user || !(await password.verifyPassword(body.password, user.password))) {
 }
 ```
 
+```ts [Fastify]
+const user = await db.query.users.findFirst({
+  where: eq(users.email, body.email),
+});
+if (!user || !(await password.verifyPassword(body.password, user.password))) {
+  return reply.code(HttpStatusCodes.UNAUTHORIZED).send({ message: "Invalid credentials" });
+}
+```
+
 :::
 
 ## Notes

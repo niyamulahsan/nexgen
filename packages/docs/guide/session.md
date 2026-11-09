@@ -4,7 +4,7 @@
 
 The session system provides **Redis-backed server-side session state** with an automatic httpOnly cookie. It is distinct from auth — it works for both guests and logged-in users.
 
-A `sessionId` is automatically attached to every request via `sessionMiddleware`. You can read it from the request context — `c.get("sessionId")` on Hono, `res.locals.sessionId` on Express — and then use the `session` utility to store/retrieve temporary data such as shopping carts, wizard progress, or UI preferences.
+A `sessionId` is automatically attached to every request via `sessionMiddleware`. You can read it from the request context — `c.get("sessionId")` on Hono, `res.locals.sessionId` on Express, `request.sessionId` on Fastify — and then use the `session` utility to store/retrieve temporary data such as shopping carts, wizard progress, or UI preferences.
 
 ## Middleware
 
@@ -12,7 +12,7 @@ The `sessionMiddleware` runs on every request and is applied globally in `app.ts
 
 1. Checks for an existing `nexwire_session` cookie (configured in `src/config/session.ts`)
 2. If absent — generates a new `randomUUID()`, sets an httpOnly cookie with the configured TTL
-3. Stores `sessionId` on the request context (`c.set`) Hono / `res.locals`) Express
+3. Stores `sessionId` on the request context (`c.set`) Hono / `res.locals`) Express / `request.sessionId` Fastify
 4. Refreshes the session TTL on every request
 
 No manual setup is needed. The middleware is already wired in the framework boot sequence.
@@ -47,6 +47,10 @@ const sessionId = c.get("sessionId");
 
 ```ts [Express]
 const sessionId = res.locals.sessionId;
+```
+
+```ts [Fastify]
+const sessionId = request.sessionId;
 ```
 
 :::
@@ -89,10 +93,10 @@ export const sessionConfig = {
 };
 ```
 
-| Setting      | Default          | Description                                       |
-| ------------ | ---------------- | ------------------------------------------------- |
+| Setting      | Default           | Description                                       |
+| ------------ | ----------------- | ------------------------------------------------- |
 | `cookieName` | `nexwire_session` | Name of the session cookie                        |
-| `ttlSeconds` | `7200`           | Session TTL in seconds, refreshed on each request |
+| `ttlSeconds` | `7200`            | Session TTL in seconds, refreshed on each request |
 | `keyPrefix`  | `nexwire:session` | Redis key prefix for session storage              |
 
 ### Destroy a session
@@ -114,7 +118,7 @@ Client                          Server
   │                                │    no cookie → generate UUID
   │                                │    set-cookie: nexwire_session=<uuid>
   │                                │    sessionId → c.set() (Hono)
-  │                                │               → res.locals (Express)
+  │                                │              → res.locals (Express)
   │                                │    session.refresh(<uuid>)
   │ <───────────────────────────   │
   │  Set-Cookie: nexwire_session=…  │
