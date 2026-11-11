@@ -143,8 +143,8 @@ const src = `/api/media/tutorial.mp4`
 
 ## Rule of Thumb
 
-| Scenario | Helper | Response |
-| --- | --- | --- |
-| Streaming media (MP4/Audio) | `disk.readStream` with `Range` | `206 Partial Content` |
+| Scenario                    | Helper                                      | Response                                     |
+| --------------------------- | ------------------------------------------- | -------------------------------------------- |
+| Streaming media (MP4/Audio) | `disk.readStream` with `Range`              | `206 Partial Content`                        |
 | One-time generated download | `generateForDownload*` + `consumeGenerated` | `200 OK` + `Content-Disposition: attachment` |
-| Small file | `disk.read` | `200 OK` |
+| Small file                  | `disk.read`                                 | `200 OK`                                     |

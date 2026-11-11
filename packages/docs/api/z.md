@@ -6,11 +6,11 @@ The `zod` namespace augmented with `.openapi()` — which attaches examples/desc
 
 ## Signature
 
-| Function                  | Signature      | Description                                     |
-| ------------------------- | -------------- | ----------------------------------------------- |
+| Function                  | Signature      | Description                                                          |
+| ------------------------- | -------------- | -------------------------------------------------------------------- |
 | `z`                       | `ZodNamespace` | Zod extended with `.openapi()` on Hono/Express; plain Zod on Fastify |
-| `z.any().openapi(meta)`   | `(meta) => Z`  | Attach `{ example, description, ... }` metadata |
-| `z.any().openapi("Name")` | `(name) => Z`  | Name the schema in the generated spec           |
+| `z.any().openapi(meta)`   | `(meta) => Z`  | Attach `{ example, description, ... }` metadata                      |
+| `z.any().openapi("Name")` | `(name) => Z`  | Name the schema in the generated spec                                |
 
 ## Use cases
 

@@ -10,10 +10,10 @@ The JWT utility provides **token generation and verification** for the auth syst
 import { jwt } from "@/framework/facade.js";
 ```
 
-| Method | Purpose |
-|---|---|
+| Method                                             | Purpose                                                                                                                          |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `jwt.generateToken(payload, type, expirySeconds?)` | Creates a signed JWT. Access tokens get `type: "access"`; refresh tokens also get a `jti` (UUID). Returns `{ token, jti, exp }`. |
-| `jwt.verifyToken(token, type)` | Verifies the signature, checks expiry, and enforces the expected `type` claim. Returns the decoded payload or `null` on failure. |
+| `jwt.verifyToken(token, type)`                     | Verifies the signature, checks expiry, and enforces the expected `type` claim. Returns the decoded payload or `null` on failure. |
 
 ## Usage
 
@@ -41,11 +41,11 @@ if (payload) {
 
 JWT settings are in `src/config/jwt.ts`. Secrets stay in `.env`; expiries are plain literals you can tune.
 
-| Setting | Default | Description |
-|---|---|---|
-| `accessSecret` | `env.JWT_ACCESS_SECRET` | **Required.** Secret for signing access tokens (HS256) |
-| `refreshSecret` | `env.JWT_REFRESH_SECRET` | **Required.** Secret for signing refresh tokens (HS256) |
-| `accessExpirySeconds` | `900` (15 min) | Default access token TTL in seconds |
-| `refreshExpirySeconds` | `3600` (1 hour) | Default refresh token TTL in seconds |
-| `refreshRememberExpirySeconds` | `2592000` (30 days) | "Remember me" refresh token TTL |
-| `algorithm` | `HS256` | Signing algorithm |
+| Setting                        | Default                  | Description                                             |
+| ------------------------------ | ------------------------ | ------------------------------------------------------- |
+| `accessSecret`                 | `env.JWT_ACCESS_SECRET`  | **Required.** Secret for signing access tokens (HS256)  |
+| `refreshSecret`                | `env.JWT_REFRESH_SECRET` | **Required.** Secret for signing refresh tokens (HS256) |
+| `accessExpirySeconds`          | `900` (15 min)           | Default access token TTL in seconds                     |
+| `refreshExpirySeconds`         | `3600` (1 hour)          | Default refresh token TTL in seconds                    |
+| `refreshRememberExpirySeconds` | `2592000` (30 days)      | "Remember me" refresh token TTL                         |
+| `algorithm`                    | `HS256`                  | Signing algorithm                                       |

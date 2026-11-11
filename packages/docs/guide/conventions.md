@@ -98,9 +98,9 @@ default — fill them with the matching `module:make-*` command when needed.
 
 Providers are capabilities, and capabilities can be app-wide or module-scoped:
 
-| Scope | Location | Who writes it |
-| --- | --- | --- |
-| App-wide | `src/providers/` | You — the capability is shared by the whole app (e.g. SMS) |
+| Scope         | Location                          | Who writes it                                                                           |
+| ------------- | --------------------------------- | --------------------------------------------------------------------------------------- |
+| App-wide      | `src/providers/`                  | You — the capability is shared by the whole app (e.g. SMS)                              |
 | Module-scoped | `src/modules/<module>/providers/` | The module — the capability that module offers (e.g. a module's own notification store) |
 
 See [Providers](/guide/providers) for the layout rules (single file vs folder vs module) and the contracts.

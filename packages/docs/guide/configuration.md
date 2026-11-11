@@ -350,8 +350,8 @@ Access via `securityConfig` from the facade or `config.security`.
 
 All Redis keys are prefixed with `REDIS_PREFIX` (default `nexwire`):
 
-| Service       | Key Pattern        | Config              |
-| ------------- | ------------------ | ------------------- |
+| Service       | Key Pattern         | Config              |
+| ------------- | ------------------- | ------------------- |
 | Cache         | `nexwire:cache:*`   | `cache.ts`          |
 | Session       | `nexwire:session:*` | `session.ts`        |
 | Queue         | `nexwire:queue:*`   | `queue.ts`          |

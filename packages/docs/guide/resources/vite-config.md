@@ -110,16 +110,16 @@ Then rewrite `src/main.ts` for your framework's entry point.
 
 ## Key settings
 
-| Setting              | Value                                        | Notes                                                                     |
-| -------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
-| `root`               | Config file's directory (`new URL(".", import.meta.url)`) | Vite serves from `src/resources/` regardless of the process CWD     |
-| `@` alias            | `src/`                                       | Maps to `src/resources/src/`                                              |
-| `outDir`             | `../../public`                               | Build output goes to the framework's public directory                     |
-| `server.port`        | `5173`                                       | Dev server port                                                           |
-| `VITE_SOCKET_ENABLED` | `JSON.stringify(env.SOCKET === "true")`      | Boolean inlined into Pulse by both dev and build; must be stringified for Vite `define` |
-| `__SOCKET_ENABLED__`  | `JSON.stringify(env.SOCKET === "true")`      | Legacy global kept for compatibility; Pulse reads `VITE_SOCKET_ENABLED`    |
-| `__API_URL__`        | `JSON.stringify(env.APP_URL)`                | Compile-time API base URL                                                 |
-| `cacheDir`           | `%LOCALAPPDATA%/nexwire/vite-cache/resources` | Offloads cache from project directory                                     |
+| Setting               | Value                                                     | Notes                                                                                   |
+| --------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `root`                | Config file's directory (`new URL(".", import.meta.url)`) | Vite serves from `src/resources/` regardless of the process CWD                         |
+| `@` alias             | `src/`                                                    | Maps to `src/resources/src/`                                                            |
+| `outDir`              | `../../public`                                            | Build output goes to the framework's public directory                                   |
+| `server.port`         | `5173`                                                    | Dev server port                                                                         |
+| `VITE_SOCKET_ENABLED` | `JSON.stringify(env.SOCKET === "true")`                   | Boolean inlined into Pulse by both dev and build; must be stringified for Vite `define` |
+| `__SOCKET_ENABLED__`  | `JSON.stringify(env.SOCKET === "true")`                   | Legacy global kept for compatibility; Pulse reads `VITE_SOCKET_ENABLED`                 |
+| `__API_URL__`         | `JSON.stringify(env.APP_URL)`                             | Compile-time API base URL                                                               |
+| `cacheDir`            | `%LOCALAPPDATA%/nexwire/vite-cache/resources`             | Offloads cache from project directory                                                   |
 
 ## Proxy
 

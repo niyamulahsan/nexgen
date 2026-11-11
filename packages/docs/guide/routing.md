@@ -4,16 +4,16 @@ nexwire uses one of three HTTP engines for routing: **Hono** (default), **Expres
 
 Hono and Express share the same facade (`createRoute`, `group`, `HttpStatusCodes`, `jsonContent`, ...) and differ only in the handler signature. Fastify is a native Fastify application: route files export a plugin, and schemas go straight into the route object. Read [Fastify Engine](./fastify) for the full Fastify shape.
 
-| Concern             | Hono                                   | Express                             | Fastify                                              |
-| ------------------- | -------------------------------------- | ----------------------------------- | ---------------------------------------------------- |
-| Route unit          | `group().api(route, handler)`          | `group().api(route, handler)`       | `FastifyPluginAsyncZod` plugin                       |
-| Handler signature   | `(c: Context)`                         | `(req: Request, res: Response)`     | `(request: FastifyRequest, reply: FastifyReply)`     |
-| Validated body      | `c.req.valid("json")`                  | `req.body`                          | `request.body`                                       |
-| Path param          | `c.req.param("id")`                    | `req.params.id`                     | `request.params.id`                                  |
-| Query param         | `c.req.query("page")`                  | `req.query.page`                    | `request.query.page`                                 |
-| JSON response       | `c.json(data, status)`                 | `res.status(status).json(data)`     | `reply.code(status).send(data)`                      |
-| Middleware context  | `c.set("key", value)` / `c.get("key")` | `res.locals.key`                    | `request.auth` / `request.sessionId`                 |
-| Types imported from | `"hono"` (`Handler`, `Context`)        | `"express"` (`Request`, `Response`) | `"fastify"` (`FastifyRequest`, `FastifyReply`)       |
+| Concern             | Hono                                   | Express                             | Fastify                                          |
+| ------------------- | -------------------------------------- | ----------------------------------- | ------------------------------------------------ |
+| Route unit          | `group().api(route, handler)`          | `group().api(route, handler)`       | `FastifyPluginAsyncZod` plugin                   |
+| Handler signature   | `(c: Context)`                         | `(req: Request, res: Response)`     | `(request: FastifyRequest, reply: FastifyReply)` |
+| Validated body      | `c.req.valid("json")`                  | `req.body`                          | `request.body`                                   |
+| Path param          | `c.req.param("id")`                    | `req.params.id`                     | `request.params.id`                              |
+| Query param         | `c.req.query("page")`                  | `req.query.page`                    | `request.query.page`                             |
+| JSON response       | `c.json(data, status)`                 | `res.status(status).json(data)`     | `reply.code(status).send(data)`                  |
+| Middleware context  | `c.set("key", value)` / `c.get("key")` | `res.locals.key`                    | `request.auth` / `request.sessionId`             |
+| Types imported from | `"hono"` (`Handler`, `Context`)        | `"express"` (`Request`, `Response`) | `"fastify"` (`FastifyRequest`, `FastifyReply`)   |
 
 ## Basic Route
 

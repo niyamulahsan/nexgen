@@ -843,14 +843,14 @@ The template's `DataTable`, `Pagination` and `SelectOption` components navigate 
 - Do **not** drop the watcher and use `getWith`, or pagination/search clicks will only update the URL and never fetch.
 - Do **not** keep the watcher **and** use `getWith` for navigation, or every click fetches twice.
 
-| Concern                     | URL-based                             | Store-owned (`*With`)                          |
-| --------------------------- | ------------------------------------- | ---------------------------------------------- |
-| Who knows the URL           | Component                             | Store                                          |
-| GET/listing                 | `gum.get(url, { skipFetch: true })` + watcher | `gum.getWith({ fetcher })` + no watcher (custom pagination) |
-| Submit                      | `gum.form.post(url, ...)`             | `gum.form.postWith({ fetcher })`               |
-| Delete                      | `gum.delete(url, ...)`                | `gum.deleteWith({ fetcher })`                  |
-| Refresh after mutation      | Required in `onSuccess`               | Optional — only if the store does not update itself |
-| Works with built-in DataTable | Yes                                 | Yes, but keep the watcher for listing          |
+| Concern                       | URL-based                                     | Store-owned (`*With`)                                       |
+| ----------------------------- | --------------------------------------------- | ----------------------------------------------------------- |
+| Who knows the URL             | Component                                     | Store                                                       |
+| GET/listing                   | `gum.get(url, { skipFetch: true })` + watcher | `gum.getWith({ fetcher })` + no watcher (custom pagination) |
+| Submit                        | `gum.form.post(url, ...)`                     | `gum.form.postWith({ fetcher })`                            |
+| Delete                        | `gum.delete(url, ...)`                        | `gum.deleteWith({ fetcher })`                               |
+| Refresh after mutation        | Required in `onSuccess`                       | Optional — only if the store does not update itself         |
+| Works with built-in DataTable | Yes                                           | Yes, but keep the watcher for listing                       |
 
 Never mix both styles for the same call on one page — one path through the store and one bypassing it will leave the store state out of sync with the URL.
 

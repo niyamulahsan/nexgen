@@ -12,23 +12,23 @@ import { lodash } from "@/framework/facade.js";
 
 ## Common Methods
 
-| Method | Purpose |
-|---|---|
-| `lodash.add(a, b)` | Adds two numbers |
-| `lodash.subtract(a, b)` | Subtracts `b` from `a` |
-| `lodash.multiply(a, b)` | Multiplies two numbers |
-| `lodash.divide(a, b)` | Divides `a` by `b` |
-| `lodash.sum(array)` | Returns the sum of an array |
-| `lodash.sumBy(array, iteratee)` | Sums by iteratee |
-| `lodash.mean(array)` | Returns the mean average |
-| `lodash.meanBy(array, iteratee)` | Mean by iteratee |
-| `lodash.max(array)` | Returns the maximum value |
-| `lodash.maxBy(array, iteratee)` | Max by iteratee |
-| `lodash.min(array)` | Returns the minimum value |
-| `lodash.minBy(array, iteratee)` | Min by iteratee |
-| `lodash.ceil(number, precision)` | Rounds up to `precision` decimal places |
+| Method                            | Purpose                                   |
+| --------------------------------- | ----------------------------------------- |
+| `lodash.add(a, b)`                | Adds two numbers                          |
+| `lodash.subtract(a, b)`           | Subtracts `b` from `a`                    |
+| `lodash.multiply(a, b)`           | Multiplies two numbers                    |
+| `lodash.divide(a, b)`             | Divides `a` by `b`                        |
+| `lodash.sum(array)`               | Returns the sum of an array               |
+| `lodash.sumBy(array, iteratee)`   | Sums by iteratee                          |
+| `lodash.mean(array)`              | Returns the mean average                  |
+| `lodash.meanBy(array, iteratee)`  | Mean by iteratee                          |
+| `lodash.max(array)`               | Returns the maximum value                 |
+| `lodash.maxBy(array, iteratee)`   | Max by iteratee                           |
+| `lodash.min(array)`               | Returns the minimum value                 |
+| `lodash.minBy(array, iteratee)`   | Min by iteratee                           |
+| `lodash.ceil(number, precision)`  | Rounds up to `precision` decimal places   |
 | `lodash.floor(number, precision)` | Rounds down to `precision` decimal places |
-| `lodash.round(number, precision)` | Rounds to `precision` decimal places |
+| `lodash.round(number, precision)` | Rounds to `precision` decimal places      |
 
 ## Usage
 

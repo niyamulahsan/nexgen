@@ -11,10 +11,10 @@
 
 ## Environment Variables
 
-| Variable  | Default  | Description                                       |
-| --------- | -------- | ------------------------------------------------- |
-| `SOCKET`  | `false`  | Enable/disable Socket.IO server entirely          |
-| `REDIS`   | `false`  | Enable Redis adapter for multi-instance broadcast |
+| Variable | Default | Description                                       |
+| -------- | ------- | ------------------------------------------------- |
+| `SOCKET` | `false` | Enable/disable Socket.IO server entirely          |
+| `REDIS`  | `false` | Enable Redis adapter for multi-instance broadcast |
 
 Set `SOCKET=false` in `.env` to disable all WebSocket functionality. `dispatchEvent()` with `broadcast` options will be a no-op.
 
@@ -31,10 +31,10 @@ The HTTP path is fixed at `/socket.io` (`WS_PATH` in `src/framework/realtime/soc
 
 When a client connects, the `initRealtime()` middleware extracts the JWT from the handshake cookie — or, for desktop and native clients that cannot send that cookie, from the Socket.IO `auth.token` payload — and joins the socket to rooms automatically:
 
-| Condition                   | Rooms Joined                                                         |
-| --------------------------- | -------------------------------------------------------------------- |
-| Authenticated               | `"auth"`, `"user:<userId>"`, `"role:<role1>"`, `"role:<role2>"`, ... |
-| Unauthenticated             | `"guest"`                                                            |
+| Condition                   | Rooms Joined                                                          |
+| --------------------------- | --------------------------------------------------------------------- |
+| Authenticated               | `"auth"`, `"user:<userId>"`, `"role:<role1>"`, `"role:<role2>"`, ...  |
+| Unauthenticated             | `"guest"`                                                             |
 | Client emits `"join"` event | Public channels, own `"user:<id>"`, authenticated `"private:*"` rooms |
 
 ```ts
@@ -52,14 +52,14 @@ socket.emit("join", "room:chat:general");
 
 A client-emitted `join` is checked on the server (`canJoinRoom()` in `src/framework/realtime/rooms.ts`) before the socket subscribes. Identity rooms are assigned from the verified token, never from the client:
 
-| Requested room        | Guest | Authenticated user            |
-| --------------------- | ----- | ----------------------------- |
-| `room:<name>`, `chat` | ✅    | ✅                            |
-| `private:<group>`     | ❌    | ✅                            |
-| `private:user:<id>`   | ❌    | only their own `<id>`         |
-| `user:<id>`           | ❌    | only their own `<id>`         |
-| `role:<name>`         | ❌    | only roles in their token     |
-| `auth`, `guest`       | ❌    | ❌                            |
+| Requested room        | Guest | Authenticated user        |
+| --------------------- | ----- | ------------------------- |
+| `room:<name>`, `chat` | ✅     | ✅                         |
+| `private:<group>`     | ❌     | ✅                         |
+| `private:user:<id>`   | ❌     | only their own `<id>`     |
+| `user:<id>`           | ❌     | only their own `<id>`     |
+| `role:<name>`         | ❌     | only roles in their token |
+| `auth`, `guest`       | ❌     | ❌                         |
 
 A refused join is answered with a `join:error` event carrying `{ room, reason: "forbidden" }` and logged at debug level. Use the server-assigned `user:<id>` rooms (or `broadcast(..., { users: [id] })`) for per-user delivery; `private:*` is for authenticated audiences, not a substitute for user targeting.
 

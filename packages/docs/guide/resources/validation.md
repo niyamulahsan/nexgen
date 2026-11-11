@@ -43,11 +43,11 @@ async function handleSubmit() {
 
 ## Error display per component
 
-| Component | Prop | Example |
-|-----------|------|---------|
-| `Input` | `err` | `:err="form.errors?.email"` |
+| Component             | Prop  | Example                        |
+| --------------------- | ----- | ------------------------------ |
+| `Input`               | `err` | `:err="form.errors?.email"`    |
 | `InputPasswordToggle` | `err` | `:err="form.errors?.password"` |
-| `Select` | `err` | `:err="form.errors?.user_id"` |
-| `TextArea` | `err` | `:err="form.errors?.bio"` |
+| `Select`              | `err` | `:err="form.errors?.user_id"`  |
+| `TextArea`            | `err` | `:err="form.errors?.bio"`      |
 
 When `err` is a string, it displays as red text below the input. When `err` is an array (from nested errors), join or display the first element.

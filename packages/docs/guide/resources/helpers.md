@@ -30,13 +30,13 @@ asset("../assets/images/logo.png");
 asset("https://cdn.example.com/logo.png"); // returned unchanged
 ```
 
-| Input                   | Resolution                                                  |
-| ----------------------- | ----------------------------------------------------------- |
-| `http://`, `https://`, `data:` | Returned unchanged                                   |
-| `@/...`                 | Rewritten to `/src/...`                                     |
-| `/...` (not `/src/...`) | Rewritten to `/src/...`                                     |
-| `../...`                | Matched against the glob keys by suffix                     |
-| Anything else           | Looked up as an exact `/src/...` glob key                   |
+| Input                          | Resolution                                |
+| ------------------------------ | ----------------------------------------- |
+| `http://`, `https://`, `data:` | Returned unchanged                        |
+| `@/...`                        | Rewritten to `/src/...`                   |
+| `/...` (not `/src/...`)        | Rewritten to `/src/...`                   |
+| `../...`                       | Matched against the glob keys by suffix   |
+| Anything else                  | Looked up as an exact `/src/...` glob key |
 
 Use it when an image path is only known at runtime. In templates, a literal `src="@/assets/images/logo.png"` still works because Vite rewrites it at build time:
 

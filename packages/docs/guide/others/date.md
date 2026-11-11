@@ -12,49 +12,49 @@ import { DateTime } from "luxon";
 
 ## Creating Dates
 
-| Method | Purpose |
-|---|---|
-| `DateTime.now()` | Returns the current date and time in the system zone |
-| `DateTime.local(year, month, day)` | Creates a date from local components |
-| `DateTime.utc(year, month, day)` | Creates a date in UTC |
-| `DateTime.fromISO(string)` | Parses an ISO 8601 string |
-| `DateTime.fromJSDate(date)` | Converts a native `Date` object |
-| `DateTime.fromMillis(milliseconds)` | From Unix milliseconds |
-| `DateTime.fromSeconds(seconds)` | From Unix seconds |
-| `DateTime.fromFormat(string, format)` | Parses a formatted string |
+| Method                                | Purpose                                              |
+| ------------------------------------- | ---------------------------------------------------- |
+| `DateTime.now()`                      | Returns the current date and time in the system zone |
+| `DateTime.local(year, month, day)`    | Creates a date from local components                 |
+| `DateTime.utc(year, month, day)`      | Creates a date in UTC                                |
+| `DateTime.fromISO(string)`            | Parses an ISO 8601 string                            |
+| `DateTime.fromJSDate(date)`           | Converts a native `Date` object                      |
+| `DateTime.fromMillis(milliseconds)`   | From Unix milliseconds                               |
+| `DateTime.fromSeconds(seconds)`       | From Unix seconds                                    |
+| `DateTime.fromFormat(string, format)` | Parses a formatted string                            |
 
 ## Formatting
 
-| Method | Purpose |
-|---|---|
-| `.toISO()` | Returns ISO 8601 string |
-| `.toFormat(format)` | Formats using tokens (`yyyy-MM-dd`, `HH:mm:ss`, etc.) |
-| `.toLocaleString()` | Locale-aware string |
-| `.toRelative()` | Relative time ("2 hours ago") |
-| `.toRelativeCalendar()` | Calendar relative ("yesterday", "next month") |
-| `.toMillis()` | Unix milliseconds |
-| `.toSeconds()` | Unix seconds |
-| `.toJSDate()` | Converts to native `Date` |
+| Method                  | Purpose                                               |
+| ----------------------- | ----------------------------------------------------- |
+| `.toISO()`              | Returns ISO 8601 string                               |
+| `.toFormat(format)`     | Formats using tokens (`yyyy-MM-dd`, `HH:mm:ss`, etc.) |
+| `.toLocaleString()`     | Locale-aware string                                   |
+| `.toRelative()`         | Relative time ("2 hours ago")                         |
+| `.toRelativeCalendar()` | Calendar relative ("yesterday", "next month")         |
+| `.toMillis()`           | Unix milliseconds                                     |
+| `.toSeconds()`          | Unix seconds                                          |
+| `.toJSDate()`           | Converts to native `Date`                             |
 
 ## Manipulation
 
-| Method | Purpose |
-|---|---|
-| `.plus({ days: 1 })` | Add time (also: `months`, `years`, `hours`, `minutes`, `seconds`) |
-| `.minus({ weeks: 2 })` | Subtract time |
-| `.startOf("day")` | Start of the unit ("month", "week", "day", "hour") |
-| `.endOf("month")` | End of the unit |
-| `.set({ hour: 0, minute: 0 })` | Set specific components |
+| Method                         | Purpose                                                           |
+| ------------------------------ | ----------------------------------------------------------------- |
+| `.plus({ days: 1 })`           | Add time (also: `months`, `years`, `hours`, `minutes`, `seconds`) |
+| `.minus({ weeks: 2 })`         | Subtract time                                                     |
+| `.startOf("day")`              | Start of the unit ("month", "week", "day", "hour")                |
+| `.endOf("month")`              | End of the unit                                                   |
+| `.set({ hour: 0, minute: 0 })` | Set specific components                                           |
 
 ## Comparison
 
-| Method | Purpose |
-|---|---|
-| `.hasSame(other, "day")` | Check if same unit ("year", "month", "day") |
-| `.diff(other, "days")` | Returns a Duration between two dates |
-| `.diffNow("hours")` | Difference from now |
-| `.equals(other)` | Exact equality check |
-| `dt1 < dt2` | Comparison operators work (via `.valueOf()`) |
+| Method                   | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| `.hasSame(other, "day")` | Check if same unit ("year", "month", "day")  |
+| `.diff(other, "days")`   | Returns a Duration between two dates         |
+| `.diffNow("hours")`      | Difference from now                          |
+| `.equals(other)`         | Exact equality check                         |
+| `dt1 < dt2`              | Comparison operators work (via `.valueOf()`) |
 
 ## Usage
 

@@ -14,10 +14,10 @@ A provider is a **capability**, not a domain. If the thing you are building has 
 
 ## Where providers live
 
-| Location              | Scope                                    | Imported                        |
-| --------------------- | ---------------------------------------- | ------------------------------- |
-| `src/providers/**`    | The whole application                    | Every matching file, at boot    |
-| `src/modules/<m>/providers.ts` | One module, plugged into the app | Automatically, at boot          |
+| Location                         | Scope                               | Imported                                     |
+| -------------------------------- | ----------------------------------- | -------------------------------------------- |
+| `src/providers/**`               | The whole application               | Every matching file, at boot                 |
+| `src/modules/<m>/providers.ts`   | One module, plugged into the app    | Automatically, at boot                       |
 | `src/modules/<m>/providers/*.ts` | One module, several implementations | Every file directly in `providers/`, at boot |
 
 All three are discovered by the framework at startup. Drop a file in and it runs — there is nothing to edit in `app.ts`, and nothing to import from `@/framework/...` internals.
@@ -39,12 +39,12 @@ npm run maker module:make-provider billing stripe  # -> src/modules/billing/prov
 
 The loader globs `src/providers/**/*.{ts,js,mjs}` and imports **every** matching file at boot, in sorted order. Module providers are narrower: only `providers.ts` and `providers/*.ts` are imported. That difference decides the layout.
 
-| Situation | Layout |
-| --- | --- |
-| One driver, small, no shared contract | `src/providers/sms.ts` |
-| A real contract, two or more drivers, tests | `src/modules/sms/` with `providers.ts` as the registrar |
-| A capability only one module owns | `src/modules/<module>/providers.ts` |
-| Anything with rows, routes, expiry or cleanup | A module — never a provider |
+| Situation                                     | Layout                                                  |
+| --------------------------------------------- | ------------------------------------------------------- |
+| One driver, small, no shared contract         | `src/providers/sms.ts`                                  |
+| A real contract, two or more drivers, tests   | `src/modules/sms/` with `providers.ts` as the registrar |
+| A capability only one module owns             | `src/modules/<module>/providers.ts`                     |
+| Anything with rows, routes, expiry or cleanup | A module — never a provider                             |
 
 The test is not line count, it is **"will there be a second implementation?"** One vendor stays a single file. Two or more become module-shaped, because that is the only layout where the drivers you did not select cost nothing at boot.
 
@@ -52,11 +52,11 @@ The test is not line count, it is **"will there be a second implementation?"** O
 
 They feel like one feature, but they sit at different layers:
 
-| | SMS | OTP |
-| --- | --- | --- |
-| What it is | A transport — how a message leaves the building | A feature — generate, hash, expire, verify, rate-limit |
-| Where it belongs | `src/providers/sms.ts` or `src/modules/sms/` | `src/modules/otp/` |
-| Why | Swappable per vendor, stateless, no routes | Has tables, routes, a cleanup job and tests |
+|                  | SMS                                             | OTP                                                    |
+| ---------------- | ----------------------------------------------- | ------------------------------------------------------ |
+| What it is       | A transport — how a message leaves the building | A feature — generate, hash, expire, verify, rate-limit |
+| Where it belongs | `src/providers/sms.ts` or `src/modules/sms/`    | `src/modules/otp/`                                     |
+| Why              | Swappable per vendor, stateless, no routes      | Has tables, routes, a cleanup job and tests            |
 
 OTP *uses* the SMS provider. It does not become one:
 
@@ -218,13 +218,13 @@ const authProvider: AuthProvider = {
 registerAuthProvider(authProvider);
 ```
 
-| Method | Required | Purpose |
-| --- | --- | --- |
-| `getUserById(id)` | Yes | Loads a user. `id` is `number | string`, and extra fields are passed through to the auth context. |
-| `findRefreshToken(jti)` | Yes | Loads a stored refresh token by its JWT id. |
-| `revokeRefreshToken(id)` | No | Revokes a refresh token. `deleteRefreshToken(id)` also works. |
-| `getAuthContext(user, payload)` | No | Shapes the object handlers receive as `auth`. |
-| `getUserContact(userId)` | No | Finds the email/name of a user — used by `notify()`. Accepts `number | string`. |
+| Method                          | Required | Purpose                                                              |
+| ------------------------------- | -------- | -------------------------------------------------------------------- |
+| `getUserById(id)`               | Yes      | Loads a user. `id` is `number                                        | string`, and extra fields are passed through to the auth context. |
+| `findRefreshToken(jti)`         | Yes      | Loads a stored refresh token by its JWT id.                          |
+| `revokeRefreshToken(id)`        | No       | Revokes a refresh token. `deleteRefreshToken(id)` also works.        |
+| `getAuthContext(user, payload)` | No       | Shapes the object handlers receive as `auth`.                        |
+| `getUserContact(userId)`        | No       | Finds the email/name of a user — used by `notify()`. Accepts `number | string`.                                                          |
 
 Every auth id in the contract is `number | string` so a provider backed by UUIDs is a first-class citizen.
 
@@ -254,15 +254,15 @@ const notificationProvider: NotificationProvider = {
 registerNotificationProvider(notificationProvider);
 ```
 
-| Method | Required | Purpose |
-| --- | --- | --- |
-| `create(target, input)` | Yes | Stores one notification and returns it. |
-| `list(target, options)` | Yes | Returns `{ data, total, unread, page, perPage }`. |
-| `unreadCount(target)` | Yes | Returns the unread count. |
-| `markRead(target, id)` | Yes | Marks one notification read; returns whether it existed. |
-| `markAllRead(target)` | Yes | Marks every unread notification read; returns how many changed. |
-| `remove(target, id)` | Yes | Deletes one notification; returns whether it existed. |
-| `deleteForTarget(target)` | No | Removes everything owned by a target (useful when the owner is deleted). |
+| Method                    | Required | Purpose                                                                  |
+| ------------------------- | -------- | ------------------------------------------------------------------------ |
+| `create(target, input)`   | Yes      | Stores one notification and returns it.                                  |
+| `list(target, options)`   | Yes      | Returns `{ data, total, unread, page, perPage }`.                        |
+| `unreadCount(target)`     | Yes      | Returns the unread count.                                                |
+| `markRead(target, id)`    | Yes      | Marks one notification read; returns whether it existed.                 |
+| `markAllRead(target)`     | Yes      | Marks every unread notification read; returns how many changed.          |
+| `remove(target, id)`      | Yes      | Deletes one notification; returns whether it existed.                    |
+| `deleteForTarget(target)` | No       | Removes everything owned by a target (useful when the owner is deleted). |
 
 A target is `{ type?: string; id: number | string }`; `type` defaults to `"user"` and the id is always passed through as-is, so numeric auth ids and UUIDs both work.
 
@@ -302,11 +302,11 @@ The module ships the implementation, the application decides to use it. Nothing 
 
 Modules do not import each other. There are three ways to talk:
 
-| Need                                      | Mechanism                              |
-| ----------------------------------------- | -------------------------------------- |
-| Call something another module owns        | That module's `facade.ts`             |
-| Notify another module something happened  | `dispatchEvent` / `dispatchCommand`    |
-| Swap an implementation                    | A provider                             |
+| Need                                     | Mechanism                           |
+| ---------------------------------------- | ----------------------------------- |
+| Call something another module owns       | That module's `facade.ts`           |
+| Notify another module something happened | `dispatchEvent` / `dispatchCommand` |
+| Swap an implementation                   | A provider                          |
 
 A module's `facade.ts` is its public API — other modules import from it, never from its controllers or services:
 
@@ -343,24 +343,24 @@ registerProvider("billing", {
 
 ## API
 
-| Function | Purpose |
-| --- | --- |
-| `registerProvider(key, impl)` | Registers an implementation under a key and returns it. |
-| `getProvider(key)` | Returns the implementation, or `null`. |
-| `hasProvider(key)` | Reports whether an implementation is registered. |
-| `clearProvider(key)` | Removes it — mainly useful in tests. |
-| `listProviders()` | Lists every registered key. |
-| `registerAuthProvider(impl)` | Typed shorthand for the `auth` key. |
-| `getAuthProvider()` | The registered auth provider, or `null`. |
-| `hasAuthProvider()` | Reports whether an auth provider is registered. |
-| `clearAuthProvider()` | Removes it — mainly useful in tests. |
-| `registerNotificationProvider(impl)` | Typed shorthand for the `notification` key. |
-| `getNotificationProvider()` | The registered notification provider, or `null`. |
-| `hasNotificationProvider()` | Reports whether a notification provider is registered. |
-| `clearNotificationProvider()` | Removes it — mainly useful in tests. |
-| `resolveAuthProvider()` | The registered auth provider, or the built-in one, or `null`. |
-| `resolveNotificationProvider()` | The registered notification provider, or `null`. |
-| `loadProviders()` | Imports the provider files. Called by the framework at boot. |
+| Function                             | Purpose                                                       |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `registerProvider(key, impl)`        | Registers an implementation under a key and returns it.       |
+| `getProvider(key)`                   | Returns the implementation, or `null`.                        |
+| `hasProvider(key)`                   | Reports whether an implementation is registered.              |
+| `clearProvider(key)`                 | Removes it — mainly useful in tests.                          |
+| `listProviders()`                    | Lists every registered key.                                   |
+| `registerAuthProvider(impl)`         | Typed shorthand for the `auth` key.                           |
+| `getAuthProvider()`                  | The registered auth provider, or `null`.                      |
+| `hasAuthProvider()`                  | Reports whether an auth provider is registered.               |
+| `clearAuthProvider()`                | Removes it — mainly useful in tests.                          |
+| `registerNotificationProvider(impl)` | Typed shorthand for the `notification` key.                   |
+| `getNotificationProvider()`          | The registered notification provider, or `null`.              |
+| `hasNotificationProvider()`          | Reports whether a notification provider is registered.        |
+| `clearNotificationProvider()`        | Removes it — mainly useful in tests.                          |
+| `resolveAuthProvider()`              | The registered auth provider, or the built-in one, or `null`. |
+| `resolveNotificationProvider()`      | The registered notification provider, or `null`.              |
+| `loadProviders()`                    | Imports the provider files. Called by the framework at boot.  |
 
 All of them are imported from the facade:
 

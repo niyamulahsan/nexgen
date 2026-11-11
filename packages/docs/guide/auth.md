@@ -4,24 +4,24 @@
 
 Auth ships complete. A fresh project has a working user system — you protect a route and sign in; you do not build the login flow first.
 
-| Included | Route |
-| --- | --- |
-| Register | `POST /api/auth/register` |
-| Sign in | `POST /api/auth/login` |
-| Email verification | `POST /api/auth/verify-email` |
+| Included                | Route                                                             |
+| ----------------------- | ----------------------------------------------------------------- |
+| Register                | `POST /api/auth/register`                                         |
+| Sign in                 | `POST /api/auth/login`                                            |
+| Email verification      | `POST /api/auth/verify-email`                                     |
 | Forgot / reset password | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` |
-| Silent refresh | `POST /api/auth/refresh-token` (and automatic in the middleware) |
-| Sign out | `POST /api/auth/logout`, `POST /api/auth/logout-all` |
-| Current user | `GET /api/auth/me` |
-| Roles | `GET /api/auth/role`, admin only |
+| Silent refresh          | `POST /api/auth/refresh-token` (and automatic in the middleware)  |
+| Sign out                | `POST /api/auth/logout`, `POST /api/auth/logout-all`              |
+| Current user            | `GET /api/auth/me`                                                |
+| Roles                   | `GET /api/auth/role`, admin only                                  |
 
 Three layers do the work, and it helps to know which one you are changing:
 
-| Layer | What it owns | Where |
-| --- | --- | --- |
-| **Auth module** | Users, passwords, tokens, routes, seeders | `src/modules/auth/` |
-| **Middleware** | The gate: authenticate a request, expose `auth` | `src/middlewares/auth-middleware.ts` |
-| **Provider** | Where users and refresh tokens are read from | `src/providers/` (or the built-in default) |
+| Layer           | What it owns                                    | Where                                      |
+| --------------- | ----------------------------------------------- | ------------------------------------------ |
+| **Auth module** | Users, passwords, tokens, routes, seeders       | `src/modules/auth/`                        |
+| **Middleware**  | The gate: authenticate a request, expose `auth` | `src/middlewares/auth-middleware.ts`       |
+| **Provider**    | Where users and refresh tokens are read from    | `src/providers/` (or the built-in default) |
 
 You only touch the provider when you want a different user store. Everything else works as shipped — see [Replacing auth](#replacing-auth).
 
@@ -100,12 +100,12 @@ export const create = async (request: FastifyRequest, reply: FastifyReply) => {
 
 What the request gets:
 
-| Request | Result |
-| --- | --- |
-| Valid access token | `200` — handler runs with `auth` set |
-| Expired access token + valid refresh token | A new access token is set as a cookie, then the handler runs |
-| No valid token, or a revoked/expired refresh token | `401` — cookies are cleared, the handler never runs |
-| No auth provider at all | Warning logged, `next()` runs unauthenticated — see [degraded mode](#degraded-mode) |
+| Request                                            | Result                                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Valid access token                                 | `200` — handler runs with `auth` set                                                |
+| Expired access token + valid refresh token         | A new access token is set as a cookie, then the handler runs                        |
+| No valid token, or a revoked/expired refresh token | `401` — cookies are cleared, the handler never runs                                 |
+| No auth provider at all                            | Warning logged, `next()` runs unauthenticated — see [degraded mode](#degraded-mode) |
 
 Order matters: `authMiddleware` before `requireRole`, because `requireRole` reads what `authMiddleware` wrote. See [Middleware](./middleware#order-matters).
 
@@ -156,10 +156,10 @@ That fallback exists so deleting the auth module does not crash every route. It 
 
 Roles are authorisation, applied after authentication. The scaffold seeds two roles:
 
-| Role | Seeded for |
-| --- | --- |
+| Role    | Seeded for          |
+| ------- | ------------------- |
 | `admin` | `admin@example.com` |
-| `user` | `user1@example.com` |
+| `user`  | `user1@example.com` |
 
 The seeder password is `Password@123`. Change or remove these accounts before deploying.
 
@@ -170,11 +170,11 @@ import { requireRole } from "@/middlewares/role-middleware.js";
 .api(editorRoute, [authMiddleware, requireRole("admin", "editor")], update)
 ```
 
-| Situation | Response |
-| --- | --- |
-| `auth` is missing | `401 Unauthorized` |
+| Situation                      | Response                                  |
+| ------------------------------ | ----------------------------------------- |
+| `auth` is missing              | `401 Unauthorized`                        |
 | `auth.role` is not in the list | `403 Forbidden: Insufficient permissions` |
-| `auth.role` matches | Continues to the handler |
+| `auth.role` matches            | Continues to the handler                  |
 
 - Comparison is **case-insensitive**: `requireRole("Admin")` matches `role: "admin"`.
 - `auth.role` must be a **string**. The default provider maps the user's `role.name` to a string for you. A custom provider that returns `role: { id, name }` will not match — flatten it to a string in `getAuthContext()`.
@@ -195,14 +195,14 @@ if (hasRole(auth, ["admin"])) {
 
 Auth uses two JWTs, both signed with HS256 and stored in httpOnly cookies.
 
-| | Access token | Refresh token |
-| --- | --- | --- |
-| Default lifetime | 15 minutes (`accessExpirySeconds`) | 1 hour (`refreshExpirySeconds`), 30 days with "remember me" (`refreshRememberExpirySeconds`) |
-| Secret | `JWT_ACCESS_SECRET` | `JWT_REFRESH_SECRET` |
-| Cookie | `{cookie.name}_access` | `{cookie.name}_refresh` |
-| Sent by the client | Automatically, on every request | Automatically; read only when the access token fails |
-| Tracked in the database | No | Yes — `refresh_tokens` by `jti` (unique JWT id) |
-| Revocable | No — expires on its own | Yes — logout, logout-all, password reset |
+|                         | Access token                       | Refresh token                                                                                |
+| ----------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| Default lifetime        | 15 minutes (`accessExpirySeconds`) | 1 hour (`refreshExpirySeconds`), 30 days with "remember me" (`refreshRememberExpirySeconds`) |
+| Secret                  | `JWT_ACCESS_SECRET`                | `JWT_REFRESH_SECRET`                                                                         |
+| Cookie                  | `{cookie.name}_access`             | `{cookie.name}_refresh`                                                                      |
+| Sent by the client      | Automatically, on every request    | Automatically; read only when the access token fails                                         |
+| Tracked in the database | No                                 | Yes — `refresh_tokens` by `jti` (unique JWT id)                                              |
+| Revocable               | No — expires on its own            | Yes — logout, logout-all, password reset                                                     |
 
 The client never implements refresh logic. When the access token expires, the next request refreshes it transparently.
 
@@ -217,16 +217,16 @@ const payload = await jwt.verifyToken(token, "access");
 
 ## Configuration
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `JWT_ACCESS_SECRET` | — | **Required.** Signs access tokens |
-| `JWT_REFRESH_SECRET` | — | **Required.** Signs refresh tokens |
-| `COOKIE_SECRET` | — | **Required.** Signs cookies |
-| `accessExpirySeconds` | `900` (15 min) | `src/config/jwt.ts` |
-| `refreshExpirySeconds` | `3600` (1 hour) | `src/config/jwt.ts` |
-| `refreshRememberExpirySeconds` | `2592000` (30 days) | `src/config/jwt.ts` |
-| `cookie.name` | `nexwire` | Cookie prefix — `nexwire_access`, `nexwire_refresh` in `src/config/cookie.ts` |
-| `requireEmailVerification` | `false` | Blocks login until the email is verified, in `src/config/auth.ts` |
+| Variable                       | Default             | Description                                                                   |
+| ------------------------------ | ------------------- | ----------------------------------------------------------------------------- |
+| `JWT_ACCESS_SECRET`            | —                   | **Required.** Signs access tokens                                             |
+| `JWT_REFRESH_SECRET`           | —                   | **Required.** Signs refresh tokens                                            |
+| `COOKIE_SECRET`                | —                   | **Required.** Signs cookies                                                   |
+| `accessExpirySeconds`          | `900` (15 min)      | `src/config/jwt.ts`                                                           |
+| `refreshExpirySeconds`         | `3600` (1 hour)     | `src/config/jwt.ts`                                                           |
+| `refreshRememberExpirySeconds` | `2592000` (30 days) | `src/config/jwt.ts`                                                           |
+| `cookie.name`                  | `nexwire`           | Cookie prefix — `nexwire_access`, `nexwire_refresh` in `src/config/cookie.ts` |
+| `requireEmailVerification`     | `false`             | Blocks login until the email is verified, in `src/config/auth.ts`             |
 
 The three secrets are the only required values. Generate each one separately; never reuse a secret between access, refresh and cookie signing.
 
@@ -234,9 +234,9 @@ The three secrets are the only required values. Generate each one separately; ne
 
 Every auth cookie is `httpOnly`, `sameSite: "Lax"` (`"None"` and `secure` for cross-origin), `path: "/"`:
 
-| Cookie | Contents | Max-Age |
-| --- | --- | --- |
-| `{cookie.name}_access` | Access JWT | `accessExpirySeconds` |
+| Cookie                  | Contents    | Max-Age                                                                    |
+| ----------------------- | ----------- | -------------------------------------------------------------------------- |
+| `{cookie.name}_access`  | Access JWT  | `accessExpirySeconds`                                                      |
 | `{cookie.name}_refresh` | Refresh JWT | `refreshExpirySeconds`, or `refreshRememberExpirySeconds` on "remember me" |
 
 Because they are `httpOnly`, browser JavaScript cannot read them — the client authenticates by simply sending the request. See [Cookie](./support/cookie) for the facade.
@@ -245,17 +245,17 @@ Because they are `httpOnly`, browser JavaScript cannot read them — the client 
 
 The module is self-contained. This is what each part is for:
 
-| Path | Responsibility |
-| --- | --- |
-| `routes/index.ts` | Public routes (register, login, forgot/reset, verify, refresh) and protected routes (`me`, logout, logout-all) |
-| `routes/role.ts` | Role read routes, behind `authMiddleware` + `requireRole("admin")` |
-| `controllers/` | HTTP layer: read the request, call a service, shape the response |
-| `services/` | One file per action — `login.ts`, `register.ts`, `refreshtoken.ts`, `logout.ts`, … |
-| `database/models/` | Drizzle `users`, `roles`, `refresh_tokens` models |
-| `database/seeders/` | `admin` / `user` roles and two demo users |
-| `jobs/` | Mail jobs for registration, verification and password reset |
-| `helpers/auth.ts` | `getCurrentUser`, `hasRole` — exported through the facade |
-| `facade.ts` | The module's public API; other modules import from here, never from controllers or services |
+| Path                | Responsibility                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `routes/index.ts`   | Public routes (register, login, forgot/reset, verify, refresh) and protected routes (`me`, logout, logout-all) |
+| `routes/role.ts`    | Role read routes, behind `authMiddleware` + `requireRole("admin")`                                             |
+| `controllers/`      | HTTP layer: read the request, call a service, shape the response                                               |
+| `services/`         | One file per action — `login.ts`, `register.ts`, `refreshtoken.ts`, `logout.ts`, …                             |
+| `database/models/`  | Drizzle `users`, `roles`, `refresh_tokens` models                                                              |
+| `database/seeders/` | `admin` / `user` roles and two demo users                                                                      |
+| `jobs/`             | Mail jobs for registration, verification and password reset                                                    |
+| `helpers/auth.ts`   | `getCurrentUser`, `hasRole` — exported through the facade                                                      |
+| `facade.ts`         | The module's public API; other modules import from here, never from controllers or services                    |
 
 Routes are auto-discovered: any `src/modules/<module>/routes/*.ts` file is mounted at `/api/<module>`. Adding a route file does not require editing a registry.
 
@@ -297,12 +297,12 @@ registerAuthProvider(authProvider);
 
 ### What the provider does and does not control
 
-| Provider controls | The auth module still controls |
-| --- | --- |
-| Where users live | `POST /api/auth/login` and credential checking |
-| Where refresh tokens are stored | Signing and issuing JWTs |
-| The shape of `auth` | Password hashing and the register flow |
-| Email/name lookup for `notify()` | Email verification and password reset |
+| Provider controls                | The auth module still controls                 |
+| -------------------------------- | ---------------------------------------------- |
+| Where users live                 | `POST /api/auth/login` and credential checking |
+| Where refresh tokens are stored  | Signing and issuing JWTs                       |
+| The shape of `auth`              | Password hashing and the register flow         |
+| Email/name lookup for `notify()` | Email verification and password reset          |
 
 Registering a provider **replaces** the built-in one. It does not decorate or extend it: two providers cannot both answer for the `auth` key, and the last registration wins.
 
@@ -342,36 +342,36 @@ See [Session](./session) for configuration and the API.
 
 ### users
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | int PK | auto-increment |
-| `name` | varchar(255) | |
-| `email` | varchar(255) | unique |
-| `password` | text | bcrypt hash |
-| `roleId` | int FK → roles.id | set null on delete |
-| `emailVerifiedAt` | timestamp | nullable |
-| `createdAt` | timestamp | |
-| `updatedAt` | timestamp | |
+| Column            | Type              | Notes              |
+| ----------------- | ----------------- | ------------------ |
+| `id`              | int PK            | auto-increment     |
+| `name`            | varchar(255)      |                    |
+| `email`           | varchar(255)      | unique             |
+| `password`        | text              | bcrypt hash        |
+| `roleId`          | int FK → roles.id | set null on delete |
+| `emailVerifiedAt` | timestamp         | nullable           |
+| `createdAt`       | timestamp         |                    |
+| `updatedAt`       | timestamp         |                    |
 
 ### roles
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | int PK | auto-increment |
-| `name` | varchar(255) | unique |
-| `createdAt` | timestamp | |
-| `updatedAt` | timestamp | |
+| Column      | Type         | Notes          |
+| ----------- | ------------ | -------------- |
+| `id`        | int PK       | auto-increment |
+| `name`      | varchar(255) | unique         |
+| `createdAt` | timestamp    |                |
+| `updatedAt` | timestamp    |                |
 
 ### refresh_tokens
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | int PK | auto-increment |
-| `userId` | int FK → users.id | set null on delete |
-| `jti` | varchar(191) | unique, JWT id |
-| `revoked` | boolean | default `false` |
-| `expiresAt` | timestamp | |
-| `createdAt` | timestamp | |
+| Column      | Type              | Notes              |
+| ----------- | ----------------- | ------------------ |
+| `id`        | int PK            | auto-increment     |
+| `userId`    | int FK → users.id | set null on delete |
+| `jti`       | varchar(191)      | unique, JWT id     |
+| `revoked`   | boolean           | default `false`    |
+| `expiresAt` | timestamp         |                    |
+| `createdAt` | timestamp         |                    |
 
 ## Email verification
 

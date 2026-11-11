@@ -12,27 +12,27 @@ import { lodash } from "@/framework/facade.js";
 
 ## Common Methods
 
-| Method | Purpose |
-|---|---|
-| `lodash.camelCase(string)` | Converts to camelCase |
-| `lodash.snakeCase(string)` | Converts to snake_case |
-| `lodash.kebabCase(string)` | Converts to kebab-case |
-| `lodash.pascalCase(string)` | Converts to PascalCase |
-| `lodash.startCase(string)` | Converts to Start Case |
-| `lodash.lowerCase(string)` | Converts to lower case spaced |
-| `lodash.upperCase(string)` | Converts to UPPER CASE SPACED |
-| `lodash.trim(string)` | Removes leading and trailing whitespace |
-| `lodash.truncate(string, options)` | Truncates string to a specified length |
-| `lodash.escape(string)` | Escapes HTML entities |
-| `lodash.unescape(string)` | Unescapes HTML entities |
-| `lodash.pad(string, length, chars)` | Pads on both sides |
-| `lodash.padStart(string, length, chars)` | Pads the start |
-| `lodash.padEnd(string, length, chars)` | Pads the end |
-| `lodash.repeat(string, n)` | Repeats the string n times |
-| `lodash.replace(string, pattern, replacement)` | Replaces matches |
-| `lodash.split(string, separator, limit)` | Splits the string |
-| `lodash.template(string, data)` | Compiles a template string |
-| `lodash.deburr(string)` | Removes diacritical marks |
+| Method                                         | Purpose                                 |
+| ---------------------------------------------- | --------------------------------------- |
+| `lodash.camelCase(string)`                     | Converts to camelCase                   |
+| `lodash.snakeCase(string)`                     | Converts to snake_case                  |
+| `lodash.kebabCase(string)`                     | Converts to kebab-case                  |
+| `lodash.pascalCase(string)`                    | Converts to PascalCase                  |
+| `lodash.startCase(string)`                     | Converts to Start Case                  |
+| `lodash.lowerCase(string)`                     | Converts to lower case spaced           |
+| `lodash.upperCase(string)`                     | Converts to UPPER CASE SPACED           |
+| `lodash.trim(string)`                          | Removes leading and trailing whitespace |
+| `lodash.truncate(string, options)`             | Truncates string to a specified length  |
+| `lodash.escape(string)`                        | Escapes HTML entities                   |
+| `lodash.unescape(string)`                      | Unescapes HTML entities                 |
+| `lodash.pad(string, length, chars)`            | Pads on both sides                      |
+| `lodash.padStart(string, length, chars)`       | Pads the start                          |
+| `lodash.padEnd(string, length, chars)`         | Pads the end                            |
+| `lodash.repeat(string, n)`                     | Repeats the string n times              |
+| `lodash.replace(string, pattern, replacement)` | Replaces matches                        |
+| `lodash.split(string, separator, limit)`       | Splits the string                       |
+| `lodash.template(string, data)`                | Compiles a template string              |
+| `lodash.deburr(string)`                        | Removes diacritical marks               |
 
 ## Usage
 

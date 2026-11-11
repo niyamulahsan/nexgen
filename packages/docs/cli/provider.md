@@ -60,7 +60,7 @@ bun maker provider:make payment --force
 
 | Option      | Alias   | Description                                                       |
 | ----------- | ------- | ----------------------------------------------------------------- |
-| `--force`   | `--yes` | Overwrite an existing provider file (fails otherwise)              |
+| `--force`   | `--yes` | Overwrite an existing provider file (fails otherwise)             |
 | `--dry-run` | —       | Validate the name and print what would be created without writing |
 
 ## `module:make-provider <module> [name]`
@@ -75,11 +75,11 @@ npm run maker module:make-provider billing stripe
 npm run maker module:make-provider billing stripe -- --force
 ```
 
-| Option      | Alias   | Description                                                       |
-| ----------- | ------- | ----------------------------------------------------------------- |
-| `--force`   | `--yes` | Overwrite an existing provider file (fails otherwise)              |
-| `--dry-run` | —       | Validate the name and print what would be created without writing |
-| `--path <panel>` | —   | Address a module inside a panel folder (e.g. `--path=admin`)      |
+| Option           | Alias   | Description                                                       |
+| ---------------- | ------- | ----------------------------------------------------------------- |
+| `--force`        | `--yes` | Overwrite an existing provider file (fails otherwise)             |
+| `--dry-run`      | —       | Validate the name and print what would be created without writing |
+| `--path <panel>` | —       | Address a module inside a panel folder (e.g. `--path=admin`)      |
 
 ### Generated output
 

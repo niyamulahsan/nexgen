@@ -6,17 +6,17 @@ Returns the implementation registered under a key, or `null` when there is none.
 
 ## Functions
 
-| Function | Signature | Description |
-| -------- | --------- | ----------- |
-| `getProvider` | `(key) => impl \| null` | Returns the implementation registered under a key |
-| `getAuthProvider` | `() => AuthProvider \| null` | The registered auth provider, or `null` |
-| `getNotificationProvider` | `() => NotificationProvider \| null` | The registered notification provider, or `null` |
-| `hasProvider` | `(key) => boolean` | Reports whether an implementation is registered |
-| `hasAuthProvider` | `() => boolean` | Reports whether an auth provider is registered |
-| `hasNotificationProvider` | `() => boolean` | Reports whether a notification provider is registered |
-| `listProviders` | `() => string[]` | Lists every registered key |
-| `resolveAuthProvider` | `() => Promise<AuthProvider \| null>` | Registered auth provider, else the built-in one |
-| `resolveNotificationProvider` | `() => Promise<NotificationProvider \| null>` | Registered notification provider, else `null` |
+| Function                      | Signature                                     | Description                                           |
+| ----------------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| `getProvider`                 | `(key) => impl \| null`                       | Returns the implementation registered under a key     |
+| `getAuthProvider`             | `() => AuthProvider \| null`                  | The registered auth provider, or `null`               |
+| `getNotificationProvider`     | `() => NotificationProvider \| null`          | The registered notification provider, or `null`       |
+| `hasProvider`                 | `(key) => boolean`                            | Reports whether an implementation is registered       |
+| `hasAuthProvider`             | `() => boolean`                               | Reports whether an auth provider is registered        |
+| `hasNotificationProvider`     | `() => boolean`                               | Reports whether a notification provider is registered |
+| `listProviders`               | `() => string[]`                              | Lists every registered key                            |
+| `resolveAuthProvider`         | `() => Promise<AuthProvider \| null>`         | Registered auth provider, else the built-in one       |
+| `resolveNotificationProvider` | `() => Promise<NotificationProvider \| null>` | Registered notification provider, else `null`         |
 
 ## Use cases
 

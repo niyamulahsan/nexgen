@@ -10,9 +10,9 @@ The URL utility provides helpers for building **absolute application URLs**. Use
 import { urls } from "@/framework/facade.js";
 ```
 
-| Method           | Purpose                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------- |
-| `urls.appUrl()`  | Returns the base application URL with trailing slash removed. Use as a base for absolute links.    |
+| Method           | Purpose                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `urls.appUrl()`  | Returns the base application URL with trailing slash removed. Use as a base for absolute links.         |
 | `urls.url(path)` | Builds a full absolute URL pointing at the SPA page that handles the path. Handles slash normalization. |
 
 ## Usage
@@ -47,7 +47,7 @@ urls.url("/reset-password");
 
 ## Environment Variables
 
-| Variable       | Default | Description                                                                 |
-| -------------- | ------- | --------------------------------------------------------------------------- |
-| `APP_URL`      | —       | **Required.** Base URL of the application.                                   |
+| Variable       | Default | Description                                                                                          |
+| -------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `APP_URL`      | —       | **Required.** Base URL of the application.                                                           |
 | `FRONTEND_URL` | —       | Separate SPA origin when the UI is a different build/origin. Leave empty when served from `APP_URL`. |

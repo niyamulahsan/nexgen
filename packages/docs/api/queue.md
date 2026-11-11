@@ -6,8 +6,8 @@ Gets or lazily creates a BullMQ queue instance (`"default"` if omitted) for moni
 
 ## Signature
 
-| Function | Signature               | Description                                                  |
-| -------- | ----------------------- | ------------------------------------------------------------ |
+| Function | Signature                  | Description                                                  |
+| -------- | -------------------------- | ------------------------------------------------------------ |
 | `queue`  | `(name?) => Queue \| null` | Get or lazily create a BullMQ queue (`"default"` if omitted) |
 
 ## Use cases

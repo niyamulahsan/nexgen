@@ -12,11 +12,11 @@ import { lodash } from "@/framework/facade.js";
 
 ## Common Methods
 
-| Method | Purpose |
-|---|---|
-| `lodash.clamp(number, lower, upper)` | Clamps `number` within the inclusive range |
-| `lodash.inRange(number, start, end)` | Checks if `number` is between `start` and `end` |
-| `lodash.random(lower, upper, floating)` | Returns a random number in the range |
+| Method                                  | Purpose                                         |
+| --------------------------------------- | ----------------------------------------------- |
+| `lodash.clamp(number, lower, upper)`    | Clamps `number` within the inclusive range      |
+| `lodash.inRange(number, start, end)`    | Checks if `number` is between `start` and `end` |
+| `lodash.random(lower, upper, floating)` | Returns a random number in the range            |
 
 ## Usage
 

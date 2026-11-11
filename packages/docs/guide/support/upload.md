@@ -6,10 +6,10 @@
 
 `upload()` and `fields()` are middleware factories exported from the facade. They parse `multipart/form-data` into **in-memory buffers** before your controller runs. Size, extension, and MIME rules are enforced in the middleware — failures turn into readable `422` errors.
 
-| Engine  | Attach as                      | File lands on                          |
-| ------- | ------------------------------ | -------------------------------------- |
-| Express | route middleware               | `req.file` / `req.files`               |
-| Fastify | `preHandler`                   | `request.upload` / `request.uploads`   |
+| Engine  | Attach as        | File lands on                        |
+| ------- | ---------------- | ------------------------------------ |
+| Express | route middleware | `req.file` / `req.files`             |
+| Fastify | `preHandler`     | `request.upload` / `request.uploads` |
 
 ## Import
 
@@ -200,14 +200,14 @@ export const storeProfile = (request: FastifyRequest, reply: FastifyReply) => {
 
 ## Options
 
-| Option                          | Type                             | `upload()` | `fields()` | Description                                                               |
-| ------------------------------- | -------------------------------- | ---------- | ---------- | ------------------------------------------------------------------------- |
-| `field`                         | `string`                         | ✅         | —          | Form field name holding the file(s)                                       |
-| `multiple`                      | `number`                         | ✅         | —          | When set, accept up to N files on the field (arrays into `req.files` / `request.uploads`) |
-| `maxSize`                       | `number` (bytes)                 | ✅         | ✅         | Max file size; default unlimited                                          |
-| `allowedExtensions`             | `string[]` (lowercase, with dot) | ✅         | ✅         | e.g. `[".xlsx", ".xlsb"]` — others rejected with 422                      |
-| `allowedMimeTypes`              | `string[]`                       | ✅         | ✅         | e.g. `["application/pdf"]`; when combined with extensions, both must pass |
-| `maxCount` (in `fields()` spec) | `number`                         | —          | ✅         | Max files for one labeled field                                           |
+| Option                          | Type                             | `upload()` | `fields()` | Description                                                                               |
+| ------------------------------- | -------------------------------- | ---------- | ---------- | ----------------------------------------------------------------------------------------- |
+| `field`                         | `string`                         | ✅          | —          | Form field name holding the file(s)                                                       |
+| `multiple`                      | `number`                         | ✅          | —          | When set, accept up to N files on the field (arrays into `req.files` / `request.uploads`) |
+| `maxSize`                       | `number` (bytes)                 | ✅          | ✅          | Max file size; default unlimited                                                          |
+| `allowedExtensions`             | `string[]` (lowercase, with dot) | ✅          | ✅          | e.g. `[".xlsx", ".xlsb"]` — others rejected with 422                                      |
+| `allowedMimeTypes`              | `string[]`                       | ✅          | ✅          | e.g. `["application/pdf"]`; when combined with extensions, both must pass                 |
+| `maxCount` (in `fields()` spec) | `number`                         | —          | ✅          | Max files for one labeled field                                                           |
 
 ## Error Handling
 

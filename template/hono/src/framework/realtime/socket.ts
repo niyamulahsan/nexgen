@@ -46,6 +46,10 @@ let serveWebSocket: RealtimeServeWebSocket = {};
 function socketAllowedOrigins() {
   const origins = [appConfig.url, appConfig.frontendUrl].filter(Boolean) as string[];
   if (realtimeConfig.enabled) origins.push("https://admin.socket.io");
+
+  // Electron / desktop renderer
+  origins.push("file://", "app://.");
+
   return [...new Set(origins)];
 }
 

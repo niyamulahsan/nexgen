@@ -237,18 +237,18 @@ Module Router              — Match route → run middleware → execute contro
 
 > **The rule:** the facade is the **only user-facing surface**. Everything else is an **app setting** — declared in `src/config/`, validated at boot, wired automatically by the framework. It is **not** exported by the facade.Parameters use it; the framework runs it.
 
-| Concern           | Settings live in                | Wired by framework                                                                            | Facade export? |
-| ----------------- | ------------------------------- | --------------------------------------------------------------------------------------------- | -------------- |
-| Security headers  | `src/config/security.ts`        | `src/framework/http/security.ts`                                                              | No             |
-| Config validation | `src/config/validate.ts`        | Kernel boot (`validateConfig`)                                                                | No             |
-| Metrics           | `src/config/metrics.ts`         | `src/framework/http/metrics.ts`                                                               | No             |
-| Health / liveness | `src/config/health.ts`          | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
-| Circuit breaker   | —                               | `src/framework/circuit-breaker/cb.ts`                                                         | No             |
-| Rate limiting     | `src/config/rateLimit.ts`       | `http/ratelimiter.ts`                                                                         | No             |
-| Storage facade    | —                               | —                                                                                             | **Yes**        |
-| DB facade         | —                               | —                                                                                             | **Yes**        |
-| Cache facade      | —                               | —                                                                                             | **Yes**        |
-| Events / queue    | —                               | —                                                                                             | **Yes**        |
+| Concern           | Settings live in          | Wired by framework                                                                            | Facade export? |
+| ----------------- | ------------------------- | --------------------------------------------------------------------------------------------- | -------------- |
+| Security headers  | `src/config/security.ts`  | `src/framework/http/security.ts`                                                              | No             |
+| Config validation | `src/config/validate.ts`  | Kernel boot (`validateConfig`)                                                                | No             |
+| Metrics           | `src/config/metrics.ts`   | `src/framework/http/metrics.ts`                                                               | No             |
+| Health / liveness | `src/config/health.ts`    | `http/app.ts` (`/ready`, `/live`, `/health`, `/metrics`, all mounted in the HTTP app factory) | No             |
+| Circuit breaker   | —                         | `src/framework/circuit-breaker/cb.ts`                                                         | No             |
+| Rate limiting     | `src/config/rateLimit.ts` | `http/ratelimiter.ts`                                                                         | No             |
+| Storage facade    | —                         | —                                                                                             | **Yes**        |
+| DB facade         | —                         | —                                                                                             | **Yes**        |
+| Cache facade      | —                         | —                                                                                             | **Yes**        |
+| Events / queue    | —                         | —                                                                                             | **Yes**        |
 
 **Why this split:**
 

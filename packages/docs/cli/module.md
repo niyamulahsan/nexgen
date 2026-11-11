@@ -28,27 +28,27 @@ Every command takes a name in any casing you like. The CLI folds it to one
 canonical form and derives four shapes from it, so `gameConfig`, `GameConfig`,
 `game_config` and `game-config` all produce exactly the same files.
 
-| Used for | Form | Example |
-| --- | --- | --- |
-| File name and import path | kebab-case | `game-config.ts` |
-| Table in the database | snake_case | `game_configs` |
-| Variable in code | camelCase | `gameConfigs` |
-| Class and schema names | PascalCase | `GameConfigSeeder` |
+| Used for                  | Form       | Example            |
+| ------------------------- | ---------- | ------------------ |
+| File name and import path | kebab-case | `game-config.ts`   |
+| Table in the database     | snake_case | `game_configs`     |
+| Variable in code          | camelCase  | `gameConfigs`      |
+| Class and schema names    | PascalCase | `GameConfigSeeder` |
 
 These forms were always the convention; from 4.2.0 the generators enforce them
 instead of writing whatever you typed.
 
 ### What gets normalised
 
-| You type | Canonical name |
-| --- | --- |
-| `game-config` | `game-config` |
-| `game_config` | `game-config` |
-| `game-SUITE`, `GAME-SUITE` | `game-suite` |
-| `gameSuite`, `GameSuite` | `game-suite` |
-| `game-config_2` | `game-config-2` |
-| `gamesuite`, `GAMESUITE` | `gamesuite` |
-| `gamE-SUITE-Engine` | `gam-e-suite-engine` |
+| You type                   | Canonical name       |
+| -------------------------- | -------------------- |
+| `game-config`              | `game-config`        |
+| `game_config`              | `game-config`        |
+| `game-SUITE`, `GAME-SUITE` | `game-suite`         |
+| `gameSuite`, `GameSuite`   | `game-suite`         |
+| `game-config_2`            | `game-config-2`      |
+| `gamesuite`, `GAMESUITE`   | `gamesuite`          |
+| `gamE-SUITE-Engine`        | `gam-e-suite-engine` |
 
 Two rules produce that last row. A capital inside a word marks a boundary, the
 same way it does in `gameSuite` — so the `E` in `gamE` splits it into `gam` and
@@ -74,12 +74,12 @@ The SQL table name is the plural of the model name. The rule is deliberately
 small: a consonant followed by `y` becomes `ies`, anything else takes a plain
 `s`.
 
-| Model name | Table | Exported identifier |
-| --- | --- | --- |
-| `spin` | `spins` | `spins` |
-| `audit-entry` | `audit_entries` | `auditEntries` |
-| `game-config` | `game_configs` | `gameConfigs` |
-| `ledger-entry` | `ledger_entries` | `ledgerEntries` |
+| Model name     | Table            | Exported identifier |
+| -------------- | ---------------- | ------------------- |
+| `spin`         | `spins`          | `spins`             |
+| `audit-entry`  | `audit_entries`  | `auditEntries`      |
+| `game-config`  | `game_configs`   | `gameConfigs`       |
+| `ledger-entry` | `ledger_entries` | `ledgerEntries`     |
 
 English irregulars (`person` → `people`, `address` → `addresses`) are not
 modelled. If your model needs one, rename the table and the export by hand
@@ -153,20 +153,20 @@ bun maker module:make-notification notification
 bun maker module:migrate notification
 ```
 
-| File | Written | Purpose |
-| --- | --- | --- |
-| `controllers/notification.ts` | every run | 5 handlers: list, unreadCount, markRead, markAllRead, remove |
-| `schemas/notification.ts` | every run | Zod/OpenAPI schemas |
-| `routes/index.ts` | every run | 5 routes under `authMiddleware` |
-| `database/models/notification.ts` | first run | Polymorphic table, no auth foreign key |
-| `providers/notification.ts` | first run | Default Drizzle store, registers itself |
-| `jobs/mail.ts` | first run | Queue handler for `notification:mail` |
+| File                              | Written   | Purpose                                                      |
+| --------------------------------- | --------- | ------------------------------------------------------------ |
+| `controllers/notification.ts`     | every run | 5 handlers: list, unreadCount, markRead, markAllRead, remove |
+| `schemas/notification.ts`         | every run | Zod/OpenAPI schemas                                          |
+| `routes/index.ts`                 | every run | 5 routes under `authMiddleware`                              |
+| `database/models/notification.ts` | first run | Polymorphic table, no auth foreign key                       |
+| `providers/notification.ts`       | first run | Default Drizzle store, registers itself                      |
+| `jobs/mail.ts`                    | first run | Queue handler for `notification:mail`                        |
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--path=<panel>` | — | Nest the module under a panel folder, e.g. `--path=admin` |
-| `--notifiable=<type>` | `user` | Owner type recorded by the generated controller |
-| `--force` | — | Overwrite the files of a module that already exists |
+| Option                | Default | Description                                               |
+| --------------------- | ------- | --------------------------------------------------------- |
+| `--path=<panel>`      | —       | Nest the module under a panel folder, e.g. `--path=admin` |
+| `--notifiable=<type>` | `user`  | Owner type recorded by the generated controller           |
+| `--force`             | —       | Overwrite the files of a module that already exists       |
 
 A second notification surface (for example a panel) reuses the existing store, so no second table is created and no migration is needed:
 
@@ -446,7 +446,7 @@ npm run maker module:make-provider billing stripe -- --force
 
 | Option      | Alias   | Description                                                       |
 | ----------- | ------- | ----------------------------------------------------------------- |
-| `--force`   | `--yes` | Overwrite an existing provider file (fails otherwise)              |
+| `--force`   | `--yes` | Overwrite an existing provider file (fails otherwise)             |
 | `--dry-run` | —       | Validate the name and print what would be created without writing |
 
 See [Provider Commands](/cli/provider) for the app-wide counterpart.
@@ -763,11 +763,11 @@ bun maker module:make-model blog post --path=admin
 
 :::
 
-| Without `--path`       | With `--path=admin`        |
-| ---------------------- | -------------------------- |
-| `src/modules/post/`    | `src/modules/admin/post/`  |
+| Without `--path`       | With `--path=admin`          |
+| ---------------------- | ---------------------------- |
+| `src/modules/post/`    | `src/modules/admin/post/`    |
 | mounted at `/api/post` | mounted at `/api/admin/post` |
-| Scalar tag `Post`      | Scalar tag `Admin / Post`  |
+| Scalar tag `Post`      | Scalar tag `Admin / Post`    |
 
 Nested panels work too: `--path=admin/reporting` → `src/modules/admin/reporting/post/` → `/api/admin/reporting/post`.
 

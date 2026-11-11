@@ -81,9 +81,9 @@ The `DialogClient` type is also augmented on Vue's `ComponentCustomProperties` s
 
 Displays a simple message with an **OK** button. The dialog closes on OK or close (X) click.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | `""` | The message to display in the dialog body |
+| Parameter | Type     | Default | Description                               |
+| --------- | -------- | ------- | ----------------------------------------- |
+| `text`    | `string` | `""`    | The message to display in the dialog body |
 
 Returns `void`. This is a fire-and-forget notification — no callback needed.
 
@@ -98,10 +98,10 @@ dialog.alert(); // empty dialog (useful as a minimal loading indicator)
 
 Displays a message with **OK** and **Cancel** buttons. The callback receives `true` if the user clicked OK, or `false` if Cancel/close was clicked.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | `""` | The confirmation message |
-| `callback` | `(ok: boolean) => void` | — | Called with the user's decision |
+| Parameter  | Type                    | Default | Description                     |
+| ---------- | ----------------------- | ------- | ------------------------------- |
+| `text`     | `string`                | `""`    | The confirmation message        |
+| `callback` | `(ok: boolean) => void` | —       | Called with the user's decision |
 
 ```ts
 import { dialog } from "@/plugins/dialog";
@@ -117,19 +117,19 @@ dialog.confirm("Delete this post?", (ok) => {
 
 Displays a message with a textarea input, **OK**, and **Cancel** buttons. The callback receives an object with the user's input and decision.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | `""` | The prompt message |
-| `options` | `PromptOptions` | `{}` | Configuration object (see below) |
-| `callback` | `(result: { ok: boolean; value: string }) => void` | — | Called with the result |
+| Parameter  | Type                                               | Default | Description                      |
+| ---------- | -------------------------------------------------- | ------- | -------------------------------- |
+| `text`     | `string`                                           | `""`    | The prompt message               |
+| `options`  | `PromptOptions`                                    | `{}`    | Configuration object (see below) |
+| `callback` | `(result: { ok: boolean; value: string }) => void` | —       | Called with the result           |
 
 **PromptOptions:**
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `limit` | `number` | `0` | Max character count (0 = unlimited). When set, a character counter is shown next to the label and `maxlength` is applied to the textarea. |
-| `placeholder` | `string` | `"Remarks..."` | Placeholder text for the textarea |
-| `defaultValue` | `string` | `""` | Pre-filled value for the textarea |
+| Option         | Type     | Default        | Description                                                                                                                               |
+| -------------- | -------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `limit`        | `number` | `0`            | Max character count (0 = unlimited). When set, a character counter is shown next to the label and `maxlength` is applied to the textarea. |
+| `placeholder`  | `string` | `"Remarks..."` | Placeholder text for the textarea                                                                                                         |
+| `defaultValue` | `string` | `""`           | Pre-filled value for the textarea                                                                                                         |
 
 ```ts
 import { dialog } from "@/plugins/dialog";
@@ -345,15 +345,15 @@ function save() {
 
 The dialog creates its own absolutely-positioned overlay. It uses the framework's CSS theme variables (`--app-backdrop`, `--app-text`) so it follows light/dark mode automatically:
 
-| Element | Classes / Style | Description |
-|---------|---------|-------------|
-| Overlay | `position-fixed w-100 h-100 top-0 start-0`, `background: var(--app-backdrop)`, `color: var(--app-text)` | Full-screen backdrop |
-| Card | `card position-absolute top-50 start-50 translate-middle border` | Centered card (300px width) |
-| Header | `card-header d-flex justify-content-between align-items-center px-2 py-1 border-0` | Title bar with site label and close button |
-| Body | `card-body overflow-x-hidden overflow-y-scroll p-2 text-center` | Message area (max 200px height with scroll) |
-| Footer | `card-footer d-flex justify-content-end align-items-center px-2 py-1 border-0` | Button row |
-| OK button | `btn btn-primary btn-sm` | Primary action |
-| Cancel button | `btn btn-secondary btn-sm ms-1` | Secondary action |
+| Element       | Classes / Style                                                                                         | Description                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Overlay       | `position-fixed w-100 h-100 top-0 start-0`, `background: var(--app-backdrop)`, `color: var(--app-text)` | Full-screen backdrop                        |
+| Card          | `card position-absolute top-50 start-50 translate-middle border`                                        | Centered card (300px width)                 |
+| Header        | `card-header d-flex justify-content-between align-items-center px-2 py-1 border-0`                      | Title bar with site label and close button  |
+| Body          | `card-body overflow-x-hidden overflow-y-scroll p-2 text-center`                                         | Message area (max 200px height with scroll) |
+| Footer        | `card-footer d-flex justify-content-end align-items-center px-2 py-1 border-0`                          | Button row                                  |
+| OK button     | `btn btn-primary btn-sm`                                                                                | Primary action                              |
+| Cancel button | `btn btn-secondary btn-sm ms-1`                                                                         | Secondary action                            |
 
 You can customize the dialog appearance by overriding these classes in your own stylesheet:
 
@@ -380,10 +380,10 @@ Dialogs automatically inherit the framework theme variables. Because the overlay
 
 Dialogs support keyboard interaction out of the box:
 
-| Key | Action |
-|-----|--------|
-| `Enter` | Triggers OK (when focus is not on a textarea/input) |
-| `Escape` | Triggers Cancel (or closes the dialog) |
+| Key      | Action                                              |
+| -------- | --------------------------------------------------- |
+| `Enter`  | Triggers OK (when focus is not on a textarea/input) |
+| `Escape` | Triggers Cancel (or closes the dialog)              |
 
 ### Missing `#modal-show` Element
 
@@ -438,10 +438,10 @@ The `Modal` component teleports into the same `#modal-show` element and wraps Bo
 
 ## Summary
 
-| Method | Purpose | Callback |
-|--------|---------|----------|
-| `dialog.alert(text)` | Informational message with OK button | None (auto-dismiss on click) |
-| `dialog.confirm(text, callback)` | Yes/no decision with OK and Cancel | `(ok: boolean) => void` |
-| `dialog.prompt(text, options, callback)` | Text input with OK and Cancel | `({ ok, value }) => void` |
+| Method                                   | Purpose                              | Callback                     |
+| ---------------------------------------- | ------------------------------------ | ---------------------------- |
+| `dialog.alert(text)`                     | Informational message with OK button | None (auto-dismiss on click) |
+| `dialog.confirm(text, callback)`         | Yes/no decision with OK and Cancel   | `(ok: boolean) => void`      |
+| `dialog.prompt(text, options, callback)` | Text input with OK and Cancel        | `({ ok, value }) => void`    |
 
 Use the programmatic dialog for quick notifications, confirmations, and simple text prompts. For rich custom content, use the `Modal` component with named slots.

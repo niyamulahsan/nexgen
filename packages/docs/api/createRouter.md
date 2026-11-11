@@ -6,8 +6,8 @@ Creates the module router every module route file exports — an `OpenAPIHono` i
 
 ## Signature
 
-| Function       | Signature                                                  | Description                                                                |
-| -------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Function       | Signature                                                   | Description                                                                |
+| -------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `createRouter` | `() => NexwireRouter`                                       | Creates the engine's router with `group()`, `api()`, and `route()` helpers |
 | `router.group` | `(...middlewares) => NexwireRouter`                         | Applies middleware to every route registered after it                      |
 | `router.api`   | `(route, handlerOrMiddlewares?, handler?) => NexwireRouter` | Registers a `createRoute`; accepts an optional middleware array            |

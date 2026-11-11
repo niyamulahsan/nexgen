@@ -12,30 +12,30 @@ import { lodash } from "@/framework/facade.js";
 
 ## Common Methods
 
-| Method | Purpose |
-|---|---|
-| `lodash.pick(object, paths)` | Creates an object with the picked keys |
-| `lodash.pickBy(object, predicate)` | Picks keys based on predicate |
-| `lodash.omit(object, paths)` | Creates an object omitting the specified keys |
-| `lodash.omitBy(object, predicate)` | Omits keys based on predicate |
-| `lodash.get(object, path, defaultValue)` | Gets nested value by dot/bracket path |
-| `lodash.set(object, path, value)` | Sets nested value (mutates) |
-| `lodash.has(object, path)` | Checks if path exists in the object |
-| `lodash.merge(object, sources)` | Deep merges source objects (mutates) |
-| `lodash.mergeWith(object, sources, customizer)` | Deep merge with customizer |
-| `lodash.assign(object, sources)` | Copies own enumerable properties (mutates) |
-| `lodash.assignIn(object, sources)` | Copies own and inherited properties |
-| `lodash.defaults(object, sources)` | Assigns values from sources if `undefined` |
-| `lodash.defaultsDeep(object, sources)` | Deep version of `defaults` |
-| `lodash.keys(object)` | Returns enumerable property names |
-| `lodash.values(object)` | Returns property values |
-| `lodash.entries(object)` | Returns `[key, value]` pairs (alias: `toPairs`) |
-| `lodash.mapKeys(object, iteratee)` | Transforms keys |
-| `lodash.mapValues(object, iteratee)` | Transforms values |
-| `lodash.invert(object)` | Swaps keys and values |
-| `lodash.findKey(object, predicate)` | Finds key of first matching value |
-| `lodash.forOwn(object, iteratee)` | Iterates over own properties |
-| `lodash.result(object, path, defaultValue)` | Resolves the value at path (calls if function) |
+| Method                                          | Purpose                                         |
+| ----------------------------------------------- | ----------------------------------------------- |
+| `lodash.pick(object, paths)`                    | Creates an object with the picked keys          |
+| `lodash.pickBy(object, predicate)`              | Picks keys based on predicate                   |
+| `lodash.omit(object, paths)`                    | Creates an object omitting the specified keys   |
+| `lodash.omitBy(object, predicate)`              | Omits keys based on predicate                   |
+| `lodash.get(object, path, defaultValue)`        | Gets nested value by dot/bracket path           |
+| `lodash.set(object, path, value)`               | Sets nested value (mutates)                     |
+| `lodash.has(object, path)`                      | Checks if path exists in the object             |
+| `lodash.merge(object, sources)`                 | Deep merges source objects (mutates)            |
+| `lodash.mergeWith(object, sources, customizer)` | Deep merge with customizer                      |
+| `lodash.assign(object, sources)`                | Copies own enumerable properties (mutates)      |
+| `lodash.assignIn(object, sources)`              | Copies own and inherited properties             |
+| `lodash.defaults(object, sources)`              | Assigns values from sources if `undefined`      |
+| `lodash.defaultsDeep(object, sources)`          | Deep version of `defaults`                      |
+| `lodash.keys(object)`                           | Returns enumerable property names               |
+| `lodash.values(object)`                         | Returns property values                         |
+| `lodash.entries(object)`                        | Returns `[key, value]` pairs (alias: `toPairs`) |
+| `lodash.mapKeys(object, iteratee)`              | Transforms keys                                 |
+| `lodash.mapValues(object, iteratee)`            | Transforms values                               |
+| `lodash.invert(object)`                         | Swaps keys and values                           |
+| `lodash.findKey(object, predicate)`             | Finds key of first matching value               |
+| `lodash.forOwn(object, iteratee)`               | Iterates over own properties                    |
+| `lodash.result(object, path, defaultValue)`     | Resolves the value at path (calls if function)  |
 
 ## Usage
 

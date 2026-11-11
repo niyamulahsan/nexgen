@@ -155,7 +155,7 @@ import { pulse } from "@/plugins/pulse";
 | Method                | Purpose                                                                                                                 |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `pulse.channel(name)` | Join a Socket.IO room and create a channel for listening. Auto-connects if not connected. Emits `"join"` to the server. |
-| `pulse.private(name)` | Shorthand for `pulse.channel("private:{name}")`. Requires an authenticated socket; `private("user:{id}")` is self-only.  |
+| `pulse.private(name)` | Shorthand for `pulse.channel("private:{name}")`. Requires an authenticated socket; `private("user:{id}")` is self-only. |
 | `pulse.leave(name)`   | Leave the room on the server **and** remove all event listeners registered for that room.                               |
 | `pulse.connect()`     | Manually connect the socket (usually not needed — `channel()` auto-connects).                                           |
 | `pulse.disconnect()`  | Disconnect the socket entirely.                                                                                         |
@@ -221,11 +221,11 @@ ch.listen("order.placed", handler);
 
 ### When to use `channel()` vs direct listen
 
-| Scenario                    | Room type                    | Approach                                     |
-| --------------------------- | ---------------------------- | -------------------------------------------- |
-| User-specific notifications | `user:{id}` (auto-joined)    | Can listen directly, `channel()` is optional |
-| Role-wide announcements     | `role:admin` (auto-joined)   | Can listen directly, `channel()` is optional |
-| Custom feature rooms        | `"orders"` (not auto-joined) | **Must** use `channel()` to join             |
+| Scenario                    | Room type                    | Approach                                       |
+| --------------------------- | ---------------------------- | ---------------------------------------------- |
+| User-specific notifications | `user:{id}` (auto-joined)    | Can listen directly, `channel()` is optional   |
+| Role-wide announcements     | `role:admin` (auto-joined)   | Can listen directly, `channel()` is optional   |
+| Custom feature rooms        | `"orders"` (not auto-joined) | **Must** use `channel()` to join               |
 | Private user rooms          | `"private:user:{id}"`        | **Must** use `private("user:{id}")`; self-only |
 
 ### Room authorization
@@ -422,4 +422,4 @@ Pulse uses the general Redis and Socket configuration from `env.ts`:
 | `FRONTEND_URL` | optional                 | Additional CORS origin                                                        |
 | `REDIS`        | `false`                  | Enable Redis adapter for multi-process broadcasting                           |
 | `REDIS_URL`    | `redis://127.0.0.1:6379` | Redis connection (shared across all Redis features)                           |
-| `REDIS_PREFIX` | `nexwire`                 | Prefix for Redis pub/sub broadcast channel (shared across all Redis features) |
+| `REDIS_PREFIX` | `nexwire`                | Prefix for Redis pub/sub broadcast channel (shared across all Redis features) |

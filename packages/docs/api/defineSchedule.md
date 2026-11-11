@@ -12,19 +12,19 @@ Registers named cron tasks run by the `schedule:work` process. Every run is wrap
 
 `Schedule` options:
 
-| Option        | Type       | Default   | Description                                                      |
-| ------------- | ---------- | --------- | ---------------------------------------------------------------- |
-| `name`        | `string`   | —         | **Required.** Unique identifier (used as the lock key)           |
+| Option        | Type       | Default   | Description                                                                                                                                                                |
+| ------------- | ---------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`   | —         | **Required.** Unique identifier (used as the lock key)                                                                                                                     |
 | `expression`  | `string`   | —         | **Required.** Cron expression (`* * * * *`; an optional leading seconds field is also accepted, see [Cron Expression Format](./../guide/scheduler#cron-expression-format)) |
-| `handler`     | `function` | —         | Async task logic (handler mode)                                  |
-| `queue`       | `string`   | —         | Queue mode: dispatch `job` to this queue on each tick            |
-| `job`         | `string`   | `name`    | Job name enqueued on each tick (queue mode)                      |
-| `data`        | `any`      | —         | Static data passed to every enqueued job (queue mode)            |
-| `immediately` | `boolean`  | `false`   | Also dispatch one job immediately at scheduler boot (queue mode) |
-| `timezone`    | `string`   | server TZ | Cron timezone (e.g. `"America/New_York"`)                        |
-| `runOnInit`   | `boolean`  | `false`   | Run handler immediately at boot (handler mode)                   |
-| `enabled`     | `boolean`  | `true`    | `false` disables the task without deleting it                    |
-| `ttlMs`       | `number`   | `120000`  | Lock TTL — prevents overlap if a run exceeds this                |
+| `handler`     | `function` | —         | Async task logic (handler mode)                                                                                                                                            |
+| `queue`       | `string`   | —         | Queue mode: dispatch `job` to this queue on each tick                                                                                                                      |
+| `job`         | `string`   | `name`    | Job name enqueued on each tick (queue mode)                                                                                                                                |
+| `data`        | `any`      | —         | Static data passed to every enqueued job (queue mode)                                                                                                                      |
+| `immediately` | `boolean`  | `false`   | Also dispatch one job immediately at scheduler boot (queue mode)                                                                                                           |
+| `timezone`    | `string`   | server TZ | Cron timezone (e.g. `"America/New_York"`)                                                                                                                                  |
+| `runOnInit`   | `boolean`  | `false`   | Run handler immediately at boot (handler mode)                                                                                                                             |
+| `enabled`     | `boolean`  | `true`    | `false` disables the task without deleting it                                                                                                                              |
+| `ttlMs`       | `number`   | `120000`  | Lock TTL — prevents overlap if a run exceeds this                                                                                                                          |
 
 ## Use cases
 

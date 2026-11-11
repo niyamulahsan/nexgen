@@ -257,23 +257,23 @@ bun maker deploy:db:import:remote --config=workflow.remote.json --file=dump.sql 
 
 ### Shared flags
 
-| Flag                        | Available on                                 | Purpose                                                               |
-| --------------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
-| `--force`                   | `deploy:init`                                | Overwrite existing deploy files                                       |
-| `--runtime=node\|bun`       | `deploy:init`                                | Choose Dockerfile runtime                                             |
-| `--pm=npm\|pnpm\|yarn` | `deploy:init`                                | Package manager for the node runtime (default: auto-detect)           |
-| `--app-only`                | `deploy:init`, workflows                     | Skip server infra, only app                                           |
-| `--server-only`             | `deploy:init`, workflows                     | Skip app, only server infra                                           |
-| `--dev`                     | `deploy:init`                                | Server infra in dev mode (exposed Redis port)                         |
-| `--refresh`                 | `deploy:workflow`, `deploy:workflow:promote` | Regenerate deploy files before running                                |
-| `--dry-run`                 | Workflows, `deploy:db:import:remote`         | Preview without executing                                             |
-| `--config=<path>`           | Workflows                                    | Path to workflow JSON config                                          |
-| `--file=<path>`             | `deploy:db:import:*`                         | Path to the SQL dump file                                             |
-| `--database=<name>`         | `deploy:db:import:*`                         | Target database name                                                  |
-| `--container=<name>`        | `deploy:db:import:*`                         | DB container (`mysql-global` or `postgres-global`)                    |
-| `--user=<name>`             | `deploy:db:import:*`                         | DB user (defaults to server `.env`)                                   |
-| `--password=<password>`     | `deploy:db:import:*`                         | DB password (defaults to server `.env`)                               |
-| `--no-drop`                 | `deploy:db:import` (PostgreSQL)              | Keep the existing database instead of dropping it for a clean restore |
+| Flag                    | Available on                                 | Purpose                                                               |
+| ----------------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| `--force`               | `deploy:init`                                | Overwrite existing deploy files                                       |
+| `--runtime=node\|bun`   | `deploy:init`                                | Choose Dockerfile runtime                                             |
+| `--pm=npm\|pnpm\|yarn`  | `deploy:init`                                | Package manager for the node runtime (default: auto-detect)           |
+| `--app-only`            | `deploy:init`, workflows                     | Skip server infra, only app                                           |
+| `--server-only`         | `deploy:init`, workflows                     | Skip app, only server infra                                           |
+| `--dev`                 | `deploy:init`                                | Server infra in dev mode (exposed Redis port)                         |
+| `--refresh`             | `deploy:workflow`, `deploy:workflow:promote` | Regenerate deploy files before running                                |
+| `--dry-run`             | Workflows, `deploy:db:import:remote`         | Preview without executing                                             |
+| `--config=<path>`       | Workflows                                    | Path to workflow JSON config                                          |
+| `--file=<path>`         | `deploy:db:import:*`                         | Path to the SQL dump file                                             |
+| `--database=<name>`     | `deploy:db:import:*`                         | Target database name                                                  |
+| `--container=<name>`    | `deploy:db:import:*`                         | DB container (`mysql-global` or `postgres-global`)                    |
+| `--user=<name>`         | `deploy:db:import:*`                         | DB user (defaults to server `.env`)                                   |
+| `--password=<password>` | `deploy:db:import:*`                         | DB password (defaults to server `.env`)                               |
+| `--no-drop`             | `deploy:db:import` (PostgreSQL)              | Keep the existing database instead of dropping it for a clean restore |
 
 ### Remote config (`deploy/workflow.remote.json`)
 

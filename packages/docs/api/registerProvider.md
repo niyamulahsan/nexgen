@@ -6,16 +6,16 @@ Registers an implementation under a key so the framework — or your own code �
 
 ## Functions
 
-| Function | Signature | Description |
-| -------- | --------- | ----------- |
-| `registerProvider` | `(key, impl) => impl` | Registers an implementation under a key and returns it |
-| `registerAuthProvider` | `(provider) => provider` | Typed shorthand for the `auth` key |
-| `registerNotificationProvider` | `(provider) => provider` | Typed shorthand for the `notification` key |
-| `hasProvider` | `(key) => boolean` | Reports whether an implementation is registered |
-| `clearProvider` | `(key) => void` | Removes an implementation — mainly useful in tests |
-| `clearAuthProvider` | `() => void` | Removes the auth provider — mainly useful in tests |
-| `clearNotificationProvider` | `() => void` | Removes the notification provider — mainly useful in tests |
-| `listProviders` | `() => string[]` | Lists every registered key |
+| Function                       | Signature                | Description                                                |
+| ------------------------------ | ------------------------ | ---------------------------------------------------------- |
+| `registerProvider`             | `(key, impl) => impl`    | Registers an implementation under a key and returns it     |
+| `registerAuthProvider`         | `(provider) => provider` | Typed shorthand for the `auth` key                         |
+| `registerNotificationProvider` | `(provider) => provider` | Typed shorthand for the `notification` key                 |
+| `hasProvider`                  | `(key) => boolean`       | Reports whether an implementation is registered            |
+| `clearProvider`                | `(key) => void`          | Removes an implementation — mainly useful in tests         |
+| `clearAuthProvider`            | `() => void`             | Removes the auth provider — mainly useful in tests         |
+| `clearNotificationProvider`    | `() => void`             | Removes the notification provider — mainly useful in tests |
+| `listProviders`                | `() => string[]`         | Lists every registered key                                 |
 
 ## Use cases
 
@@ -96,27 +96,27 @@ Module provider files are imported at boot too, so a module can ship its own imp
 
 ## `AuthProvider` contract
 
-| Method | Required | Purpose |
-| ------ | -------- | ------- |
-| `getUserById(id)` | Yes | Loads a user. Extra fields are passed through to the auth context. |
-| `findRefreshToken(jti)` | Yes | Loads a stored refresh token by its JWT id. |
-| `revokeRefreshToken(id)` | No | Revokes a refresh token. `deleteRefreshToken(id)` also works. |
-| `getAuthContext(user, payload)` | No | Shapes the object handlers receive as `auth`. |
-| `getUserContact(userId)` | No | Finds the email/name of a user — used by `notify()`. |
+| Method                          | Required | Purpose                                                            |
+| ------------------------------- | -------- | ------------------------------------------------------------------ |
+| `getUserById(id)`               | Yes      | Loads a user. Extra fields are passed through to the auth context. |
+| `findRefreshToken(jti)`         | Yes      | Loads a stored refresh token by its JWT id.                        |
+| `revokeRefreshToken(id)`        | No       | Revokes a refresh token. `deleteRefreshToken(id)` also works.      |
+| `getAuthContext(user, payload)` | No       | Shapes the object handlers receive as `auth`.                      |
+| `getUserContact(userId)`        | No       | Finds the email/name of a user — used by `notify()`.               |
 
 Every id in the contract (`AuthProviderUser.id`, `AuthUserContext.id`, refresh-token ids, and the `getUserById` / `getUserContact` arguments) is `number | string`, so a UUID-backed auth provider is fully supported.
 
 ### `NotificationProvider` contract
 
-| Method | Required | Purpose |
-| ------ | -------- | ------- |
-| `create(target, input)` | Yes | Store one notification and return it. |
-| `list(target, options)` | Yes | Return `{ data, total, unread, page, perPage }`. |
-| `unreadCount(target)` | Yes | Return the unread count. |
-| `markRead(target, id)` | Yes | Mark one read; return whether it existed. |
-| `markAllRead(target)` | Yes | Mark all read; return how many changed. |
-| `remove(target, id)` | Yes | Delete one; return whether it existed. |
-| `deleteForTarget(target)` | No | Delete everything owned by a target. |
+| Method                    | Required | Purpose                                          |
+| ------------------------- | -------- | ------------------------------------------------ |
+| `create(target, input)`   | Yes      | Store one notification and return it.            |
+| `list(target, options)`   | Yes      | Return `{ data, total, unread, page, perPage }`. |
+| `unreadCount(target)`     | Yes      | Return the unread count.                         |
+| `markRead(target, id)`    | Yes      | Mark one read; return whether it existed.        |
+| `markAllRead(target)`     | Yes      | Mark all read; return how many changed.          |
+| `remove(target, id)`      | Yes      | Delete one; return whether it existed.           |
+| `deleteForTarget(target)` | No       | Delete everything owned by a target.             |
 
 ## Notes
 

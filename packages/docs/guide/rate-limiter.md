@@ -6,11 +6,11 @@ The rate limiter protects your API from burst abuse and accidental flooding. It 
 
 The key and store differ per engine:
 
-| Engine  | Global limiter | Key | Store |
-| ------- | -------------- | --- | ----- |
-| Hono    | `rateLimiterMiddleware` | `sessionId` when authenticated, else `x-forwarded-for` | Redis when available, else in-memory |
-| Express | `rateLimiterMiddleware` (`express-rate-limit`) | IP | in-memory |
-| Fastify | `@fastify/rate-limit` | IP | in-memory |
+| Engine  | Global limiter                                 | Key                                                    | Store                                |
+| ------- | ---------------------------------------------- | ------------------------------------------------------ | ------------------------------------ |
+| Hono    | `rateLimiterMiddleware`                        | `sessionId` when authenticated, else `x-forwarded-for` | Redis when available, else in-memory |
+| Express | `rateLimiterMiddleware` (`express-rate-limit`) | IP                                                     | in-memory                            |
+| Fastify | `@fastify/rate-limit`                          | IP                                                     | in-memory                            |
 
 ## Global Rate Limiter
 
@@ -132,12 +132,12 @@ app.route({
 
 ### Source files
 
-| File                                | What it controls                                                     |
-| ----------------------------------- | -------------------------------------------------------------------- |
-| `src/config/rateLimit.ts`           | Rate limit settings (window, max, login max)                         |
-| `src/framework/http/ratelimiter.ts` | Core limiter logic — store selection, key generation, skip list      |
-| `src/framework/http/app.ts`         | Where the limiter is registered globally                             |
-| `src/modules/auth/routes/index.ts`  | Where `loginLimiter` is applied to public auth routes                |
+| File                                | What it controls                                                |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `src/config/rateLimit.ts`           | Rate limit settings (window, max, login max)                    |
+| `src/framework/http/ratelimiter.ts` | Core limiter logic — store selection, key generation, skip list |
+| `src/framework/http/app.ts`         | Where the limiter is registered globally                        |
+| `src/modules/auth/routes/index.ts`  | Where `loginLimiter` is applied to public auth routes           |
 
 ## Environment Variables
 
@@ -145,7 +145,7 @@ app.route({
 | -------------- | ------------------------ | --------------------------------------------------------- |
 | `REDIS`        | `false`                  | Enable Redis for persistent rate limiting across restarts |
 | `REDIS_URL`    | `redis://127.0.0.1:6379` | Redis connection string                                   |
-| `REDIS_PREFIX` | `nexwire`                 | Key prefix for namespacing                                |
+| `REDIS_PREFIX` | `nexwire`                | Key prefix for namespacing                                |
 
 ## How It Works
 

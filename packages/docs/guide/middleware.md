@@ -6,17 +6,17 @@ All three engines expose the same middleware concept; only the function signatur
 
 ## Where middleware lives
 
-| Kind | Location | Who writes it |
-| --- | --- | --- |
-| Global | `src/framework/http/app.ts` | The framework — applies CORS, sessions, security headers, logging and rate limiting to every request |
-| Route-level | `src/middlewares/<name>-middleware.ts` | You |
-| Framework route-level | `src/framework/http/*` | The framework — e.g. `loginLimiter` on the public auth routes |
+| Kind                  | Location                               | Who writes it                                                                                        |
+| --------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Global                | `src/framework/http/app.ts`            | The framework — applies CORS, sessions, security headers, logging and rate limiting to every request |
+| Route-level           | `src/middlewares/<name>-middleware.ts` | You                                                                                                  |
+| Framework route-level | `src/framework/http/*`                 | The framework — e.g. `loginLimiter` on the public auth routes                                        |
 
 The scaffold ships two in `src/middlewares/`:
 
-| File | Export | Purpose |
-| --- | --- | --- |
-| `auth-middleware.ts` | `authMiddleware` | Authenticates the request and puts `auth` on the request |
+| File                 | Export                  | Purpose                                                            |
+| -------------------- | ----------------------- | ------------------------------------------------------------------ |
+| `auth-middleware.ts` | `authMiddleware`        | Authenticates the request and puts `auth` on the request           |
 | `role-middleware.ts` | `requireRole(...roles)` | Rejects the request unless `auth.role` is one of the allowed roles |
 
 ## Applying middleware
@@ -255,11 +255,11 @@ declare module "fastify" {
 
 The framework sets these for you:
 
-| Key | Hono / Express | Fastify | Set by | Contents |
-| --- | --- | --- | --- | --- |
-| `auth` | `c.get("auth")` / `res.locals.auth` | `request.auth` | `authMiddleware` | The object your auth provider returns — `id`, `email`, `role`, plus any extra fields |
-| `sessionId` | `c.get("sessionId")` / `res.locals.sessionId` | `request.sessionId` | `sessionMiddleware` | Guest/user session id (see [Session](./session)) |
-| `requestId` | `c.get("requestId")` / `res.locals.requestId` | `request.requestId` | `loggerMiddleware` | Per-request id, useful in logs |
+| Key         | Hono / Express                                | Fastify             | Set by              | Contents                                                                             |
+| ----------- | --------------------------------------------- | ------------------- | ------------------- | ------------------------------------------------------------------------------------ |
+| `auth`      | `c.get("auth")` / `res.locals.auth`           | `request.auth`      | `authMiddleware`    | The object your auth provider returns — `id`, `email`, `role`, plus any extra fields |
+| `sessionId` | `c.get("sessionId")` / `res.locals.sessionId` | `request.sessionId` | `sessionMiddleware` | Guest/user session id (see [Session](./session))                                     |
+| `requestId` | `c.get("requestId")` / `res.locals.requestId` | `request.requestId` | `loggerMiddleware`  | Per-request id, useful in logs                                                       |
 
 `res.locals`, the Hono context and the Fastify request are all per request, so values are never shared between requests.
 
@@ -269,15 +269,15 @@ The framework sets these for you:
 
 Applied by the framework in `src/framework/http/app.ts`, so every request runs them:
 
-| Middleware | Purpose |
-| --- | --- |
-| `corsMiddleware` / `@fastify/cors` | CORS headers |
-| `sessionMiddleware` / `@fastify/cookie` + session hook | Session cookie + id |
-| `securityMiddleware` / Fastify `onRequest` hook | Security headers |
-| inline request counter | Increments the counters exposed at `/metrics` |
-| `loggerMiddleware` | Request logging (when `loggingConfig.httpRequests` is true in `config/logging.ts`) |
-| `rateLimiterMiddleware` / `@fastify/rate-limit` | Global rate limiting |
-| `storageStaticMiddleware` / `@fastify/static` | Serves `storage/` (mounted at `/storage`) |
+| Middleware                                             | Purpose                                                                            |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `corsMiddleware` / `@fastify/cors`                     | CORS headers                                                                       |
+| `sessionMiddleware` / `@fastify/cookie` + session hook | Session cookie + id                                                                |
+| `securityMiddleware` / Fastify `onRequest` hook        | Security headers                                                                   |
+| inline request counter                                 | Increments the counters exposed at `/metrics`                                      |
+| `loggerMiddleware`                                     | Request logging (when `loggingConfig.httpRequests` is true in `config/logging.ts`) |
+| `rateLimiterMiddleware` / `@fastify/rate-limit`        | Global rate limiting                                                               |
+| `storageStaticMiddleware` / `@fastify/static`          | Serves `storage/` (mounted at `/storage`)                                          |
 
 You do not apply these to routes, and you should not re-apply them. On Fastify they are registered as plugins and hooks in order, before your route plugins, so `request.cookies` is parsed by the time your hooks run.
 
@@ -285,10 +285,10 @@ You do not apply these to routes, and you should not re-apply them. On Fastify t
 
 These are applied per route or per group, by you:
 
-| Middleware | Applies to | Purpose |
-| --- | --- | --- |
-| `authMiddleware` | All engines | Authenticates the request, sets `auth`, refreshes an expired access token |
-| `requireRole(...roles)` | All engines | `403` unless `auth.role` matches one of the roles |
+| Middleware                          | Applies to          | Purpose                                                                                                     |
+| ----------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `authMiddleware`                    | All engines         | Authenticates the request, sets `auth`, refreshes an expired access token                                   |
+| `requireRole(...roles)`             | All engines         | `403` unless `auth.role` matches one of the roles                                                           |
 | `upload({ field })` / `fields(...)` | Express and Fastify | Multipart parsing into `req.file` / `req.files` (Express) or `request.upload` / `request.uploads` (Fastify) |
 
 `loginLimiter` is also route-level, but the framework applies it to the public auth routes for you. See [Rate Limiter](./rate-limiter) to tune or replace it.
@@ -331,11 +331,11 @@ import { requireRole } from "@/middlewares/role-middleware.js";
 app.route({ ..., preHandler: [authMiddleware, requireRole("admin")], handler: remove });
 ```
 
-| Situation | Response |
-| --- | --- |
-| `auth` is missing | `401 Unauthorized` |
-| `auth.role` is not in the list | `403 Forbidden` |
-| `auth.role` matches | Continues to the handler |
+| Situation                      | Response                 |
+| ------------------------------ | ------------------------ |
+| `auth` is missing              | `401 Unauthorized`       |
+| `auth.role` is not in the list | `403 Forbidden`          |
+| `auth.role` matches            | Continues to the handler |
 
 Roles are compared case-insensitively, and `auth.role` must be a **string**. If your provider's `getAuthContext()` returns a role object (`{ id, name }`), `requireRole` will not match it — flatten it to a string in the provider.
 

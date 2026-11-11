@@ -10,18 +10,18 @@ Fastify is Node-only. The scaffold ships without Bun engines or a Bun runtime pr
 
 ## What is different
 
-| Concern       | Express                                  | Fastify                                              |
-| ------------- | ---------------------------------------- | ---------------------------------------------------- |
-| Route unit    | `group().api(route, handler)`            | `FastifyPluginAsyncZod` plugin                       |
-| Handler       | `(req: Request, res: Response)`          | `(request: FastifyRequest, reply: FastifyReply)`     |
-| Body          | `req.body`                               | `request.body`                                       |
-| Path param    | `req.params.id`                          | `request.params.id`                                  |
-| Query         | `req.query.page`                         | `request.query.page`                                 |
-| Response      | `res.status(200).json(data)`             | `reply.code(200).send(data)`                         |
-| Group auth    | `group(authMiddleware)`                  | `scope.addHook("preHandler", authMiddleware)`        |
-| One-off auth  | `.api(route, [authMiddleware], handler)` | `route({ preHandler: authMiddleware, handler })`     |
-| Multipart     | `upload({ field })` (`multer`)           | `preHandler: upload({ field })` (`@fastify/multipart`) |
-| Types         | `Request`, `Response` from `"express"`   | `FastifyRequest`, `FastifyReply` from `"fastify"`    |
+| Concern      | Express                                  | Fastify                                                |
+| ------------ | ---------------------------------------- | ------------------------------------------------------ |
+| Route unit   | `group().api(route, handler)`            | `FastifyPluginAsyncZod` plugin                         |
+| Handler      | `(req: Request, res: Response)`          | `(request: FastifyRequest, reply: FastifyReply)`       |
+| Body         | `req.body`                               | `request.body`                                         |
+| Path param   | `req.params.id`                          | `request.params.id`                                    |
+| Query        | `req.query.page`                         | `request.query.page`                                   |
+| Response     | `res.status(200).json(data)`             | `reply.code(200).send(data)`                           |
+| Group auth   | `group(authMiddleware)`                  | `scope.addHook("preHandler", authMiddleware)`          |
+| One-off auth | `.api(route, [authMiddleware], handler)` | `route({ preHandler: authMiddleware, handler })`       |
+| Multipart    | `upload({ field })` (`multer`)           | `preHandler: upload({ field })` (`@fastify/multipart`) |
+| Types        | `Request`, `Response` from `"express"`   | `FastifyRequest`, `FastifyReply` from `"fastify"`      |
 
 `createRouter()`, `group()`, and `.api()` are **not** exported by the Fastify facade. Route files are ordinary Fastify plugins.
 
@@ -167,13 +167,13 @@ app.route({
 
 Fastify's request object is extended by the template (`src/framework/http/fastify.d.ts`):
 
-| Property          | Set by             | Contents                                                    |
-| ----------------- | ------------------ | ----------------------------------------------------------- |
-| `request.auth`    | `authMiddleware`   | The auth provider context — `id`, `email`, `role`, and extras |
-| `request.sessionId` | `sessionMiddleware` | Guest/user session id                                     |
-| `request.upload`  | `upload()`         | Single uploaded file                                        |
-| `request.uploads` | `upload()` / `fields()` | Array (or labeled map) of uploaded files              |
-| `request.id`      | Fastify            | UUID per request (`crypto.randomUUID()`), also echoed in `X-Request-ID` |
+| Property            | Set by                  | Contents                                                                |
+| ------------------- | ----------------------- | ----------------------------------------------------------------------- |
+| `request.auth`      | `authMiddleware`        | The auth provider context — `id`, `email`, `role`, and extras           |
+| `request.sessionId` | `sessionMiddleware`     | Guest/user session id                                                   |
+| `request.upload`    | `upload()`              | Single uploaded file                                                    |
+| `request.uploads`   | `upload()` / `fields()` | Array (or labeled map) of uploaded files                                |
+| `request.id`        | Fastify                 | UUID per request (`crypto.randomUUID()`), also echoed in `X-Request-ID` |
 
 `request.sessionId` replaces the Express `req.sessionId` and Hono `c.get("sessionId")`; there is no `res.locals` on Fastify.
 

@@ -95,7 +95,7 @@ export default defineConfig({
 | **Exclude**     | UI resources, storage, node_modules, dist                     |
 | **Environment** | `node`                                                        |
 | **Path alias**  | `@` → `./src`                                                 |
-| **Coverage**    | V8 provider, text + JSON + HTML reporters, no threshold      |
+| **Coverage**    | V8 provider, text + JSON + HTML reporters, no threshold       |
 
 ## Writing Tests
 
