@@ -29,7 +29,7 @@ The HTTP path is fixed at `/socket.io` (`WS_PATH` in `src/framework/realtime/soc
 
 ## Room Strategy
 
-When a client connects, the `initRealtime()` middleware extracts the JWT from the handshake cookie and joins the socket to rooms automatically:
+When a client connects, the `initRealtime()` middleware extracts the JWT from the handshake cookie — or, for desktop and native clients that cannot send that cookie, from the Socket.IO `auth.token` payload — and joins the socket to rooms automatically:
 
 | Condition                   | Rooms Joined                                                         |
 | --------------------------- | -------------------------------------------------------------------- |
@@ -192,11 +192,28 @@ onUnmounted(() => {
 | `pulse.channel(name)`               | Join a room (auto-connects) and return a channel for listening |
 | `pulse.private(name)`               | Alias for `channel("private:<name>")`                          |
 | `pulse.disconnect()`                | Disconnect the socket                                          |
+| `pulse.setToken(token)`             | Set the access token (or getter) sent in the handshake         |
 | `pulse.leave(name)`                 | Leave a room and remove all listeners                          |
 | `channel.listen(event, cb)`         | Listen for an event on this channel                            |
 | `channel.stopListening(event, cb?)` | Stop listening (omit cb to remove all)                         |
 
 The JWT access cookie (`{cookie.name}_access`) is sent automatically with `withCredentials: true`, and the server extracts the user's identity and roles from it to assign rooms.
+
+### Token auth (desktop / native clients)
+
+Clients that cannot send the httpOnly cookie (Electron/Tauri webviews, native apps) pass the **bare JWT** through the Socket.IO handshake instead:
+
+```ts
+import { pulse } from "@/plugins/pulse";
+
+// Getter form: resolved on every (re)connect, so refreshed tokens are picked up.
+pulse.setToken(() => getAccessToken());
+
+// Fixed token (e.g. right after login)
+pulse.setToken(token);
+```
+
+On the server, `authFromSocketHandshake()` checks the access cookie first and falls back to `socket.handshake.auth.token`. A handshake token is already an unsigned JWT, so only cookie values are run through cookie signature verification. Calling `setToken()` on a connected client re-handshakes and re-joins every tracked room.
 
 ## Toggling Realtime
 

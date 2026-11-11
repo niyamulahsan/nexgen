@@ -37,20 +37,28 @@ function rolesFromPayload(payload: Record<string, unknown>) {
 }
 
 /**
- * Why: Resolves auth context for websocket connections from cookies.
+ * Why: Resolves auth context for websocket connections from the access cookie
+ *      or the Socket.IO handshake `auth` payload.
  * When: Socket.IO handshake middleware executes.
  * Where: Realtime server auth pipeline.
- * How: Parses access cookie, verifies JWT, then normalizes user/role claims.
+ * How: Verifies the signed access cookie, or reads the bare JWT sent by desktop
+ *      and native clients in the handshake, then normalizes user/role claims.
  */
 export async function authFromSocketHandshake(socket: Socket): Promise<RealtimeAuthContext> {
   const cookies = parseCookieHeader(socket.handshake.headers.cookie);
-  const rawToken = cookies[`${cookieConfig.name}_access`];
+  const cookieToken = cookies[`${cookieConfig.name}_access`];
 
-  if (!rawToken) {
-    return unauthenticatedRealtimeAuth();
+  // Desktop and native clients cannot send the httpOnly cookie, so they pass the
+  // access token through the Socket.IO handshake `auth` payload instead.
+  const handshakeToken = socket.handshake.auth?.token;
+
+  let token: string | null = null;
+  if (cookieToken) {
+    token = signedCookie(cookieToken, cookieConfig.secret) || null;
+  } else if (typeof handshakeToken === "string" && handshakeToken.length > 0) {
+    token = handshakeToken;
   }
 
-  const token = signedCookie(rawToken, cookieConfig.secret);
   if (!token) {
     return unauthenticatedRealtimeAuth();
   }

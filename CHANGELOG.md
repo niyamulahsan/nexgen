@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.4.1] — 2026-11-11
+
+### Fixed
+
+- **Realtime (Hono, Express, Fastify)**: `authFromSocketHandshake()` now falls back to the bare access JWT in `socket.handshake.auth.token` when the request carries no access cookie. Desktop, native and other cookie-less clients previously joined only the `guest` room even after signing in, so `broadcast({ auth: true })`, `roles` and `users` never reached them. Cookie tokens are still signature-verified (`signedCookie` on Express, `unsign` on Fastify, HMAC strip on Hono); a handshake token goes to `jwt.verifyToken()` unchanged because it never had a cookie signature.
+- **Template (all engines)**: the `pulse` client exposes `pulse.setToken(token | null | (() => string | null))` and sends the resolved token through the Socket.IO handshake `auth` callback, which runs on every (re)connect. Calling `setToken()` while connected re-handshakes and re-joins every tracked room, and the getter form always sends the freshest token. `PulseToken` is exported, and the `SOCKET=false` no-op client implements `setToken()` so callers need no guard.
+
+### Documentation
+
+- `guide/realtime.md` and `guide/resources/pulse.md` document handshake-token authentication, the cookie-first precedence, and the `pulse.setToken()` API.
+
+### Tests
+
+- Added `socket-cookie.test.ts` per engine (6 cases each): handshake-only JWT, no signature stripping, cookie verification, cookie precedence, invalid-cookie rejection, and unauthenticated access. Framework tests stay out of the published scaffolder.
+
+Byte identity: `pulse.ts` is identical across `template/{hono,express,fastify}` and the three `packages/create-nexwire/*` copies (SHA-256 `FDF4807595E6AFCB610325DC86671D06A9568A41A813EE68E751B270B6A459EF`). `socket-cookie.ts` is intentionally engine-specific (cookie verification differs) while every template↔scaffolder pair is byte-identical (`hono` `931678CA…`, `express` `521E2BEF…`, `fastify` `F2067283…`).
+
 ## [4.4.0] — 2026-11-09
 
 > 4.3.1 was tagged on `main` but never published to npm; its changes ship in 4.4.0.

@@ -20,7 +20,7 @@ Backend                              UI
 | Transport   | WebSocket (polling fallback)           | Bidirectional realtime communication             |
 | Backend API | `dispatchEvent()` + `BroadcastOptions` | Emit events from controllers/jobs                |
 | UI client   | `pulse` plugin                         | Subscribe to rooms and listen for events         |
-| Auth        | JWT from httpOnly cookie               | Authenticate socket connections and assign rooms |
+| Auth        | JWT from httpOnly cookie or handshake  | Authenticate socket connections and assign rooms |
 
 ## Backend: Broadcasting Events
 
@@ -159,6 +159,7 @@ import { pulse } from "@/plugins/pulse";
 | `pulse.leave(name)`   | Leave a room and remove **all** event listeners registered for that room.                                               |
 | `pulse.connect()`     | Manually connect the socket (usually not needed — `channel()` auto-connects).                                           |
 | `pulse.disconnect()`  | Disconnect the socket entirely.                                                                                         |
+| `pulse.setToken(tok)` | Set the access token (string, `null`, or a getter) sent in the handshake. Use for desktop/native clients.               |
 
 ### `channel` API
 
@@ -241,6 +242,21 @@ broadcast: { rooms: ["orders"] } <──>    pulse.channel("orders")
 broadcast: { all: true }         <──>    (global emit — no room needed)
 ```
 
+## Authentication
+
+Browsers authenticate sockets with the JWT access cookie sent by `withCredentials: true`. Desktop and native clients cannot send that httpOnly cookie, so they pass the **bare JWT** through the Socket.IO handshake:
+
+```ts
+import { pulse } from "@/plugins/pulse";
+
+// Getter form — resolved on every (re)connect, so a refreshed token is used.
+pulse.setToken(() => getAccessToken());
+
+const ch = pulse.channel("orders");
+```
+
+`setToken` accepts a token string, `null`, or a getter. Calling it while connected drops and re-establishes the socket, and the `connect` handler re-joins every tracked room. On the server, `authFromSocketHandshake()` reads the access cookie first and falls back to `socket.handshake.auth.token`; only cookie tokens are signature-verified, because the handshake token is already a bare JWT.
+
 ## Lifecycle Management
 
 ### Connection
@@ -285,6 +301,7 @@ When `SOCKET=false` in `.env`, Pulse returns a no-op implementation on the UI, a
 ```ts
 pulse.channel("orders").listen("event", fn); // silent no-op
 pulse.connect(); // silent no-op
+pulse.setToken(getAccessToken); // silent no-op
 ```
 
 Your code never needs to check `if (SOCKET)` — Pulse handles it internally.

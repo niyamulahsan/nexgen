@@ -36,21 +36,29 @@ function rolesFromPayload(payload: Record<string, unknown>) {
 }
 
 /**
- * Why: Resolves auth context for websocket connections from cookies.
+ * Why: Resolves auth context for websocket connections from the access cookie
+ *      or the Socket.IO handshake `auth` payload.
  * When: Socket.IO handshake middleware executes.
  * Where: Realtime server auth pipeline.
- * How: Parses access cookie, verifies JWT, then normalizes user/role claims.
+ * How: Parses the signed access cookie, or reads the bare JWT sent by desktop
+ *      and native clients in the handshake, then normalizes user/role claims.
  */
 export async function authFromSocketHandshake(socket: Socket): Promise<RealtimeAuthContext> {
   const cookies = parseCookieHeader(socket.handshake.headers.cookie);
-  const rawToken = cookies[`${cookieConfig.name}_access`];
+  const cookieToken = cookies[`${cookieConfig.name}_access`];
+
+  // Desktop and native clients cannot send the httpOnly cookie, so they pass the
+  // access token through the Socket.IO handshake `auth` payload instead.
+  const handshakeToken = socket.handshake.auth?.token;
+  const rawToken = cookieToken || (typeof handshakeToken === "string" && handshakeToken.length > 0 ? handshakeToken : null);
 
   if (!rawToken) {
     return unauthenticatedRealtimeAuth();
   }
 
-  // Strip Hono's signed-cookie HMAC signature (last .<base64> part appended by setSignedCookie)
-  const token = rawToken.lastIndexOf(".") > 0 ? rawToken.substring(0, rawToken.lastIndexOf(".")) : rawToken;
+  // Strip Hono's signed-cookie HMAC signature only for cookie tokens; the
+  // handshake token is already a bare JWT.
+  const token = cookieToken && rawToken.lastIndexOf(".") > 0 ? rawToken.substring(0, rawToken.lastIndexOf(".")) : rawToken;
 
   const payload = await jwt.verifyToken(token, "access");
   if (!payload) {
