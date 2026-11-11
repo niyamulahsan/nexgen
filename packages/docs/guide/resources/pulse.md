@@ -155,8 +155,8 @@ import { pulse } from "@/plugins/pulse";
 | Method                | Purpose                                                                                                                 |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `pulse.channel(name)` | Join a Socket.IO room and create a channel for listening. Auto-connects if not connected. Emits `"join"` to the server. |
-| `pulse.private(name)` | Shorthand for `pulse.channel("private:{name}")`.                                                                        |
-| `pulse.leave(name)`   | Leave a room and remove **all** event listeners registered for that room.                                               |
+| `pulse.private(name)` | Shorthand for `pulse.channel("private:{name}")`. Requires an authenticated socket; `private("user:{id}")` is self-only.  |
+| `pulse.leave(name)`   | Leave the room on the server **and** remove all event listeners registered for that room.                               |
 | `pulse.connect()`     | Manually connect the socket (usually not needed — `channel()` auto-connects).                                           |
 | `pulse.disconnect()`  | Disconnect the socket entirely.                                                                                         |
 | `pulse.setToken(tok)` | Set the access token (string, `null`, or a getter) sent in the handshake. Use for desktop/native clients.               |
@@ -226,7 +226,11 @@ ch.listen("order.placed", handler);
 | User-specific notifications | `user:{id}` (auto-joined)    | Can listen directly, `channel()` is optional |
 | Role-wide announcements     | `role:admin` (auto-joined)   | Can listen directly, `channel()` is optional |
 | Custom feature rooms        | `"orders"` (not auto-joined) | **Must** use `channel()` to join             |
-| Private user rooms          | `"private:chat:{id}"`        | **Must** use `private()` or `channel()`      |
+| Private user rooms          | `"private:user:{id}"`        | **Must** use `private("user:{id}")`; self-only |
+
+### Room authorization
+
+The server validates every client-emitted `join` (`canJoinRoom()` in `src/framework/realtime/rooms.ts`). Guests may only join public rooms; `private:*` requires an authenticated socket; `private:user:<id>` and `user:<id>` are limited to that same `<id>`; `role:*` is allowed only for roles present in the verified token; `auth` and `guest` are never client-assignable. A refused join arrives as a `join:error` event (`{ room, reason: "forbidden" }`).
 
 ## Room Strategy Reference
 
@@ -236,7 +240,7 @@ The bridge between UI and backend is the room name:
 Backend dispatchEvent                    UI channel
 ─────────────────────                    ────────────────
 broadcast: { users: [42] }       <──>    pulse.channel("user:42")
-broadcast: { roles: ["admin"] }  <──>    pulse.channel("role:admin")
+broadcast: { roles: ["admin"] }  <──>    (socket already in "role:admin")
 broadcast: { auth: true }        <──>    (socket already in "auth")
 broadcast: { rooms: ["orders"] } <──>    pulse.channel("orders")
 broadcast: { all: true }         <──>    (global emit — no room needed)
@@ -284,7 +288,7 @@ ch.listen("order.placed", handler);
 
 onUnmounted(() => {
   ch.stopListening("order.placed");
-  pulse.leave("orders"); // optional — removes all listeners for the room
+  pulse.leave("orders"); // leaves the server room and removes its listeners
 });
 ```
 

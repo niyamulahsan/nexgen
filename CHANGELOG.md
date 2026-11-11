@@ -6,16 +6,19 @@
 
 - **Realtime (Hono, Express, Fastify)**: `authFromSocketHandshake()` now falls back to the bare access JWT in `socket.handshake.auth.token` when the request carries no access cookie. Desktop, native and other cookie-less clients previously joined only the `guest` room even after signing in, so `broadcast({ auth: true })`, `roles` and `users` never reached them. Cookie tokens are still signature-verified (`signedCookie` on Express, `unsign` on Fastify, HMAC strip on Hono); a handshake token goes to `jwt.verifyToken()` unchanged because it never had a cookie signature.
 - **Template (all engines)**: the `pulse` client exposes `pulse.setToken(token | null | (() => string | null))` and sends the resolved token through the Socket.IO handshake `auth` callback, which runs on every (re)connect. Calling `setToken()` while connected re-handshakes and re-joins every tracked room, and the getter form always sends the freshest token. `PulseToken` is exported, and the `SOCKET=false` no-op client implements `setToken()` so callers need no guard.
+- **Realtime rooms (Hono, Express, Fastify — security)**: client-emitted `join` is now authorized by `canJoinRoom()` (`src/framework/realtime/rooms.ts`). Guests can no longer subscribe to `auth`, `role:*`, `user:*` or `private:*`; an authenticated user can only join their own `user:<id>` and `private:user:<id>`, plus any `role:<name>` present in their verified token, while `private:<group>` requires authentication; `auth` and `guest` are never client-assignable. Previously any socket could emit `join("user:victim")` or `join("role:admin")` and receive those broadcasts — `pulse.private()` had no server-side enforcement at all. A refused join is answered with `join:error` (`{ room, reason: "forbidden" }`) and logged at debug level.
+- **Pulse client (all engines)**: `pulse.leave(name)` now also emits `leave` to the server, so the socket actually unsubscribes from the room; before, it only removed local listeners and the socket kept receiving that room's events. Room names are trimmed consistently in `channel()`/`leave()`.
 
 ### Documentation
 
-- `guide/realtime.md` and `guide/resources/pulse.md` document handshake-token authentication, the cookie-first precedence, and the `pulse.setToken()` API.
+- `guide/realtime.md` and `guide/resources/pulse.md` document handshake-token authentication, the cookie-first precedence, the `pulse.setToken()` API, room-join authorization (own `user:<id>`, authenticated `private:*`, self-only `private:user:<id>`), and the `join:error` reply.
 
 ### Tests
 
 - Added `socket-cookie.test.ts` per engine (6 cases each): handshake-only JWT, no signature stripping, cookie verification, cookie precedence, invalid-cookie rejection, and unauthenticated access. Framework tests stay out of the published scaffolder.
+- Added `rooms.test.ts` per engine (7 cases each): guest denial for identity rooms, public channels, own-only `user:`/`private:user:` joins, role/auth refusals, `join:error`, and `leave` propagation.
 
-Byte identity: `pulse.ts` is identical across `template/{hono,express,fastify}` and the three `packages/create-nexwire/*` copies (SHA-256 `FDF4807595E6AFCB610325DC86671D06A9568A41A813EE68E751B270B6A459EF`). `socket-cookie.ts` is intentionally engine-specific (cookie verification differs) while every template↔scaffolder pair is byte-identical (`hono` `931678CA…`, `express` `521E2BEF…`, `fastify` `F2067283…`).
+Byte identity: `pulse.ts` is identical across `template/{hono,express,fastify}` and the three `packages/create-nexwire/*` copies (SHA-256 `730EF1F9219869428FD7BC2C886640CF8821F3F05BB8787312817644EC9979CC`), and so is `rooms.ts` (`86F2BC91F52F6F8E42F9F9F7BC44614B455853FFF95CB407D37F652F65DA7B8C`). `socket-cookie.ts` is intentionally engine-specific (cookie verification differs: `hono` `931678CA…`, `express` `521E2BEF…`, `fastify` `F2067283…`), and `socket.ts` carries engine-specific bootstrap code; every template↔scaffolder pair is byte-identical.
 
 ## [4.4.0] — 2026-11-09
 

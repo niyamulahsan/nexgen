@@ -151,15 +151,22 @@ function createPulse(): PulseClient {
     channel,
     private: (room: string) => channel(`private:${room}`),
     leave: (room: string) => {
-      if (!socket) return pulse;
+      const name = String(room).trim();
+      if (!name) return pulse;
 
-      const bindings = channels.get(room) || [];
-      for (const binding of bindings) {
-        socket.off(binding.event, binding.wrapped);
+      joinedRooms.delete(name);
+      const bindings = channels.get(name) || [];
+      channels.delete(name);
+
+      if (socket) {
+        // Tell the server too: dropping listeners alone leaves the socket
+        // subscribed and still receiving that room's events.
+        socket.emit("leave", name);
+        for (const binding of bindings) {
+          socket.off(binding.event, binding.wrapped);
+        }
       }
 
-      channels.delete(room);
-      joinedRooms.delete(room);
       return pulse;
     }
   };

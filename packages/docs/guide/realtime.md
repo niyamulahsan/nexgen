@@ -35,7 +35,7 @@ When a client connects, the `initRealtime()` middleware extracts the JWT from th
 | --------------------------- | -------------------------------------------------------------------- |
 | Authenticated               | `"auth"`, `"user:<userId>"`, `"role:<role1>"`, `"role:<role2>"`, ... |
 | Unauthenticated             | `"guest"`                                                            |
-| Client emits `"join"` event | Any custom room name(s)                                              |
+| Client emits `"join"` event | Public channels, own `"user:<id>"`, authenticated `"private:*"` rooms |
 
 ```ts
 // Server-side: socket joins these rooms automatically
@@ -44,9 +44,24 @@ socket.join("user:42");
 socket.join("role:admin");
 socket.join("role:user");
 
-// Client-side: join a custom room
+// Client-side: join a custom public room
 socket.emit("join", "room:chat:general");
 ```
+
+### Room Authorization
+
+A client-emitted `join` is checked on the server (`canJoinRoom()` in `src/framework/realtime/rooms.ts`) before the socket subscribes. Identity rooms are assigned from the verified token, never from the client:
+
+| Requested room        | Guest | Authenticated user            |
+| --------------------- | ----- | ----------------------------- |
+| `room:<name>`, `chat` | ✅    | ✅                            |
+| `private:<group>`     | ❌    | ✅                            |
+| `private:user:<id>`   | ❌    | only their own `<id>`         |
+| `user:<id>`           | ❌    | only their own `<id>`         |
+| `role:<name>`         | ❌    | only roles in their token     |
+| `auth`, `guest`       | ❌    | ❌                            |
+
+A refused join is answered with a `join:error` event carrying `{ room, reason: "forbidden" }` and logged at debug level. Use the server-assigned `user:<id>` rooms (or `broadcast(..., { users: [id] })`) for per-user delivery; `private:*` is for authenticated audiences, not a substitute for user targeting.
 
 ## Broadcasting
 
@@ -158,13 +173,13 @@ The UI uses the **Pulse** plugin (a wrapper around `socket.io-client`) to connec
 ```ts
 import { pulse } from "@/plugins/pulse";
 
-// Listen on a specific channel (maps to a Socket.IO room) — auto-connects
+// Listen on the auto-joined user room (channel() is optional for it)
 const channel = pulse.channel("user:42");
 channel.listen("post.published", (data) => {
   appendToFeed(data);
 });
 
-// Listen on a role-based channel
+// Role rooms are auto-joined from the verified token; just listen
 const adminChannel = pulse.channel("role:admin");
 adminChannel.listen("admin.user.registered", (data) => {
   refreshAdminDashboard();
@@ -190,10 +205,10 @@ onUnmounted(() => {
 | Method                              | Description                                                    |
 | ----------------------------------- | -------------------------------------------------------------- |
 | `pulse.channel(name)`               | Join a room (auto-connects) and return a channel for listening |
-| `pulse.private(name)`               | Alias for `channel("private:<name>")`                          |
+| `pulse.private(name)`               | Alias for `channel("private:<name>")`; requires authentication |
 | `pulse.disconnect()`                | Disconnect the socket                                          |
 | `pulse.setToken(token)`             | Set the access token (or getter) sent in the handshake         |
-| `pulse.leave(name)`                 | Leave a room and remove all listeners                          |
+| `pulse.leave(name)`                 | Leave the room on the server and remove all its listeners      |
 | `channel.listen(event, cb)`         | Listen for an event on this channel                            |
 | `channel.stopListening(event, cb?)` | Stop listening (omit cb to remove all)                         |
 

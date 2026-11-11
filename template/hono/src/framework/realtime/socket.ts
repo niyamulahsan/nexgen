@@ -2,6 +2,7 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig, redisConfig } from "@/config/index.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
+import { registerRoomHandlers } from "@/framework/realtime/rooms.js";
 import { authFromSocketHandshake, unauthenticatedRealtimeAuth } from "@/framework/realtime/socket-cookie.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 import { redisClientIfReady } from "@/framework/redis/client.js";
@@ -113,7 +114,16 @@ function registerAuthAndRooms() {
       userId: auth.userId
     });
 
-    socket.on("join", (room) => socket.join(String(room)));
+    registerRoomHandlers(socket, auth, {
+      onRejected: (room) => {
+        logger.debug("Rejected room join", {
+          socketId: socket.id,
+          room,
+          authenticated: auth.isAuthenticated,
+          userId: auth.userId
+        });
+      }
+    });
     socket.on("disconnect", (reason) => {
       logger.info("Socket disconnected", {
         socketId: socket.id,
