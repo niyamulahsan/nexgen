@@ -1,3 +1,5 @@
+// ./src/framework/http/app.ts
+
 import { createRoute, z } from "@hono/zod-openapi";
 import { appConfig, redisConfig } from "@/config/index.js";
 import { database } from "@/framework/database/connection.js";

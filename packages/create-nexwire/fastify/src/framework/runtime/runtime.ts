@@ -1,3 +1,5 @@
+// ./src/framework/runtime/runtime.ts
+
 export type Runtime = "node" | "bun" | "unknown";
 
 const runtimeGlobals = globalThis as Record<string, unknown>;

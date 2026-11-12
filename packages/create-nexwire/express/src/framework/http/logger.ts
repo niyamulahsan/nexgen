@@ -1,3 +1,5 @@
+// ./src/framework/http/logger.ts
+
 import type { ErrorRequestHandler, RequestHandler } from "express";
 import createError from "http-errors";
 import { openApiConfig } from "@/config/index.js";

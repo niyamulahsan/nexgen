@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/deploy/core.mjs
+
 import { spawn } from "node:child_process";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
@@ -400,7 +402,8 @@ export async function createDeploy(flags = []) {
           OPEN_API: process.env.OPEN_API || (await readEnvValue(path.resolve(process.cwd(), ".env"), "OPEN_API")) || "false",
           SOCKET: process.env.SOCKET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SOCKET")) || "false",
           UI: (await resolveUIOn()) ? "true" : "false",
-          SECURITY_HEADERS: process.env.SECURITY_HEADERS || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SECURITY_HEADERS")) || "true",
+          SECURITY_HEADERS:
+            process.env.SECURITY_HEADERS || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SECURITY_HEADERS")) || "true",
           FRONTEND_URL: process.env.FRONTEND_URL || (await readEnvValue(path.resolve(process.cwd(), ".env"), "FRONTEND_URL")) || "",
           REDIS_PREFIX: process.env.REDIS_PREFIX || (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS_PREFIX")) || "nexwire",
           JWT_ACCESS_SECRET:

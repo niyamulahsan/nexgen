@@ -1,3 +1,5 @@
+// ./src/config/app.ts
+
 import { env } from "@/env.js";
 
 /**

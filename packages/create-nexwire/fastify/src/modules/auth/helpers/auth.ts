@@ -1,3 +1,5 @@
+// ./src/modules/auth/helpers/auth.ts
+
 import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { FastifyReply, FastifyRequest } from "fastify";
@@ -68,12 +70,7 @@ export async function revokeCurrentRefreshToken(request: FastifyRequest) {
   }
 }
 
-export async function issueTokens(
-  _request: FastifyRequest,
-  reply: FastifyReply,
-  user: any,
-  options?: { remember?: boolean }
-) {
+export async function issueTokens(_request: FastifyRequest, reply: FastifyReply, user: any, options?: { remember?: boolean }) {
   const remember = !!options?.remember;
   const refreshExpiry = remember ? jwtConfig.refreshRememberExpirySeconds : jwtConfig.refreshExpirySeconds;
   const role = user.role || null;

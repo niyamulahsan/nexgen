@@ -1,3 +1,5 @@
+// ./src/framework/http/router.ts
+
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { defaultHook } from "stoker/openapi";
 

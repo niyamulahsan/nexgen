@@ -1,3 +1,5 @@
+// ./src/framework/http/cors.ts
+
 import { cors } from "hono/cors";
 import { corsConfig } from "@/config/index.js";
 import { parseCsvOrFallback } from "@/framework/support/lifecycle.js";

@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/datatable/DataTableSkeleton.vue -->
+
 <template>
   <div class="skeleton card border">
     <div class="card-header border-bottom-0 pb-0 px-2 px-sm-3">

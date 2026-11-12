@@ -1,3 +1,5 @@
+// ./src/modules/auth/facade.ts
+
 /**
  * Public API for the auth module.
  *

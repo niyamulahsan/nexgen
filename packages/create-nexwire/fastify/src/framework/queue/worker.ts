@@ -1,3 +1,5 @@
+// ./src/framework/queue/worker.ts
+
 import { queueConfig } from "@/config/index.js";
 import { closeDatabase, initDatabase } from "@/framework/database/connection.js";
 import { pruneStaleQueues, startQueueWorker as startQueueWorkers, stopQueueRuntime } from "@/framework/queue/queue.js";

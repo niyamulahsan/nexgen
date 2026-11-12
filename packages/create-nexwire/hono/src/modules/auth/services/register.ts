@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/register.ts
+
 import { eq } from "drizzle-orm";
 import { authConfig } from "@/config/index.js";
 import { db, dispatchEvent, password, urls } from "@/framework/facade.js";
@@ -10,7 +12,7 @@ import {
   revokeCurrentRefreshToken,
   sanitizeUser
 } from "@/modules/auth/helpers/auth.js";
-import type { RegisterInput } from "@/modules/auth/types/auth.js";
+import type { RegisterType } from "@/modules/auth/schemas/auth.js";
 
 export type RegisterResult =
   | { kind: "email_exists"; message: string }
@@ -29,7 +31,7 @@ export type RegisterResult =
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 export const registerService = {
-  register: async (c: any, body: RegisterInput): Promise<RegisterResult> => {
+  register: async (c: any, body: RegisterType): Promise<RegisterResult> => {
     const defaultRole = await db.query.roles.findFirst({
       where: eq(roles.name, "user")
     });

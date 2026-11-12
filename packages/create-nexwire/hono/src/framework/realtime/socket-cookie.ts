@@ -1,3 +1,5 @@
+// ./src/framework/realtime/socket-cookie.ts
+
 import type { Socket } from "socket.io";
 import { cookieConfig } from "@/config/index.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";

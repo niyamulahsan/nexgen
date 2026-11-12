@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/deploy/core.mjs
+
 import { spawn } from "node:child_process";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
@@ -375,7 +377,7 @@ export async function createDeploy(flags = []) {
     try {
       await fs.access(deployRoot);
       throw new Error("deploy folder already exists. Re-run with --force");
-    } catch { }
+    } catch {}
   }
   const runtimeExec = runtime === "bun" ? "bun" : "node";
   const nodeDockerStub = STUBS.deploy.dockerfile.node[nodePm] || STUBS.deploy.dockerfile.node.npm;
@@ -400,7 +402,8 @@ export async function createDeploy(flags = []) {
           OPEN_API: process.env.OPEN_API || (await readEnvValue(path.resolve(process.cwd(), ".env"), "OPEN_API")) || "false",
           SOCKET: process.env.SOCKET || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SOCKET")) || "false",
           UI: (await resolveUIOn()) ? "true" : "false",
-          SECURITY_HEADERS: process.env.SECURITY_HEADERS || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SECURITY_HEADERS")) || "true",
+          SECURITY_HEADERS:
+            process.env.SECURITY_HEADERS || (await readEnvValue(path.resolve(process.cwd(), ".env"), "SECURITY_HEADERS")) || "true",
           FRONTEND_URL: process.env.FRONTEND_URL || (await readEnvValue(path.resolve(process.cwd(), ".env"), "FRONTEND_URL")) || "",
           REDIS_PREFIX: process.env.REDIS_PREFIX || (await readEnvValue(path.resolve(process.cwd(), ".env"), "REDIS_PREFIX")) || "nexwire",
           JWT_ACCESS_SECRET:
@@ -473,16 +476,16 @@ export async function createDeploy(flags = []) {
       ...(isDev
         ? []
         : [
-          { output: "workflow.local.json", stub: STUBS.deploy.workflow.local },
-          { output: "workflow.remote.json", stub: STUBS.deploy.workflow.remote }
-        ])
+            { output: "workflow.local.json", stub: STUBS.deploy.workflow.local },
+            { output: "workflow.remote.json", stub: STUBS.deploy.workflow.remote }
+          ])
     ]);
     if (redisOn) await writeRenderedFiles(deployRoot, [{ output: "server/redis/redis.conf", stub: STUBS.deploy.server.redisConfig }]);
   }
   if (!doServer) {
     try {
       await fs.rm(path.join(deployRoot, "server"), { recursive: true, force: true });
-    } catch { }
+    } catch {}
   }
 }
 
@@ -538,17 +541,17 @@ export async function runDeploy(commandName) {
     try {
       await fs.access(serverEnvExamplePath);
       await ensureEnvFile(serverEnvPath, serverEnvExamplePath);
-    } catch { }
+    } catch {}
     try {
       await fs.access(serverEnvPath);
       await syncDeployDatabaseUrlWithServerEnv(envPath, serverEnvPath);
       await ensureDeployDatabaseReady(envPath, serverEnvPath);
-    } catch { }
+    } catch {}
     const composeArgs = ["compose"];
     try {
       await fs.access(serverEnvPath);
       composeArgs.push("--env-file", serverEnvPath);
-    } catch { }
+    } catch {}
     composeArgs.push("--env-file", envPath, "-f", composePath, "up", "-d", "--build", "--force-recreate");
     await runCommand("docker", composeArgs);
   }
@@ -565,7 +568,9 @@ export async function runRemoteServer(flags = []) {
 
   console.log("Ensuring remote Docker networks...");
   if (dryRun) {
-    console.log(`[dry-run] ssh ${[...sshArgs, remoteHost, `docker network inspect nginx-proxy >/dev/null 2>&1 || docker network create nginx-proxy`].join(" ")}`);
+    console.log(
+      `[dry-run] ssh ${[...sshArgs, remoteHost, `docker network inspect nginx-proxy >/dev/null 2>&1 || docker network create nginx-proxy`].join(" ")}`
+    );
   } else {
     await runCommand("ssh", [
       ...sshArgs,
@@ -574,14 +579,18 @@ export async function runRemoteServer(flags = []) {
     ]);
   }
   if (dryRun) {
-    console.log(`[dry-run] ssh ${[...sshArgs, remoteHost, `docker network inspect infra >/dev/null 2>&1 || docker network create infra`].join(" ")}`);
+    console.log(
+      `[dry-run] ssh ${[...sshArgs, remoteHost, `docker network inspect infra >/dev/null 2>&1 || docker network create infra`].join(" ")}`
+    );
   } else {
     await runCommand("ssh", [...sshArgs, remoteHost, `docker network inspect infra >/dev/null 2>&1 || docker network create infra`]);
   }
 
   console.log("Starting server infra containers...");
   if (dryRun) {
-    console.log(`[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/server/.env -f deploy/server/docker-compose.yml up -d`].join(" ")}`);
+    console.log(
+      `[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/server/.env -f deploy/server/docker-compose.yml up -d`].join(" ")}`
+    );
   } else {
     await runCommand("ssh", [
       ...sshArgs,
@@ -594,7 +603,9 @@ export async function runRemoteServer(flags = []) {
   if (localEmail) {
     console.log("Syncing pgAdmin servers...");
     if (dryRun) {
-      console.log(`[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker exec pgadmin /venv/bin/python /pgadmin4/setup.py load-servers /pgadmin4/servers.json --user "${localEmail}" --replace 2>/dev/null || true`].join(" ")}`);
+      console.log(
+        `[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker exec pgadmin /venv/bin/python /pgadmin4/setup.py load-servers /pgadmin4/servers.json --user "${localEmail}" --replace 2>/dev/null || true`].join(" ")}`
+      );
     } else {
       await runCommand("ssh", [
         ...sshArgs,
@@ -625,7 +636,9 @@ export async function runRemoteApp(flags = []) {
 
   console.log("Building and starting app containers...");
   if (dryRun) {
-    console.log(`[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build --force-recreate`].join(" ")}`);
+    console.log(
+      `[dry-run] ssh ${[...sshArgs, remoteHost, `${cd} && docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build --force-recreate`].join(" ")}`
+    );
   } else {
     await runCommand("ssh", [
       ...sshArgs,
@@ -645,7 +658,7 @@ async function resolveDbCredentials(serverEnv) {
       const url = new URL(dbUrlRaw);
       urlUser = decodeURIComponent(url.username || "");
       urlPassword = decodeURIComponent(url.password || "");
-    } catch { }
+    } catch {}
   }
   return { dbUrlRaw, urlUser, urlPassword };
 }
@@ -769,7 +782,7 @@ export async function importMysqlDumpLocal(flags = []) {
     const dbUrl = await readEnvValue(path.join(deployRoot, ".env"), "DATABASE_URL");
     try {
       if (dbUrl) password = decodeURIComponent(new URL(dbUrl).password);
-    } catch { }
+    } catch {}
   }
   await runCommand("docker", [
     "exec",
@@ -884,7 +897,7 @@ export async function importDumpRemote(flags = []) {
   try {
     const parsed = JSON.parse(await fs.readFile(path.resolve(process.cwd(), configPath), "utf8"));
     container = String(parsed.databaseImport?.container || "").toLowerCase();
-  } catch { }
+  } catch {}
   if (!container) container = String(getOption(flags, "--container", "")).toLowerCase();
   if (container.includes("postgres")) return importPgDumpRemote(flags);
   return importMysqlDumpRemote(flags);
@@ -1034,4 +1047,3 @@ export async function runPromoteWorkflow(flags = []) {
   await runLocalWorkflow(localFlags);
   await runRemoteWorkflow(remoteFlags);
 }
-

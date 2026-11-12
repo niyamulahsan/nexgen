@@ -1,14 +1,16 @@
+// ./src/modules/auth/controllers/auth.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
-import { registerService } from "@/modules/auth/services/register.js";
 import type {
-  ForgotPasswordInput,
-  LoginInput,
-  RefreshTokenInput,
-  RegisterInput,
-  ResetPasswordInput,
-  VerifyEmailInput
-} from "@/modules/auth/types/auth.js";
+  ForgotPasswordType,
+  LoginType,
+  RefreshTokenType,
+  RegisterType,
+  ResetPasswordType,
+  VerifyEmailType
+} from "@/modules/auth/schemas/auth.js";
+import { registerService } from "@/modules/auth/services/register.js";
 import { forgotPasswordService } from "../services/forgetpassword.js";
 import { loginService } from "../services/login.js";
 import { logoutService } from "../services/logout.js";
@@ -25,7 +27,7 @@ type Body<T> = FastifyRequest<{ Body: T }>;
  * When: Used on first-time account creation.
  * Where: POST auth register route.
  */
-export const register = async (request: Body<RegisterInput>, reply: FastifyReply) => {
+export const register = async (request: Body<RegisterType>, reply: FastifyReply) => {
   try {
     const result = await registerService.register(request, reply, request.body);
 
@@ -53,7 +55,7 @@ export const register = async (request: Body<RegisterInput>, reply: FastifyReply
  * When: Used whenever a user signs in.
  * Where: POST auth login route.
  */
-export const login = async (request: Body<LoginInput>, reply: FastifyReply) => {
+export const login = async (request: Body<LoginType>, reply: FastifyReply) => {
   try {
     const result = await loginService.login(request, reply, request.body);
 
@@ -131,7 +133,7 @@ export const logout = async (request: FastifyRequest, reply: FastifyReply) => {
  * When: Used when user requests a forgot-password link.
  * Where: POST auth forgot-password route.
  */
-export const forgotPassword = async (request: Body<ForgotPasswordInput>, reply: FastifyReply) => {
+export const forgotPassword = async (request: Body<ForgotPasswordType>, reply: FastifyReply) => {
   try {
     const result = await forgotPasswordService.forgotPassword(request.body);
 
@@ -139,9 +141,7 @@ export const forgotPassword = async (request: Body<ForgotPasswordInput>, reply: 
     return reply.code(HttpStatusCodes.OK).send({ message: result.message });
   } catch (error) {
     console.error("Forgot password error:", error);
-    return reply
-      .code(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-      .send({ message: "Failed to process forgot password request" });
+    return reply.code(HttpStatusCodes.INTERNAL_SERVER_ERROR).send({ message: "Failed to process forgot password request" });
   }
 };
 
@@ -150,7 +150,7 @@ export const forgotPassword = async (request: Body<ForgotPasswordInput>, reply: 
  * When: Used after user submits reset token + new password.
  * Where: POST auth reset-password route.
  */
-export const resetPassword = async (request: Body<ResetPasswordInput>, reply: FastifyReply) => {
+export const resetPassword = async (request: Body<ResetPasswordType>, reply: FastifyReply) => {
   try {
     const result = await resetPasswordService.resetPassword(request.body);
 
@@ -172,7 +172,7 @@ export const resetPassword = async (request: Body<ResetPasswordInput>, reply: Fa
  * When: Used when user opens verification link from inbox.
  * Where: POST auth verify-email route.
  */
-export const verifyEmail = async (request: Body<VerifyEmailInput>, reply: FastifyReply) => {
+export const verifyEmail = async (request: Body<VerifyEmailType>, reply: FastifyReply) => {
   try {
     const result = await verifyEmailService.verifyEmail(request.body);
 
@@ -197,7 +197,7 @@ export const verifyEmail = async (request: Body<VerifyEmailInput>, reply: Fastif
  * When: Used when access token expires but refresh token is still valid.
  * Where: POST auth refresh-token route.
  */
-export const refreshToken = async (request: Body<RefreshTokenInput>, reply: FastifyReply) => {
+export const refreshToken = async (request: Body<RefreshTokenType>, reply: FastifyReply) => {
   try {
     const result = await refreshTokenService.refreshToken(request.body);
 

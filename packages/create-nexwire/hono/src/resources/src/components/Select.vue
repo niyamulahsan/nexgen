@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Select.vue -->
+
 <script setup lang="ts">
 import axios from "axios";
 import { debounce } from "lodash-es";
@@ -17,9 +19,7 @@ interface FetchPack {
   data?: string | null;
   params?: AnyRecord;
   mapFn?: (x: AnyRecord) => AnyRecord;
-  option?:
-  | ((value: unknown) => void | Promise<void>)
-  | Array<(value: unknown) => void | Promise<void>>;
+  option?: ((value: unknown) => void | Promise<void>) | Array<(value: unknown) => void | Promise<void>>;
   reset?: boolean;
   reload?: boolean;
 }
@@ -52,7 +52,7 @@ let observer = ref<IntersectionObserver | null>(null);
 let load = ref<HTMLElement | null>(null);
 
 // store callbacks coming from fetchedDropdown(pack)
-const hooks = ref<{ option: OptionHook | OptionHook[]; }>({ option: null }); // function | function[] | null
+const hooks = ref<{ option: OptionHook | OptionHook[] }>({ option: null }); // function | function[] | null
 
 // remember last fetch config and search so the child can refetch/append by itself
 const lastPack = ref<FetchPack | null>(null); // { url, data, params, mapFn }
@@ -60,7 +60,7 @@ const lastSearch = ref(""); // current search term
 const lastSearchRows = ref<AnyRecord[]>([]); // results of the last search, to pin on top after clearing
 
 const hasNextPage = computed(() => {
-  const total = Number((fieldData.value as { total?: number; }).total ?? 0);
+  const total = Number((fieldData.value as { total?: number }).total ?? 0);
   return field.all.length < total;
 });
 
@@ -100,11 +100,7 @@ const onClose = async () => {
 };
 
 const onModelUpdate = async (val: unknown) => {
-  const optHooks = Array.isArray(hooks.value.option)
-    ? hooks.value.option
-    : hooks.value.option
-      ? [hooks.value.option]
-      : [];
+  const optHooks = Array.isArray(hooks.value.option) ? hooks.value.option : hooks.value.option ? [hooks.value.option] : [];
 
   // When user clicks × or backspaces everything, v-select sets model to null.
   if (val == null || val === "") {
@@ -135,9 +131,7 @@ const inputSearch = debounce(async (search: string, loading: (value: boolean) =>
   if (search?.trim().length) {
     loading(true);
     if (lastPack.value) {
-      await fetchedDropdown(search, { ...lastPack.value, reset: true }).finally(() =>
-        loading(false)
-      );
+      await fetchedDropdown(search, { ...lastPack.value, reset: true }).finally(() => loading(false));
     } else {
       await callParentFetched(search, { reset: true }).finally(() => loading(false));
     }
@@ -158,10 +152,7 @@ const inputSearch = debounce(async (search: string, loading: (value: boolean) =>
 const infiniteScroll = async ([{ isIntersecting, target }]: IntersectionObserverEntry[]) => {
   if (!isIntersecting) return;
 
-  const ul =
-    target instanceof HTMLElement && target.offsetParent instanceof HTMLElement
-      ? target.offsetParent
-      : null;
+  const ul = target instanceof HTMLElement && target.offsetParent instanceof HTMLElement ? target.offsetParent : null;
   const scrollTop = ul?.scrollTop ?? 0;
 
   if (lastPack.value) {
@@ -192,7 +183,7 @@ onBeforeUnmount(() => {
 });
 
 // prototype and it will call from parent
-const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number; }>({
+const field = reactive<{ all: AnyRecord[]; val: SelectValue; page: number; size: number }>({
   all: [],
   val: "",
   page: 0,
@@ -222,11 +213,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   // make option sticky: only overwrite if caller provided it
   if ("option" in (pack ?? {})) {
     const pOpt = pack?.option;
-    hooks.value.option = Array.isArray(pOpt)
-      ? pOpt.filter((fn) => typeof fn === "function")
-      : typeof pOpt === "function"
-        ? [pOpt]
-        : [];
+    hooks.value.option = Array.isArray(pOpt) ? pOpt.filter((fn) => typeof fn === "function") : typeof pOpt === "function" ? [pOpt] : [];
   }
 
   // remember essentials so the child can refetch/append on its own
@@ -234,9 +221,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   lastSearch.value = search ?? "";
 
   // if pass and true -> reset, reload , search
-  (reset && resetMe()) ||
-    (reload && reloadMe()) ||
-    (!empty(search) && !reset && !reload && reloadMe());
+  (reset && resetMe()) || (reload && reloadMe()) || (!empty(search) && !reset && !reload && reloadMe());
 
   // after reset/reload/search
   field.page++;
@@ -258,13 +243,9 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
   const payload = key.data[data as string] as AnyRecord;
 
   fieldData.value = payload;
-  const rows = Array.isArray((payload as { data?: unknown; }).data)
-    ? (payload as { data: AnyRecord[]; }).data
-    : [];
+  const rows = Array.isArray((payload as { data?: unknown }).data) ? (payload as { data: AnyRecord[] }).data : [];
 
-  const options = rows
-    .map((dt) => (dt == null ? null : mapFn(dt)))
-    .filter((opt): opt is AnyRecord => opt != null);
+  const options = rows.map((dt) => (dt == null ? null : mapFn(dt))).filter((opt): opt is AnyRecord => opt != null);
 
   // remember the last fresh search results so they can be pinned on top after clearing the search
   if (search?.trim().length && reset) {
@@ -279,9 +260,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
       !field.all.some(
         (o) =>
           o != null &&
-          ((o as { id?: unknown; title?: unknown; }).id ??
-            (o as { id?: unknown; title?: unknown; }).title ??
-            JSON.stringify(o)) === key
+          ((o as { id?: unknown; title?: unknown }).id ?? (o as { id?: unknown; title?: unknown }).title ?? JSON.stringify(o)) === key
       )
     ) {
       field.all = [...field.all, opt];
@@ -290,9 +269,7 @@ const fetchedDropdown = async (search: string, pack: FetchPack | null = null) =>
 };
 
 const optionKey = (o: AnyRecord) =>
-  (o as { id?: unknown; title?: unknown; }).id ??
-  (o as { id?: unknown; title?: unknown; }).title ??
-  JSON.stringify(o);
+  (o as { id?: unknown; title?: unknown }).id ?? (o as { id?: unknown; title?: unknown }).title ?? JSON.stringify(o);
 
 // after a refetch, move the last search results to the top of the list
 const pinLastSearchRows = () => {
@@ -325,11 +302,7 @@ watch(
   async (newVal, oldVal) => {
     if (oldVal === undefined) return;
 
-    const optHooks = Array.isArray(hooks.value.option)
-      ? hooks.value.option
-      : hooks.value.option
-        ? [hooks.value.option]
-        : [];
+    const optHooks = Array.isArray(hooks.value.option) ? hooks.value.option : hooks.value.option ? [hooks.value.option] : [];
 
     model.value = "";
 
@@ -356,27 +329,22 @@ defineExpose({ field, fieldData, fetchedDropdown, reload });
 const parentClass = computed(() => ($attrs.parentclass as string | undefined) || "mb-2");
 
 const inputTitle = computed(() => ($attrs.title as string | undefined) || "");
-const hoodHtml = computed(() =>
-  props.hood === false || props.hood == null ? "" : String(props.hood)
-);
+const hoodHtml = computed(() => (props.hood === false || props.hood == null ? "" : String(props.hood)));
 </script>
 
 <template>
   <div :class="parentClass">
-    <label
-      class="text-capitalize d-flex align-items-center mb-1"
-      :class="{ 'd-none': !inputTitle }">
+    <label class="text-capitalize d-flex align-items-center mb-1" :class="{ 'd-none': !inputTitle }">
       <div class="position-relative">
         <span class="text-capitalize" v-html="inputTitle"></span>
-        <span
-          class="position-absolute text-danger rounded-circle bg-danger must"
-          :class="{ 'd-none': !props.must }"></span>
+        <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
       </div>
       <div
         class="text-uppercase w-100 text-end text-primary fw-semibold"
         :class="{ 'd-none': !props.hood }"
         style="font-size: 12px; margin-top: 0.15rem"
-        v-html="hoodHtml"></div>
+        v-html="hoodHtml"
+      ></div>
     </label>
     <v-select
       v-model="model"
@@ -388,7 +356,8 @@ const hoodHtml = computed(() =>
       @update:model-value="onModelUpdate"
       @close="onClose"
       @search="inputSearch"
-      @clear="onClear">
+      @clear="onClear"
+    >
       <template #list-footer>
         <li v-show="hasNextPage" ref="load" class="loader">More...</li>
       </template>

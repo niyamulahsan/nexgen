@@ -1,3 +1,5 @@
+// ./src/framework/http/app.ts
+
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";

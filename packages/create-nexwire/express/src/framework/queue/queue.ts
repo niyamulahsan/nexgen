@@ -1,3 +1,5 @@
+// ./src/framework/queue/queue.ts
+
 import { type Job, type JobsOptions, Queue, QueueEvents, Worker } from "bullmq";
 import { type DurableContext, type DurableJob, DurableWorker, RedisStateStore } from "bullmq-durable";
 import { queueConfig, redisConfig } from "@/config/index.js";

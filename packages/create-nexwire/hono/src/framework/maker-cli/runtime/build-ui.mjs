@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/runtime/build-ui.mjs
+
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -14,4 +16,3 @@ if (isFalse(process.env.UI) || fileDisabled) {
 }
 
 execSync("vite build --config src/resources/vite.config.ts", { stdio: "inherit" });
-

@@ -1,3 +1,5 @@
+// ./src/resources/src/stores/admin-ui.ts
+
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 

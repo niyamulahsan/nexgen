@@ -1,3 +1,5 @@
+// ./src/middlewares/role-middleware.ts
+
 import type { Context, Next } from "hono";
 import { HttpStatusCodes } from "@/framework/facade.js";
 

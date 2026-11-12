@@ -1,3 +1,5 @@
+// ./src/framework/providers/registry.ts
+
 import {
   AUTH_PROVIDER_KEY,
   type AuthProvider,

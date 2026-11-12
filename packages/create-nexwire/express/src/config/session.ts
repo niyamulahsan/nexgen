@@ -1,3 +1,5 @@
+// ./src/config/session.ts
+
 import { cookieConfig } from "./cookie.js";
 import { redisConfig } from "./redis.js";
 

@@ -1,3 +1,5 @@
+// ./src/modules/auth/__tests__/register.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/config/index.js", () => ({
@@ -44,7 +46,7 @@ import { db, dispatchEvent, password, urls } from "@/framework/facade.js";
 import { issueTokens, revokeCurrentRefreshToken } from "@/modules/auth/helpers/auth.js";
 import { registerService } from "@/modules/auth/services/register.js";
 
-const body = { name: "Jane", email: "jane@example.com", password: "secret123" };
+const body = { name: "Jane", email: "jane@example.com", password: "secret123", password_confirmation: "secret123" };
 
 const fakeUser = {
   id: 1,

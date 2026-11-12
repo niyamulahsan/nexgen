@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/Layout/index.vue -->
+
 <template>
   <Sidebar :class="{ tgl: sidebarOpen }" :on-toggle-sidebar="ui.toggleSidebar" />
   <!-- main start -->
@@ -8,7 +10,8 @@
         :theme-mode="themeMode"
         :on-logout="logout"
         :on-toggle-sidebar="ui.toggleSidebar"
-        :on-toggle-theme="ui.cycleTheme" />
+        :on-toggle-theme="ui.cycleTheme"
+      />
       <!-- content start -->
       <div class="content">
         <router-view />

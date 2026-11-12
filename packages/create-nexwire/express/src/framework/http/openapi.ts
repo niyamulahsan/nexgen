@@ -1,3 +1,5 @@
+// ./src/framework/http/openapi.ts
+
 import fs from "node:fs";
 import path from "node:path";
 import { extendZodWithOpenApi, OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";

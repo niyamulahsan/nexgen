@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/naming.mjs
+
 /**
  * Name handling for the generators.
  *

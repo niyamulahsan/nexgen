@@ -1,3 +1,5 @@
+// ./src/types/global.d.ts
+
 declare module "*.vue" {
   import type { DefineComponent } from "vue";
 

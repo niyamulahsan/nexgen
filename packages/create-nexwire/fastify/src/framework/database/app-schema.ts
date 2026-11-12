@@ -1,3 +1,5 @@
+// ./src/framework/database/app-schema.ts
+
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";
 
 /**

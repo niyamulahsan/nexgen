@@ -1,3 +1,5 @@
+// ./src/framework/database/schema.ts
+
 import { detectDialect } from "@/framework/database/connection.js";
 
 /**

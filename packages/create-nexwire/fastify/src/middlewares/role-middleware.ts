@@ -1,3 +1,5 @@
+// ./src/middlewares/role-middleware.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { HttpStatusCodes } from "@/framework/facade.js";
 

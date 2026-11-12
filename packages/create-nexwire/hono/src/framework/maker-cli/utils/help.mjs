@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/help.mjs
+
 /**
  * Why: Detects the package manager used to run the CLI, for help usage text.
  * When: Building the program name shown in the "Usage:" line.
@@ -117,14 +119,7 @@ const COMMAND_GROUPS = [
   },
   {
     title: "Modules - manage",
-    commands: [
-      "module:list",
-      "module:seed",
-      "module:migrate",
-      "module:delete",
-      "module:delete-notification",
-      "module:trash:clean"
-    ]
+    commands: ["module:list", "module:seed", "module:migrate", "module:delete", "module:delete-notification", "module:trash:clean"]
   },
   {
     title: "Database",
@@ -294,7 +289,13 @@ export function configureGroupedHelp(program, { stream = process.stdout } = {}) 
 
       const options = helper.visibleOptions(cmd);
       if (options.length > 0) {
-        blocks.push(renderTable("Options", options.map((option) => [helper.optionTerm(option), helper.optionDescription(option)]), width));
+        blocks.push(
+          renderTable(
+            "Options",
+            options.map((option) => [helper.optionTerm(option), helper.optionDescription(option)]),
+            width
+          )
+        );
       }
 
       const argumentsList = helper.visibleArguments(cmd);

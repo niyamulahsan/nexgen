@@ -1,3 +1,5 @@
+// ./src/modules/auth/database/seeders/role.ts
+
 import { eq } from "drizzle-orm";
 import { db } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";

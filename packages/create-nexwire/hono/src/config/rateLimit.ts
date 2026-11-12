@@ -1,3 +1,5 @@
+// ./src/config/rateLimit.ts
+
 import { redisConfig } from "./redis.js";
 
 /**

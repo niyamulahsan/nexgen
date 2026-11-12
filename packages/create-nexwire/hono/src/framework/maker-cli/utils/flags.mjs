@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/flags.mjs
+
 /** Check if a specific flag name exists in the flags array. */
 export function hasFlag(flags, name) {
   return flags.includes(name);

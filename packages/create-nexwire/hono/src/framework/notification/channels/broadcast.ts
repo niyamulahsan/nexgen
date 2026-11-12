@@ -1,3 +1,5 @@
+// ./src/framework/notification/channels/broadcast.ts
+
 import { dispatchEvent } from "@/framework/events/dispatcher.js";
 import type { NotificationChannel } from "@/framework/notification/contracts.js";
 

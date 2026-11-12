@@ -1,20 +1,14 @@
+<!-- ./src/resources/src/components/InputGroup.vue -->
+
 <template>
   <div :class="topclass">
     <div class="position-relative">
-      <label
-        :for="inputId"
-        class="text-capitalize d-flex align-items-center mb-1"
-        :class="{ 'd-none': !inputLabel }">
+      <label :for="inputId" class="text-capitalize d-flex align-items-center mb-1" :class="{ 'd-none': !inputLabel }">
         <div class="position-relative">
           <span class="text-capitalize" v-html="inputLabel"></span>
-          <span
-            class="position-absolute text-danger rounded-circle bg-danger must"
-            :class="{ 'd-none': !props.must }"></span>
+          <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
         </div>
-        <div
-          :class="hoodClass"
-          style="font-size: 12px; margin-top: 0.15rem"
-          v-html="hoodHtml"></div>
+        <div :class="hoodClass" style="font-size: 12px; margin-top: 0.15rem" v-html="hoodHtml"></div>
       </label>
       <div class="input-group">
         <div class="position-relative" :style="props.half ? 'width: 50%;' : 'width: 35%;'">
@@ -26,10 +20,9 @@
             :maxlength="maxLengthAttr"
             :value="props.modelValue"
             v-bind="$attrs"
-            @input="updateModel" />
-          <div
-            class="position-absolute bottom-0 end-0 pe-1 text-secondary max"
-            :class="{ 'd-none': !max }">
+            @input="updateModel"
+          >
+          <div class="position-absolute bottom-0 end-0 pe-1 text-secondary max" :class="{ 'd-none': !max }">
             {{ maxCounter }}
           </div>
         </div>
@@ -39,7 +32,8 @@
           :style="props.half ? 'width: 50%;' : 'width: 62%;'"
           :placeholder="placeholder1"
           :value="props.calcdata"
-          readonly />
+          readonly
+        >
       </div>
     </div>
     <div :id="`${inputId}Help`" class="form-text text-danger" :class="{ 'd-none': !props.err }">

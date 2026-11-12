@@ -1,15 +1,10 @@
+// ./src/framework/http/ratelimiter.ts
+
 import rateLimit from "@fastify/rate-limit";
 import type { FastifyInstance } from "fastify";
 import { openApiConfig, rateLimitConfig } from "@/config/index.js";
 
-const skipPaths = new Set([
-  "/health",
-  "/ready",
-  "/live",
-  "/metrics",
-  openApiConfig.scalar.specUrl,
-  openApiConfig.scalar.docsPath
-]);
+const skipPaths = new Set(["/health", "/ready", "/live", "/metrics", openApiConfig.scalar.specUrl, openApiConfig.scalar.docsPath]);
 
 function isInfrastructurePath(pathname: string) {
   return (

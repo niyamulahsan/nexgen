@@ -1,3 +1,5 @@
+// ./src/resources/src/plugins/browserDetect.ts
+
 import type { App, ComputedRef } from "vue";
 import { computed } from "vue";
 

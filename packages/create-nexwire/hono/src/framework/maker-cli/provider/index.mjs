@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/provider/index.mjs
+
 import { makeProvider } from "./core.mjs";
 
 /** Register provider:* subcommands on the CLI program. */
@@ -8,5 +10,10 @@ export function registerProviderCommands(program, rawArgs) {
     .option("--force", "Overwrite existing provider file")
     .option("--dry-run", "Print what would be created without executing")
     .allowUnknownOption(true)
-    .action(async (name) => makeProvider(name, rawArgs.filter((arg) => arg.startsWith("--"))));
+    .action(async (name) =>
+      makeProvider(
+        name,
+        rawArgs.filter((arg) => arg.startsWith("--"))
+      )
+    );
 }

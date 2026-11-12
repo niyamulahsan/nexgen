@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Pagebar.vue -->
+
 <template>
   <Teleport v-if="target" :to="target">
     <p v-if="props.title && !$slots.default" class="m-0 fs-4">{{ props.title }}</p>

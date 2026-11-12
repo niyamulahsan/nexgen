@@ -1,3 +1,5 @@
+// ./src/framework/modules/routes.ts
+
 import type { Express } from "express";
 import { registerRouterOpenApi } from "@/framework/http/router.js";
 import { discoverModuleFiles, importFile, moduleNameFromPath } from "@/framework/modules/discover.js";

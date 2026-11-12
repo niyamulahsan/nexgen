@@ -1,3 +1,5 @@
+// ./src/config/index.ts
+
 import { type AppConfig, appConfig } from "./app.js";
 import { type AuthConfig, authConfig } from "./auth.js";
 import { type CacheConfig, cacheConfig } from "./cache.js";

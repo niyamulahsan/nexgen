@@ -1,3 +1,5 @@
+// ./src/modules/auth/__tests__/resetpass.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/framework/facade.js", () => ({
@@ -31,7 +33,8 @@ const fakeUser = { id: 1, email: "user@example.com", name: "Jane" };
 const body = {
   email: "user@example.com",
   token: "plain-token",
-  password: "new-secret"
+  password: "new-secret",
+  password_confirmation: "new-secret"
 };
 
 /**

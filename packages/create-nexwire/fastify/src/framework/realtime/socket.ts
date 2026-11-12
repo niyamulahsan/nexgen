@@ -1,3 +1,5 @@
+// ./src/framework/realtime/socket.ts
+
 import { createAdapter } from "@socket.io/redis-adapter";
 import { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig, redisConfig } from "@/config/index.js";

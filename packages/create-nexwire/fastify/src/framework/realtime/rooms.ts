@@ -1,3 +1,5 @@
+// ./src/framework/realtime/rooms.ts
+
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";
 
 /**

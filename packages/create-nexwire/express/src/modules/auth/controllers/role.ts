@@ -1,3 +1,5 @@
+// ./src/modules/auth/controllers/role.ts
+
 import { eq } from "drizzle-orm";
 import type { NextFunction, Request, Response } from "express";
 import { db, HttpStatusCodes } from "@/framework/facade.js";

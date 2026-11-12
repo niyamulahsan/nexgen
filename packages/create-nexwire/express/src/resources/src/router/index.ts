@@ -1,3 +1,5 @@
+// ./src/resources/src/router/index.ts
+
 import { createRouter, createWebHistory } from "vue-router";
 import { setupRouteProgress } from "@/plugins/routeProgress";
 import { useAuthStore } from "@/stores/auth";

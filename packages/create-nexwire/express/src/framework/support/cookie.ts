@@ -1,3 +1,5 @@
+// ./src/framework/support/cookie.ts
+
 import type { Request, Response } from "express";
 import { appConfig, cookieConfig, jwtConfig } from "@/config/index.js";
 

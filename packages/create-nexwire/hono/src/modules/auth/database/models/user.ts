@@ -1,3 +1,5 @@
+// ./src/modules/auth/database/models/user.ts
+
 import { relations } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { roles } from "@/modules/auth/database/models/role.js";

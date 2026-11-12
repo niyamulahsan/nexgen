@@ -1,3 +1,5 @@
+// ./src/framework/facade.ts
+
 /**
  * Why: Central public API surface for framework consumers.
  * When: Modules/middlewares need framework utilities.
@@ -92,5 +94,6 @@ export { logger } from "@/framework/support/logger.js";
 export { mail } from "@/framework/support/mail.js";
 export { password } from "@/framework/support/password.js";
 export * as HttpStatusCodes from "@/framework/support/status-codes.js";
+export type { UploadedFile } from "@/framework/support/upload.js";
 export { fields, upload } from "@/framework/support/upload.js";
 export { urls } from "@/framework/support/url.js";

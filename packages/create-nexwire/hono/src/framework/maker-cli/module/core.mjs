@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/module/core.mjs
+
 import fs from "node:fs/promises";
 import path from "node:path";
 import { glob } from "glob";
@@ -310,11 +312,7 @@ function moduleFileVars(moduleName, controller) {
  */
 async function controllerFile(moduleName, controllerName, openApi, withService) {
   const controller = controllerName.trim().toLowerCase();
-  const controllerStub = withService
-    ? openApi
-      ? STUBS.controller.openapi
-      : STUBS.controller.plain
-    : STUBS.controller.standalone;
+  const controllerStub = withService ? (openApi ? STUBS.controller.openapi : STUBS.controller.plain) : STUBS.controller.standalone;
   return await stub(controllerStub, moduleFileVars(moduleName, controller));
 }
 
@@ -553,7 +551,7 @@ export async function makeRoute(rawModule, rawControllerOrFlag, extraFlags = [])
   try {
     await fs.access(routePath);
     exists = true;
-  } catch { }
+  } catch {}
   if (exists && !force)
     throw new Error(`Route file already exists: ${path.relative(process.cwd(), routePath)}. Re-run with --force to overwrite.`);
   await fs.mkdir(path.dirname(routePath), { recursive: true });
@@ -756,7 +754,8 @@ export async function makeController(rawModule, rawControllerOrFlag, extraFlags 
   const { name, flags } = parseNameArg(rawControllerOrFlag, extraFlags, "Controller name", leaf);
   const root = await assertModuleExists(moduleName);
   const lower = name.toLowerCase();
-  const hasService = (await pathExists(path.join(root, "services", `${lower}.ts`))) || (await pathExists(legacyPath(root, "services", lower)));
+  const hasService =
+    (await pathExists(path.join(root, "services", `${lower}.ts`))) || (await pathExists(legacyPath(root, "services", lower)));
   const content = await controllerFile(moduleName, name, openApiEnabled(), hasService);
   await writeFileSafe(path.join(root, `controllers/${lower}.ts`), content, flags, "Controller file");
 }
@@ -899,7 +898,9 @@ export async function makeSeeder(rawModule, rawNameOrFlag, extraFlags = []) {
       tableVariable: plural(camelCase(name))
     });
     const available = await listModels(root);
-    console.log(`No model '${name}' in module ${moduleName}, so this is a standalone seeder: it imports no model and writes nothing until you fill it in.`);
+    console.log(
+      `No model '${name}' in module ${moduleName}, so this is a standalone seeder: it imports no model and writes nothing until you fill it in.`
+    );
     console.log(
       available.length
         ? `  Models in this module: ${available.join(", ")}. Run module:make-seeder ${moduleName} <one of these> for a seeder with the model already imported.`

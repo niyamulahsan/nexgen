@@ -1,3 +1,5 @@
+// ./src/modules/auth/schemas/auth.ts
+
 import { z } from "@/framework/facade.js";
 
 export const MessageSchema = z.object({
@@ -33,7 +35,8 @@ export const RegisterSchema = z
       .regex(/[a-z]/, "Password must contain lowercase letter")
       .regex(/[A-Z]/, "Password must contain uppercase letter")
       .regex(/[^A-Za-z0-9]/, "Password must contain special character"),
-    password_confirmation: z.string()
+    password_confirmation: z.string(),
+    remember: z.boolean().optional().default(false)
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.password_confirmation) {
@@ -45,15 +48,21 @@ export const RegisterSchema = z
     }
   });
 
+export type RegisterType = z.input<typeof RegisterSchema>;
+
 export const LoginSchema = z.object({
   email: z.email(),
   password: z.string().min(1),
   remember: z.boolean().optional().default(false)
 });
 
+export type LoginType = z.input<typeof LoginSchema>;
+
 export const ForgotPasswordSchema = z.object({
   email: z.email()
 });
+
+export type ForgotPasswordType = z.input<typeof ForgotPasswordSchema>;
 
 export const ResetPasswordSchema = z
   .object({
@@ -78,14 +87,20 @@ export const ResetPasswordSchema = z
     }
   });
 
+export type ResetPasswordType = z.input<typeof ResetPasswordSchema>;
+
 export const RefreshTokenSchema = z.object({
   refresh_token: z.string().min(1)
 });
+
+export type RefreshTokenType = z.input<typeof RefreshTokenSchema>;
 
 export const VerifyEmailSchema = z.object({
   email: z.email(),
   token: z.string().min(1)
 });
+
+export type VerifyEmailType = z.input<typeof VerifyEmailSchema>;
 
 export const AuthResponseSchema = z.object({
   message: z.string(),

@@ -1,3 +1,5 @@
+// ./src/framework/http/logger.ts
+
 import type { FastifyError, FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from "fastify-type-provider-zod";
 import { openApiConfig } from "@/config/index.js";

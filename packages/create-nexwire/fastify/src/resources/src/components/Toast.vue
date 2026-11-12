@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Toast.vue -->
+
 <template>
   <Teleport to="#toast-show">
     <div
@@ -7,17 +9,14 @@
       aria-live="assertive"
       aria-atomic="true"
       style="z-index: 1000000; top: 10px; right: 23px"
-      data-bs-delay="2000">
+      data-bs-delay="2000"
+    >
       <div :class="`text-bg-${bgcolor} align-items-center rounded-1 shadow-sm`">
         <div class="d-flex">
           <div class="toast-body">
             {{ message }}
           </div>
-          <button
-            type="button"
-            class="btn-close btn-close-white me-2 m-auto"
-            data-bs-dismiss="toast"
-            aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       </div>
     </div>

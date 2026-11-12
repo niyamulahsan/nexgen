@@ -1,3 +1,5 @@
+// ./src/resources/src/composables/useAuth.ts
+
 import { computed, type Ref, readonly, ref } from "vue";
 
 type UnknownRecord = Record<string, unknown>;

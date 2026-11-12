@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/runtime/redis-commander-patch.cjs
+
 // Why: Redis Commander 0.4.5 bundles legacy `connect`/`serve-static`/`send`
 //      whose `SendStream#isFresh` reads `http.ServerResponse#_headers`, which
 //      Node removed in v15. Without this shim it crashes with:

@@ -1,3 +1,5 @@
+// ./src/framework/providers/contracts.ts
+
 /**
  * Why: Defines the shapes a pluggable provider has to satisfy.
  * When: A developer replaces a framework default (auth, notifications, payments later).

@@ -1,3 +1,5 @@
+// ./src/modules/auth/helpers/auth.ts
+
 import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { jwtConfig } from "@/config/index.js";

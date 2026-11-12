@@ -1,3 +1,5 @@
+// ./src/framework/facade.ts
+
 /**
  * Why: Central public API surface for framework consumers.
  * When: Modules/middlewares need framework utilities.

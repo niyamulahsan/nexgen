@@ -1,3 +1,5 @@
+// ./src/config/logging.ts
+
 /**
  * Why: Logging behavior shared by the framework logger and HTTP request log.
  * When: Logger bootstrap and global HTTP middleware.

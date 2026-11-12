@@ -1,9 +1,11 @@
+// ./src/modules/auth/services/verifyemail.ts
+
 import { and, eq, gt } from "drizzle-orm";
 import { authConfig } from "@/config/index.js";
 import { db } from "@/framework/facade.js";
 import { emailVerificationTokens, users } from "@/modules/auth/database/models/user.js";
 import { hashEmailVerificationToken } from "@/modules/auth/helpers/auth.js";
-import type { VerifyEmailInput } from "@/modules/auth/types/auth.js";
+import type { VerifyEmailType } from "@/modules/auth/schemas/auth.js";
 
 export type VerifyEmailResult =
   | { kind: "not_required"; message: string }
@@ -11,7 +13,7 @@ export type VerifyEmailResult =
   | { kind: "verified"; message: string };
 
 export const verifyEmailService = {
-  verifyEmail: async (body: VerifyEmailInput): Promise<VerifyEmailResult> => {
+  verifyEmail: async (body: VerifyEmailType): Promise<VerifyEmailResult> => {
     if (!authConfig.requireEmailVerification) {
       return {
         kind: "not_required",

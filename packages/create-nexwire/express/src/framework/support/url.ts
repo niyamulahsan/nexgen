@@ -1,3 +1,5 @@
+// ./src/framework/support/url.ts
+
 import { appConfig } from "@/config/index.js";
 import { hasUiBuild } from "@/framework/http/static.js";
 
@@ -29,12 +31,12 @@ export const urls = {
    */
   url(path = "") {
     const base =
-      appConfig.frontendUrl ||                                // explicit SPA origin — wins
+      appConfig.frontendUrl || // explicit SPA origin — wins
       (appConfig.uiEnabled
         ? hasUiBuild()
-          ? urls.appUrl()                                     // built SPA, framework serves it — same origin
-          : process.env.NEXWIRE_FRONTEND_URL || urls.appUrl()  // dev Vite dev server — injected by maker-cli
-        : appConfig.url);                                     // API-only
+          ? urls.appUrl() // built SPA, framework serves it — same origin
+          : process.env.NEXWIRE_FRONTEND_URL || urls.appUrl() // dev Vite dev server — injected by maker-cli
+        : appConfig.url); // API-only
     if (!path) return base;
     return `${base}${path.startsWith("/") ? path : `/${path}`}`;
   }

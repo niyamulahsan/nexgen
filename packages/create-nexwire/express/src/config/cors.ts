@@ -1,3 +1,5 @@
+// ./src/config/cors.ts
+
 /**
  * Why: CORS policy for the HTTP server.
  * When: Global CORS middleware processes cross-origin requests.

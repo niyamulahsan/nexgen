@@ -1,3 +1,5 @@
+// ./src/modules/auth/database/seeders/user.ts
+
 import { eq } from "drizzle-orm";
 import { db, password } from "@/framework/facade.js";
 import { roles } from "@/modules/auth/database/models/role.js";

@@ -1,3 +1,5 @@
+// ./src/framework/http/security.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { securityConfig } from "@/config/index.js";
 

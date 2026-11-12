@@ -1,3 +1,5 @@
+// ./src/framework/http/openapi.ts
+
 import fs from "node:fs";
 import path from "node:path";
 import swagger from "@fastify/swagger";

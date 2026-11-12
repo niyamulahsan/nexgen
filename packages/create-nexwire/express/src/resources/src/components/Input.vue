@@ -1,17 +1,12 @@
+<!-- ./src/resources/src/components/Input.vue -->
+
 <template>
   <div :class="topclass">
     <div class="position-relative">
-      <label
-        :for="inputId"
-        class="d-flex align-items-center mb-1"
-        :class="{ 'd-none': !inputLabel }"
-      >
+      <label :for="inputId" class="d-flex align-items-center mb-1" :class="{ 'd-none': !inputLabel }">
         <div class="position-relative">
           <span class="text-capitalize" v-html="inputLabel"></span>
-          <span
-            class="position-absolute text-danger rounded-circle bg-danger must"
-            :class="{ 'd-none': !props.must }"
-          ></span>
+          <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
         </div>
         <div
           class="text-end ms-auto text-primary fw-semibold"
@@ -29,19 +24,12 @@
         v-bind="$attrs"
         :autocomplete="inputAutocomplete"
         @input="updateModel"
-      />
-      <div
-        class="position-absolute bottom-0 end-0 pe-1 text-secondary max"
-        :class="{ 'd-none': !max }"
       >
+      <div class="position-absolute bottom-0 end-0 pe-1 text-secondary max" :class="{ 'd-none': !max }">
         {{ maxCounter }}
       </div>
     </div>
-    <div
-      :id="`${inputId}Help`"
-      class="form-text mt-1 text-danger"
-      :class="{ 'd-none': !props.err }"
-    >
+    <div :id="`${inputId}Help`" class="form-text mt-1 text-danger" :class="{ 'd-none': !props.err }">
       {{ props.err }}
     </div>
   </div>
@@ -57,15 +45,7 @@ const { isFirefox } = browserDetect;
 
 const $attrs = useAttrs();
 const inputRef = ref<HTMLInputElement | null>(null);
-type InputCategory =
-  | "number"
-  | "decimal"
-  | "+decimal-"
-  | "mobile"
-  | "tax-period"
-  | "bin"
-  | "challan-number"
-  | string;
+type InputCategory = "number" | "decimal" | "+decimal-" | "mobile" | "tax-period" | "bin" | "challan-number" | string;
 
 interface InputProps {
   focus?: boolean;
@@ -79,7 +59,7 @@ interface InputProps {
 
 const props = withDefaults(defineProps<InputProps>(), {
   err: false,
-  modelValue: "",
+  modelValue: ""
 });
 
 const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-2");
@@ -102,9 +82,7 @@ const inputAutocomplete = computed(() => {
 
 const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 
-const hoodHtml = computed(() =>
-  props.hood === false || props.hood == null ? "" : String(props.hood),
-);
+const hoodHtml = computed(() => (props.hood === false || props.hood == null ? "" : String(props.hood)));
 
 const maxCounter = computed(() => {
   if (max.value == null) {

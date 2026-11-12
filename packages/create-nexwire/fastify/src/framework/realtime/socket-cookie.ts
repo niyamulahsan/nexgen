@@ -1,3 +1,5 @@
+// ./src/framework/realtime/socket-cookie.ts
+
 import { unsign } from "@fastify/cookie";
 import type { Socket } from "socket.io";
 import { cookieConfig } from "@/config/index.js";

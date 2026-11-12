@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/db/index.mjs
+
 import { generateSchema } from "../module/core.mjs";
 import { showHelp } from "../utils/help.mjs";
 import { assertName as assertNameLeaf } from "../utils/naming.mjs";
@@ -189,9 +191,13 @@ export function registerDbCommands(program, rawArgs) {
 
   cmd("schema", "Generate src/database/schema.ts from module models");
   cmd("generate", "Generate Drizzle migrations after schema discovery");
-  cmd("migrate", "Generate then run Drizzle migrations", [{ flag: "--seed", description: "Run seeders after migration (npm: use `npm run maker db:migrate -- --seed`)" }]);
+  cmd("migrate", "Generate then run Drizzle migrations", [
+    { flag: "--seed", description: "Run seeders after migration (npm: use `npm run maker db:migrate -- --seed`)" }
+  ]);
   cmd("migrate:run", "Run existing Drizzle migrations only");
-  cmd("fresh", "Reset database then generate, migrate, optionally seed", [{ flag: "--seed", description: "Run seeders after fresh (npm: use `npm run maker db:fresh -- --seed`)" }]);
+  cmd("fresh", "Reset database then generate, migrate, optionally seed", [
+    { flag: "--seed", description: "Run seeders after fresh (npm: use `npm run maker db:fresh -- --seed`)" }
+  ]);
   cmd("seed", "Run all seeders or one module seeder set", [{ flag: "--module", description: "Optional module name" }]);
   cmd("status", "Show generated migration files");
   cmd("push", "Run drizzle-kit push after schema discovery");

@@ -1,3 +1,5 @@
+// ./src/config/queue.ts
+
 import { redisConfig } from "./redis.js";
 
 /**

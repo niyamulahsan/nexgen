@@ -1,3 +1,5 @@
+// ./src/framework/http/security.ts
+
 import type { MiddlewareHandler } from "hono";
 import { securityConfig } from "@/config/index.js";
 

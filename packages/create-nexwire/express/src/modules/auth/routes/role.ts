@@ -1,3 +1,5 @@
+// ./src/modules/auth/routes/role.ts
+
 import { createRoute, createRouter, HttpStatusCodes, jsonContent, z } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import { requireRole } from "@/middlewares/role-middleware.js";

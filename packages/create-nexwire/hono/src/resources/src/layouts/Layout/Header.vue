@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/Layout/Header.vue -->
+
 <template>
   <header :class="{ scrolled: isScrolled }">
     <nav class="navbar bg-transparent p-0">

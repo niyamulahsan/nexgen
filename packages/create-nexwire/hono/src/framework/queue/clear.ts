@@ -1,3 +1,5 @@
+// ./src/framework/queue/clear.ts
+
 import { clearQueue } from "@/framework/queue/queue.js";
 import { closeRedis, initRedis, redisError, redisReady } from "@/framework/redis/client.js";
 import { logger } from "@/framework/support/logger.js";

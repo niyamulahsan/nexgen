@@ -1,3 +1,5 @@
+// ./src/resources/src/plugins/gum.ts
+
 import { useStorage } from "@vueuse/core";
 import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
 import type { App } from "vue";
@@ -155,7 +157,7 @@ function startRecentTimer(target: { recentlySuccessful: { value: boolean } }) {
 function assertSource(url: string | undefined, fetcher: Fetcher | undefined, ctx: string) {
   if (!url && !fetcher) {
     throw new Error(
-      `gum: ${ctx} requires either "url" or "fetcher". ` + `Pass a URL for axios, or a fetcher (e.g. a store method) to delegate the call.`
+      `gum: ${ctx} requires either "url" or "fetcher". Pass a URL for axios, or a fetcher (e.g. a store method) to delegate the call.`
     );
   }
   if (import.meta.env?.DEV && url && fetcher) {

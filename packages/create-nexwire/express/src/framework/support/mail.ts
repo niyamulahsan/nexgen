@@ -1,3 +1,5 @@
+// ./src/framework/support/mail.ts
+
 import nodemailer from "nodemailer";
 import { mailConfig } from "@/config/index.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";

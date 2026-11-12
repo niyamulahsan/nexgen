@@ -1,3 +1,5 @@
+// ./src/config/auth.ts
+
 /**
  * Why: Account/authentication policy settings.
  * When: Register, login, and email verification flows.

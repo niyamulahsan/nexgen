@@ -1,3 +1,5 @@
+// ./src/framework/http/static.ts
+
 import fsSync from "node:fs";
 import { runtime } from "@/framework/runtime/runtime.js";
 

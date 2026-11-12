@@ -1,9 +1,11 @@
+// ./src/modules/auth/services/login.ts
+
 import { eq } from "drizzle-orm";
 import { authConfig } from "@/config/index.js";
 import { db, password } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";
 import { issueTokens, revokeCurrentRefreshToken, sanitizeUser } from "@/modules/auth/helpers/auth.js";
-import type { LoginInput } from "@/modules/auth/types/auth.js";
+import type { LoginType } from "@/modules/auth/schemas/auth.js";
 
 export type LoginResult =
   | { kind: "invalid_credentials"; message: string }
@@ -20,7 +22,7 @@ export type LoginResult =
     };
 
 export const loginService = {
-  login: async (c: any, body: LoginInput): Promise<LoginResult> => {
+  login: async (c: any, body: LoginType): Promise<LoginResult> => {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email),
       with: { role: true }

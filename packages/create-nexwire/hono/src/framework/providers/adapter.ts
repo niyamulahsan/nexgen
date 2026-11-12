@@ -1,3 +1,5 @@
+// ./src/framework/providers/adapter.ts
+
 import { eq } from "drizzle-orm";
 import { db } from "@/framework/database/connection.js";
 import type { AuthProvider, NotificationProvider } from "./contracts.js";

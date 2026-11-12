@@ -1,3 +1,5 @@
+// ./src/framework/http/security.ts
+
 import { NextFunction, Request, Response } from "express";
 import { securityConfig } from "@/config/index.js";
 

@@ -1,8 +1,10 @@
+// ./src/modules/auth/services/forgetpassword.ts
+
 import { and, eq, lt } from "drizzle-orm";
 import { db, dispatchEvent, urls } from "@/framework/facade.js";
 import { passwordResetTokens, users } from "@/modules/auth/database/models/user.js";
 import { hashResetToken, makeResetToken } from "@/modules/auth/helpers/auth.js";
-import type { ForgotPasswordInput } from "@/modules/auth/types/auth.js";
+import type { ForgotPasswordType } from "@/modules/auth/schemas/auth.js";
 
 export type ForgotPasswordResult = {
   kind: "sent";
@@ -12,7 +14,7 @@ export type ForgotPasswordResult = {
 const TOKEN_TTL_MS = 15 * 60 * 1000;
 
 export const forgotPasswordService = {
-  forgotPassword: async (body: ForgotPasswordInput): Promise<ForgotPasswordResult> => {
+  forgotPassword: async (body: ForgotPasswordType): Promise<ForgotPasswordResult> => {
     const now = new Date();
 
     // Cleanup + replace happen atomically so a crash mid-flow can't leave

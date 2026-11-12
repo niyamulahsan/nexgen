@@ -1,3 +1,5 @@
+// ./src/modules/auth/jobs/forgetpass.ts
+
 import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("user:forget-password", "mail", async (job: any) => {

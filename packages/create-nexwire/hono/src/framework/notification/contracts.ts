@@ -1,3 +1,5 @@
+// ./src/framework/notification/contracts.ts
+
 import type { NotifiableTarget, NotificationRecord } from "@/framework/providers/contracts.js";
 
 export type NotificationTarget = number | string | NotifiableTarget;

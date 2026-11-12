@@ -1,13 +1,15 @@
+// ./src/modules/auth/services/resetpassword.ts
+
 import { and, eq, gt } from "drizzle-orm";
 import { db, password } from "@/framework/facade.js";
 import { passwordResetTokens, refreshTokens, users } from "@/modules/auth/database/models/user.js";
 import { hashResetToken } from "@/modules/auth/helpers/auth.js";
-import type { ResetPasswordInput } from "@/modules/auth/types/auth.js";
+import type { ResetPasswordType } from "@/modules/auth/schemas/auth.js";
 
 export type ResetPasswordResult = { kind: "invalid_token"; message: string } | { kind: "reset"; message: string };
 
 export const resetPasswordService = {
-  resetPassword: async (body: ResetPasswordInput): Promise<ResetPasswordResult> => {
+  resetPassword: async (body: ResetPasswordType): Promise<ResetPasswordResult> => {
     const user = await db.query.users.findFirst({
       where: eq(users.email, body.email)
     });

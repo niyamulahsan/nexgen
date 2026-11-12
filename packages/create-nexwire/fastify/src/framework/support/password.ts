@@ -1,3 +1,5 @@
+// ./src/framework/support/password.ts
+
 import bcrypt from "bcryptjs";
 
 export const password = {

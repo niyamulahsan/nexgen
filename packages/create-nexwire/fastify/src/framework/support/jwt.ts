@@ -1,3 +1,5 @@
+// ./src/framework/support/jwt.ts
+
 import { randomUUID } from "node:crypto";
 import jwtLib from "jsonwebtoken";
 import { jwtConfig } from "@/config/index.js";

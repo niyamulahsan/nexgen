@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/datatable/Pagination.vue -->
+
 <template>
   <div class="row">
     <div class="col-12 col-md-6 mb-3 mb-md-0">

@@ -1,3 +1,5 @@
+// ./src/config/validate.ts
+
 import { databaseConfig } from "./database.js";
 import { mailConfig } from "./mail.js";
 import { redisConfig } from "./redis.js";

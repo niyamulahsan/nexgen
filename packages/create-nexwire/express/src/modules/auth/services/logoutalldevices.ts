@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/logoutalldevices.ts
+
 import { eq } from "drizzle-orm";
 import { db } from "@/framework/facade.js";
 import { refreshTokens } from "@/modules/auth/database/models/user.js";

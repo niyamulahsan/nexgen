@@ -1,3 +1,5 @@
+// ./src/modules/auth/__tests__/logoutalldevices.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("drizzle-orm", () => ({

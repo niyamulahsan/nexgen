@@ -1,3 +1,5 @@
+// ./src/framework/http/static.ts
+
 import fs from "node:fs";
 import path from "node:path";
 import fastifyStatic from "@fastify/static";

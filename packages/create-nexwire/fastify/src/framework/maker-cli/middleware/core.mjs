@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/middleware/core.mjs
+
 import fs from "node:fs/promises";
 import path from "node:path";
 import { hasFlag } from "../utils/flags.mjs";
