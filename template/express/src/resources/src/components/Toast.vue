@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Toast.vue -->
+
 <template>
   <Teleport to="#toast-show">
     <div

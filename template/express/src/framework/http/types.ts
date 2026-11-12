@@ -1,3 +1,5 @@
+// ./src/framework/http/types.ts
+
 import type { z } from "zod";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete" | "options" | "head" | "trace";

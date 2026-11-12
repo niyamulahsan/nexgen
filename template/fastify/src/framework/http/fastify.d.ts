@@ -1,3 +1,5 @@
+// ./src/framework/http/fastify.d.ts
+
 import "fastify";
 import type { UploadedFile } from "@/framework/support/upload.js";
 

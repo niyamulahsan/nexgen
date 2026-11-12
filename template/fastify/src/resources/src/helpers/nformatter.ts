@@ -1,3 +1,5 @@
+// ./src/resources/src/helpers/nformatter.ts
+
 const compactFormatter = new Intl.NumberFormat("en", {
   notation: "compact",
   maximumFractionDigits: 1

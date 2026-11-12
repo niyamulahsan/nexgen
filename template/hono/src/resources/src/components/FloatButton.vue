@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/FloatButton.vue -->
+
 <template>
   <div class="float-button position-fixed text-center removeprintarea" :style="floatStyle" v-bind="$attrs">
     <slot></slot>

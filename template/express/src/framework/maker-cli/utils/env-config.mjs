@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/env-config.mjs
+
 import { spawnSync } from "node:child_process";
 
 /** Read CLI-relevant values from the TS config via a one-shot tsx eval.

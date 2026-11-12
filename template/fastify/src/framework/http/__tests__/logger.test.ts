@@ -1,3 +1,5 @@
+// ./src/framework/http/__tests__/logger.test.ts
+
 import Fastify from "fastify";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

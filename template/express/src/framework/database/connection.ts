@@ -1,3 +1,5 @@
+// ./src/framework/database/connection.ts
+
 import fs from "node:fs/promises";
 import path from "node:path";
 import { databaseConfig, detectDialectFrom } from "@/config/index.js";

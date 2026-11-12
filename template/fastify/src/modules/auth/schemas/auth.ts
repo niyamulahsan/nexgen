@@ -1,3 +1,5 @@
+// ./src/modules/auth/schemas/auth.ts
+
 import { z } from "@/framework/facade.js";
 
 export const MessageSchema = z.object({

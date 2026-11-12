@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Button.vue -->
+
 <template>
   <button class="shadow-none" :type="props.type" v-bind="$attrs">
     <slot v-if="hasDefaultSlot"></slot>

@@ -1,3 +1,5 @@
+// ./src/framework/support/cookie.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { appConfig, cookieConfig, jwtConfig } from "@/config/index.js";
 

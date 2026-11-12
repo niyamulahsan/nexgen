@@ -1,3 +1,5 @@
+// ./src/config/openapi.ts
+
 import { appConfig } from "./app.js";
 
 /**

@@ -1,3 +1,5 @@
+// ./src/modules/auth/controllers/auth.ts
+
 import type { NextFunction, Request, Response } from "express";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
 import type {

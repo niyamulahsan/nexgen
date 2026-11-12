@@ -1,3 +1,5 @@
+// ./src/framework/queue/__tests__/queue-lifecycle.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

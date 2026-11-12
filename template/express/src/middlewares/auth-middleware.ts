@@ -1,3 +1,5 @@
+// ./src/middlewares/auth-middleware.ts
+
 import { type NextFunction, type Request, type Response } from "express";
 import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 

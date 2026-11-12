@@ -1,4 +1,6 @@
-﻿import { randomUUID } from "node:crypto";
+﻿// ./src/framework/session/session.ts
+
+import { randomUUID } from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { appConfig, redisConfig, sessionConfig } from "@/config/index.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";

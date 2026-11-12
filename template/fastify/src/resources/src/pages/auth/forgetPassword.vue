@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/pages/auth/forgetPassword.vue -->
+
 <template>
   <div class="container position-absolute start-50 top-50 translate-middle">
     <div class="auth col-12 col-sm-9 col-md-7 col-lg-5 col-xl-4 mx-auto py-5">

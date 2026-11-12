@@ -1,3 +1,5 @@
+// ./src/framework/database/seed.ts
+
 import { readFile } from "node:fs/promises";
 import { closeDatabase, initDatabase } from "@/framework/database/connection.js";
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";

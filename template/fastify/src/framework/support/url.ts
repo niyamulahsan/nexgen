@@ -1,3 +1,5 @@
+// ./src/framework/support/url.ts
+
 import { appConfig } from "@/config/index.js";
 import { hasUiBuild } from "@/framework/http/static.js";
 

@@ -1,3 +1,5 @@
+// ./src/framework/modules/routes.ts
+
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { discoverModuleFiles, importFile, moduleNameFromPath } from "@/framework/modules/discover.js";
 

@@ -1,3 +1,5 @@
+// ./src/framework/scheduler/run.ts
+
 import { initDatabase } from "@/framework/database/connection.js";
 import { bootQueueJobs, stopQueueRuntime } from "@/framework/queue/queue.js";
 import { closeRedis, initRedis } from "@/framework/redis/client.js";

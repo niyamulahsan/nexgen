@@ -1,3 +1,5 @@
+// ./src/framework/database/migrate-hooks.ts
+
 import { sql } from "drizzle-orm";
 import { closeDatabase, database, databasePool, detectDialect, initDatabase } from "@/framework/database/connection.js";
 import { discoverModuleFiles, importFile } from "@/framework/modules/discover.js";

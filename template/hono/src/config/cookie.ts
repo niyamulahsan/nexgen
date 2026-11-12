@@ -1,3 +1,5 @@
+// ./src/config/cookie.ts
+
 import { env } from "@/env.js";
 
 /**

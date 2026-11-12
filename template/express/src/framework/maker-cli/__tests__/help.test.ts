@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/__tests__/help.test.ts
+
 import { Command } from "commander";
 import { describe, expect, it } from "vitest";
 import { registerDbCommands } from "../db/index.mjs";

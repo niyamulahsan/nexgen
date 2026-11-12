@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Modal.vue -->
+
 <template>
   <Teleport to="#modal-show">
     <div

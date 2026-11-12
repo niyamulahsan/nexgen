@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Select.vue -->
+
 <script setup lang="ts">
 import axios from "axios";
 import { debounce } from "lodash-es";

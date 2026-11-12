@@ -1,3 +1,5 @@
+// ./src/framework/realtime/__tests__/socket-cookie.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({

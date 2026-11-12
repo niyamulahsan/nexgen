@@ -1,3 +1,5 @@
+// ./src/framework/runtime/server-adapter.ts
+
 import type { AddressInfo } from "node:net";
 import type { FastifyInstance } from "fastify";
 import { closeRealtime, initRealtime } from "@/framework/realtime/socket.js";

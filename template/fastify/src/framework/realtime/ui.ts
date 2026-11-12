@@ -1,3 +1,5 @@
+// ./src/framework/realtime/ui.ts
+
 import { instrument } from "@socket.io/admin-ui";
 import type { Server as SocketIOServer } from "socket.io";
 import { appConfig, realtimeConfig } from "@/config/index.js";

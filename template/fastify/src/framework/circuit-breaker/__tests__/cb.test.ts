@@ -1,3 +1,5 @@
+// ./src/framework/circuit-breaker/__tests__/cb.test.ts
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCircuitBreaker, createCircuitBreakerError, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";
 

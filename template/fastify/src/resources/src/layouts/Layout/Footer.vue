@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/Layout/Footer.vue -->
+
 <template>
   <!-- footer start -->
   <footer

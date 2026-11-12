@@ -1,3 +1,5 @@
+// ./src/framework/http/__tests__/spa-fallback.test.ts
+
 import Fastify from "fastify";
 import { describe, expect, it } from "vitest";
 import { registerSpaFallback, resolveSpaFallback } from "@/framework/http/static.js";

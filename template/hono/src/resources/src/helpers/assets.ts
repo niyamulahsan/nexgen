@@ -1,3 +1,5 @@
+// ./src/resources/src/helpers/assets.ts
+
 // src/helpers/assets.ts
 
 // 1. Eagerly load ALL images in the entire src folder.

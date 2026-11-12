@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/register.ts
+
 import { eq } from "drizzle-orm";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { authConfig } from "@/config/index.js";

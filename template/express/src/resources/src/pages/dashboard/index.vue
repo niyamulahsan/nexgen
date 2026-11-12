@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/pages/dashboard/index.vue -->
+
 <template>
   <Pagebar title="Dashboard" />
 

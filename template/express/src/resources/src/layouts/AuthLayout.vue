@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/AuthLayout.vue -->
+
 <template>
   <router-view />
 </template>

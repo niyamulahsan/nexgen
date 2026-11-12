@@ -1,3 +1,5 @@
+// ./src/framework/modules/routes.ts
+
 import type { FastifyInstance } from "fastify";
 import { discoverModuleFiles, importFile, moduleNameFromPath } from "@/framework/modules/discover.js";
 

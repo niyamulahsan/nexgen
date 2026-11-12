@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// ./src/framework/maker-cli/index.mjs
 
 import { Command } from "commander";
 import { config } from "dotenv";

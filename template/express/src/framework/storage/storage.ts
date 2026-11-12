@@ -1,3 +1,5 @@
+// ./src/framework/storage/storage.ts
+
 import crypto from "node:crypto";
 import { createWriteStream, promises as fs } from "node:fs";
 import path from "node:path";

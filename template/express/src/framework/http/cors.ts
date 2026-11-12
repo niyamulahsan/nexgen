@@ -1,3 +1,5 @@
+// ./src/framework/http/cors.ts
+
 import cors from "cors";
 import { corsConfig } from "@/config/index.js";
 

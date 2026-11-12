@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/__tests__/db-dialect.test.ts
+
 import { describe, expect, it } from "vitest";
 import { detectMigrationDialectFromSql } from "../db/core.mjs";
 

@@ -1,3 +1,5 @@
+// ./src/middlewares/auth-middleware.ts
+
 import type { Context, Next } from "hono";
 import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 

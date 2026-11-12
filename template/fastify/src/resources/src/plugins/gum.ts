@@ -1,3 +1,5 @@
+// ./src/resources/src/plugins/gum.ts
+
 import { useStorage } from "@vueuse/core";
 import axios, { type AxiosError, type AxiosProgressEvent, type AxiosResponse } from "axios";
 import type { App } from "vue";

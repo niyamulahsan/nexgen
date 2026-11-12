@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Checkbox.vue -->
+
 <template>
   <div class="form-check mb-0" :class="props.topclass">
     <input :id="String(props.id)" v-model="model" class="form-check-input shadow-none" type="checkbox" v-bind="$attrs">

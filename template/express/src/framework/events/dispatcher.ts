@@ -1,3 +1,5 @@
+// ./src/framework/events/dispatcher.ts
+
 import { queueJob } from "@/framework/queue/queue.js";
 import { type BroadcastOptions, broadcast } from "@/framework/realtime/broadcast.js";
 import { logger } from "@/framework/support/logger.js";

@@ -1,3 +1,5 @@
+// ./src/framework/support/lifecycle.ts
+
 const shutdownSignals = ["SIGINT", "SIGTERM"] as const;
 export type ShutdownSignal = (typeof shutdownSignals)[number];
 

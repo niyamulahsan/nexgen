@@ -2,6 +2,10 @@
 
 ## [4.4.2] — 2026-11-13
 
+### Added
+
+- **Template (Hono, Express, Fastify)**: every source file now names its own location on the first line — `// ./src/modules/auth/controllers/auth.ts`, and `<!-- ./src/resources/src/pages/auth/login.vue -->` for Vue SFCs. Module folders repeat filenames on purpose (`controllers/auth.ts`, `helpers/auth.ts`, `services/auth.ts`), and a file pasted into a chat, a diff or a stack trace loses its path; the header restores it. The path is engine-relative, so identical files across the three engines keep identical first lines; one blank line separates the header from the code. The single shebang file (`framework/maker-cli/index.mjs`) keeps `#!` on line 1 and the header on line 2. Skipped by design: `package.json` / `.env` (no comment syntax — a `//` line breaks npm and the dotenv parser) and `maker-cli/stubs/**` (templates — a hard-coded path would leak into generated files). 636 files in `template/*/src`.
+
 ### Changed
 
 - **Template (Hono, Express, Fastify)**: request bodies now derive from their Zod schema instead of being hand-written. Every request schema in `modules/auth/schemas/auth.ts` exports its type on the next line (`export type RegisterType = z.input<typeof RegisterSchema>;`, and the same for `Login`, `ForgotPassword`, `ResetPassword`, `RefreshToken`, `VerifyEmail`). Controllers and services import the `*Type` from the schema file, so there is one source of truth and no second interface to keep in sync; `modules/auth/types/auth.ts` is removed. `types/` is now reserved for custom, non-request shapes (`maker module:make-type` still generates it). Generated schema stubs (`module:make`, `module:make-schema`) emit `Create<Name>Type`, `Update<Name>Type` and `<Name>IdParamsType` the same way.
@@ -12,7 +16,7 @@
 
 ### Documentation
 
-- `guide/conventions.md` gains **Schemas are the source of truth** (`<X>Schema` value + `<X>Type` derived with `z.input`, `types/` custom-only), `guide/modules.md` and `cli/module.md` document the derived aliases in generated schemas, and `guide/fastify.md` documents why `request.body` is `unknown` and why the per-handler `Body<T>` cast is the intended Fastify idiom.
+- `guide/conventions.md` gains **Schemas are the source of truth** (`<X>Schema` value + `<X>Type` derived with `z.input`, `types/` custom-only) and **Every file names its own location** (the first-line path header, engine-relative paths, the `.vue` HTML-comment form, and the files that cannot carry one), `guide/modules.md` and `cli/module.md` document the derived aliases in generated schemas, and `guide/fastify.md` documents why `request.body` is `unknown` and why the per-handler `Body<T>` cast is the intended Fastify idiom.
 
 ## [4.4.1] — 2026-11-11
 

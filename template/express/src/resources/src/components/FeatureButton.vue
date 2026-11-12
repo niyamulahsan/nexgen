@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/FeatureButton.vue -->
+
 <template></template>
 
 <script setup lang="ts">

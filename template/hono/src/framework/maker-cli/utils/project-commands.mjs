@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/project-commands.mjs
+
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";

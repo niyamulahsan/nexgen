@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Switch.vue -->
+
 <template>
   <div :class="wrapperClass">
     <label :class="props.vertical ? 'form-check-label d-block' : 'd-none'">

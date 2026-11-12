@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/runtime/build-ui.mjs
+
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

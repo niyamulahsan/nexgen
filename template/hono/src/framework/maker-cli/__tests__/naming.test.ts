@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/__tests__/naming.test.ts
+
 import { describe, expect, it } from "vitest";
 import { assertName, camelCase, normalizeName, pascal, plural, snakeCase } from "../utils/naming.mjs";
 

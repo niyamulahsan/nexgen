@@ -1,3 +1,5 @@
+// ./src/framework/support/cookie.ts
+
 import type { Context } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { appConfig, cookieConfig, jwtConfig } from "@/config/index.js";

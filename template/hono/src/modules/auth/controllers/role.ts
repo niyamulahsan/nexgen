@@ -1,3 +1,5 @@
+// ./src/modules/auth/controllers/role.ts
+
 import { eq } from "drizzle-orm";
 import type { Handler } from "hono";
 import { db, HttpStatusCodes } from "@/framework/facade.js";

@@ -1,3 +1,5 @@
+// ./src/framework/http/ratelimiter.ts
+
 import type { Context, MiddlewareHandler, Next } from "hono";
 import { MemoryStore, RedisStore, rateLimiter } from "hono-rate-limiter";
 import { rateLimitConfig } from "@/config/index.js";

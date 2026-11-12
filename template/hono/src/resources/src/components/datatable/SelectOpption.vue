@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/datatable/SelectOpption.vue -->
+
 <template>
   <div
     class="d-flex align-items-center justify-content-center justify-content-md-start mb-2 mb-md-0"

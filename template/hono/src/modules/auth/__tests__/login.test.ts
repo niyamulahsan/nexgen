@@ -1,3 +1,5 @@
+// ./src/modules/auth/__tests__/login.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/config/index.js", () => ({

@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/module/index.mjs
+
 import { runSeed } from "../db/core.mjs";
 import { assertName } from "../utils/naming.mjs";
 import {

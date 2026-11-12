@@ -1,3 +1,5 @@
+// ./src/framework/notification/index.ts
+
 import type { NormalizedTarget, NotificationOptions, NotificationTarget } from "@/framework/notification/contracts.js";
 import { getChannels } from "@/framework/notification/registry.js";
 import { resolveNotificationProvider } from "@/framework/providers/adapter.js";

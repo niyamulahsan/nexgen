@@ -1,3 +1,5 @@
+// ./src/modules/auth/routes/index.ts
+
 import { createRoute, createRouter, HttpStatusCodes, jsonContent, loginLimiter, z } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";
 import {

@@ -1,3 +1,5 @@
+// ./src/framework/session/__tests__/session-lifecycle.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

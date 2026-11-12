@@ -1,3 +1,5 @@
+// ./src/framework/storage/__tests__/storage-lifecycle.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

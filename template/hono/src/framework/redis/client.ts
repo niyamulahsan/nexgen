@@ -1,3 +1,5 @@
+// ./src/framework/redis/client.ts
+
 import { Redis } from "ioredis";
 import { redisConfig } from "@/config/index.js";
 import { createCircuitBreaker, isCircuitBreakerError } from "@/framework/circuit-breaker/cb.js";

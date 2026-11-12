@@ -1,3 +1,5 @@
+// ./src/framework/database/paginate.ts
+
 import { count, getTableColumns, type SQL, sql } from "drizzle-orm";
 import { db } from "@/framework/database/connection.js";
 

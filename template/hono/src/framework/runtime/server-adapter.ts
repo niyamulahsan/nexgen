@@ -1,3 +1,5 @@
+// ./src/framework/runtime/server-adapter.ts
+
 import type { AddressInfo } from "node:net";
 import type { RealtimeServeWebSocket } from "@/framework/realtime/socket.js";
 import { WS_PATH } from "@/framework/realtime/socket.js";

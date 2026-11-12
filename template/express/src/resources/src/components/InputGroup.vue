@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/InputGroup.vue -->
+
 <template>
   <div :class="topclass">
     <div class="position-relative">

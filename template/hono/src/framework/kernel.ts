@@ -1,3 +1,5 @@
+// ./src/framework/kernel.ts
+
 import { appConfig } from "@/config/index.js";
 import { validateConfig } from "@/config/validate.js";
 import { initDatabase } from "@/framework/database/connection.js";

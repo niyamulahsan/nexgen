@@ -1,3 +1,5 @@
+// ./src/modules/auth/routes/index.ts
+
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { HttpStatusCodes, loginLimiter, ValidationErrorSchema, z } from "@/framework/facade.js";
 import { authMiddleware } from "@/middlewares/auth-middleware.js";

@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/__tests__/generators.test.ts
+
 import { mkdir, mkdtemp, readdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

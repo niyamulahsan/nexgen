@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/middleware/index.mjs
+
 import { makeMiddleware } from "./core.mjs";
 
 /** Register middleware:* subcommands on the CLI program. */

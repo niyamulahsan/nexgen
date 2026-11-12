@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/help.mjs
+
 /**
  * Why: Detects the package manager used to run the CLI, for help usage text.
  * When: Building the program name shown in the "Usage:" line.

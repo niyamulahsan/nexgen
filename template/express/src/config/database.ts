@@ -1,3 +1,5 @@
+// ./src/config/database.ts
+
 import { env } from "@/env.js";
 
 /**

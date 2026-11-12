@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Datepicker.vue -->
+
 <template>
   <div :class="parentClass">
     <label class="text-capitalize d-flex align-items-center mb-1" :class="{ 'd-none': !inputLabel }">

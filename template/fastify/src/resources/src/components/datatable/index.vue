@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/datatable/index.vue -->
+
 <template>
   <div class="card border">
     <div class="card-header" :class="{ 'd-none': !(props.removable || props.searchable || props.optionable) }">

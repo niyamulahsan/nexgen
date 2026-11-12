@@ -1,3 +1,5 @@
+// ./src/modules/auth/controllers/auth.ts
+
 import type { Handler } from "hono";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
 import type {

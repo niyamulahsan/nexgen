@@ -1,3 +1,5 @@
+// ./src/framework/scheduler/__tests__/scheduler-lifecycle.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

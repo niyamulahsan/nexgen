@@ -80,6 +80,37 @@ src/modules/blog/
 Request shapes belong in `schemas/`; `types/` is for custom shapes that do not come
 from a schema (see [Schemas are the source of truth](#schemas-are-the-source-of-truth)).
 
+## Every file names its own location
+
+The first line of every source file is a comment with the path the file will have
+in the project:
+
+```ts
+// ./src/modules/auth/controllers/auth.ts
+
+import { cookie } from "@/framework/facade.js";
+```
+
+```vue
+<!-- ./src/resources/src/pages/auth/login.vue -->
+
+<template>
+  ...
+</template>
+```
+
+Module folders repeat filenames on purpose — `controllers/auth.ts`,
+`services/auth.ts`, `helpers/auth.ts` — and a file pasted into a chat, a diff or a
+stack trace loses its path. The header is what says which one it is. Keep the line
+when you copy a file, update it when you move one (a `.vue` file uses an HTML
+comment), and leave one blank line under it so the header reads as a title rather
+than part of the first import. Paths are engine-relative, so the three engines'
+identical files keep identical first lines.
+
+Not every file can carry one: `package.json` and `.env` have no comment syntax
+(a `//` line breaks npm and the dotenv parser), and `maker-cli/stubs/**` are
+templates — a hard-coded path there would end up inside *generated* files.
+
 ::: tip Use the `@/` alias, always
 Every import inside `src/modules/` uses the `@/` alias, including files in the
 same module:

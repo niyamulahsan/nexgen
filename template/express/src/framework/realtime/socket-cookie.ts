@@ -1,3 +1,5 @@
+// ./src/framework/realtime/socket-cookie.ts
+
 import { signedCookie } from "cookie-parser";
 import type { Socket } from "socket.io";
 import { cookieConfig } from "@/config/index.js";

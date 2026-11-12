@@ -1,3 +1,5 @@
+// ./src/middlewares/auth-middleware.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { cookie, HttpStatusCodes, jwt, resolveAuthProvider } from "@/framework/facade.js";
 

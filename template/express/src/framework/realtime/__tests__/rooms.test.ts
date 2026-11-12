@@ -1,3 +1,5 @@
+// ./src/framework/realtime/__tests__/rooms.test.ts
+
 import { describe, expect, it } from "vitest";
 import { canJoinRoom, registerRoomHandlers } from "@/framework/realtime/rooms.js";
 import type { RealtimeAuthContext } from "@/framework/realtime/types.js";

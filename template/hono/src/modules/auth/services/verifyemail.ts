@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/verifyemail.ts
+
 import { and, eq, gt } from "drizzle-orm";
 import { authConfig } from "@/config/index.js";
 import { db } from "@/framework/facade.js";

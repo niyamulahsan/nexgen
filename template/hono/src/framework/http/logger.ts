@@ -1,3 +1,5 @@
+// ./src/framework/http/logger.ts
+
 import type { Context, Next } from "hono";
 import { loggingConfig } from "@/config/index.js";
 import { logger } from "@/framework/support/logger.js";

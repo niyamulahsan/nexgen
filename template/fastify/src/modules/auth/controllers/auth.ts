@@ -1,3 +1,5 @@
+// ./src/modules/auth/controllers/auth.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
 import type {

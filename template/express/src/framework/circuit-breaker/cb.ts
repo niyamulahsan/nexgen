@@ -1,3 +1,5 @@
+// ./src/framework/circuit-breaker/cb.ts
+
 // Factory for the error
 export function createCircuitBreakerError(serviceName: string) {
   const error = new Error(`Circuit breaker is open for ${serviceName}. Service is temporarily unavailable.`);

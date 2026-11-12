@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/me.ts
+
 import { eq } from "drizzle-orm";
 import { db } from "@/framework/facade.js";
 import { users } from "@/modules/auth/database/models/user.js";

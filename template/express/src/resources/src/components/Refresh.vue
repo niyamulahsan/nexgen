@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Refresh.vue -->
+
 <template>
   <Teleport v-if="target" :to="target">
     <slot />

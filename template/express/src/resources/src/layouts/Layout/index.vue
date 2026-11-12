@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/Layout/index.vue -->
+
 <template>
   <Sidebar :class="{ tgl: sidebarOpen }" :on-toggle-sidebar="ui.toggleSidebar" />
   <!-- main start -->

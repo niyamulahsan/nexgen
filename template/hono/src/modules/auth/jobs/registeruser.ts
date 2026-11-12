@@ -1,3 +1,5 @@
+// ./src/modules/auth/jobs/registeruser.ts
+
 import { DateTime as Datetime } from "luxon";
 import { dispatchEvent, mail, shouldQueue } from "@/framework/facade.js";
 

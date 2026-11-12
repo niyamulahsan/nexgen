@@ -1,3 +1,5 @@
+// ./src/resources/src/main.ts
+
 import "@/plugins/axios";
 import { createHead } from "@unhead/vue/client";
 import { createPinia } from "pinia";

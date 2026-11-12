@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/utils/env-db.mjs
+
 const DEFAULT_DATABASE_URL = "sqlite:./src/storage/database/nexwire.sqlite";
 
 /** Detect current DB dialect from DATABASE_URL (sqlite/mysql/postgresql). Falls back to sqlite. */

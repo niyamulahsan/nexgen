@@ -1,3 +1,5 @@
+// ./src/config/mail.ts
+
 import { env } from "@/env.js";
 
 /**

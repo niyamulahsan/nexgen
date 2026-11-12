@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/register.ts
+
 import { eq } from "drizzle-orm";
 import { authConfig } from "@/config/index.js";
 import { db, dispatchEvent, password, urls } from "@/framework/facade.js";

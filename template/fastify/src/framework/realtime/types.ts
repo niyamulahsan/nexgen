@@ -1,3 +1,5 @@
+// ./src/framework/realtime/types.ts
+
 export type RealtimeAuthContext = {
   isAuthenticated: boolean;
   userId: string | null;

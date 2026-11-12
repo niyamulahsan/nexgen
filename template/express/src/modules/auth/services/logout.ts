@@ -1,3 +1,5 @@
+// ./src/modules/auth/services/logout.ts
+
 import type { Request, Response } from "express";
 import { cookie, logger } from "@/framework/facade.js";
 import { revokeCurrentRefreshToken } from "@/modules/auth/helpers/auth.js";

@@ -1,3 +1,5 @@
+// ./src/resources/src/plugins/dialog.ts
+
 import type { App } from "vue";
 
 type PromptOptions = {

@@ -1,3 +1,5 @@
+// ./src/framework/redis/__tests__/client.test.ts
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**

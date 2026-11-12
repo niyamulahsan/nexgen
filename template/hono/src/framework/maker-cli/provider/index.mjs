@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/provider/index.mjs
+
 import { makeProvider } from "./core.mjs";
 
 /** Register provider:* subcommands on the CLI program. */

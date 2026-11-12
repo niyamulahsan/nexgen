@@ -1,3 +1,5 @@
+// ./src/framework/session/session.ts
+
 import { randomUUID } from "node:crypto";
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";

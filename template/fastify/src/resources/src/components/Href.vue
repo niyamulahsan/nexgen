@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/components/Href.vue -->
+
 <template>
   <a :href="String(props.to)" class="d-flex align-items-center" v-bind="$attrs">
     <slot v-if="hasDefaultSlot"></slot>

@@ -1,3 +1,5 @@
+// ./src/modules/auth/jobs/verifyemail.ts
+
 import { mail, shouldQueue } from "@/framework/facade.js";
 
 shouldQueue("user:verify-email", "mail", async (job: any) => {

@@ -1,3 +1,5 @@
+// ./src/modules/auth/__tests__/register.test.ts
+
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

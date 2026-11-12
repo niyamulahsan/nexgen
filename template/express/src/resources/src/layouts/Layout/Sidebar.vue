@@ -1,3 +1,5 @@
+<!-- ./src/resources/src/layouts/Layout/Sidebar.vue -->
+
 <template>
   <!-- sidebar start -->
   <div class="sidebar">

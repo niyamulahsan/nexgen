@@ -1,3 +1,5 @@
+// ./src/resources/src/plugins/routeProgress.ts
+
 import type { Router } from "vue-router";
 
 const BAR_ID = "app-route-progress";

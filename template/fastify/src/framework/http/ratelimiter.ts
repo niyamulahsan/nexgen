@@ -1,3 +1,5 @@
+// ./src/framework/http/ratelimiter.ts
+
 import rateLimit from "@fastify/rate-limit";
 import type { FastifyInstance } from "fastify";
 import { openApiConfig, rateLimitConfig } from "@/config/index.js";

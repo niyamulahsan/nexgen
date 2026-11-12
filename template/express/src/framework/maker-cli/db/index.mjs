@@ -1,3 +1,5 @@
+// ./src/framework/maker-cli/db/index.mjs
+
 import { generateSchema } from "../module/core.mjs";
 import { showHelp } from "../utils/help.mjs";
 import { assertName as assertNameLeaf } from "../utils/naming.mjs";
