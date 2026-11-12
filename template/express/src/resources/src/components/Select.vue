@@ -332,20 +332,17 @@ const hoodHtml = computed(() => (props.hood === false || props.hood == null ? ""
 
 <template>
   <div :class="parentClass">
-    <label
-      class="text-capitalize d-flex align-items-center mb-1"
-      :class="{ 'd-none': !inputTitle }">
+    <label class="text-capitalize d-flex align-items-center mb-1" :class="{ 'd-none': !inputTitle }">
       <div class="position-relative">
         <span class="text-capitalize" v-html="inputTitle"></span>
-        <span
-          class="position-absolute text-danger rounded-circle bg-danger must"
-          :class="{ 'd-none': !props.must }"></span>
+        <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
       </div>
       <div
         class="text-uppercase w-100 text-end text-primary fw-semibold"
         :class="{ 'd-none': !props.hood }"
         style="font-size: 12px; margin-top: 0.15rem"
-        v-html="hoodHtml"></div>
+        v-html="hoodHtml"
+      ></div>
     </label>
     <v-select
       v-model="model"
@@ -357,7 +354,8 @@ const hoodHtml = computed(() => (props.hood === false || props.hood == null ? ""
       @update:model-value="onModelUpdate"
       @close="onClose"
       @search="inputSearch"
-      @clear="onClear">
+      @clear="onClear"
+    >
       <template #list-footer>
         <li v-show="hasNextPage" ref="load" class="loader">More...</li>
       </template>

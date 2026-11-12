@@ -10,25 +10,41 @@
         <ul class="pagination justify-content-center justify-content-md-end">
           <!-- First -->
           <li :class="['page-item', { disabled: noPreviousPage }]">
-            <button type="button" class="page-link" :aria-disabled="noPreviousPage ? 'true' : 'false'"
-              :tabindex="noPreviousPage ? -1 : 0" @click.prevent="!noPreviousPage && loadPage(1)">
+            <button
+              type="button"
+              class="page-link"
+              :aria-disabled="noPreviousPage ? 'true' : 'false'"
+              :tabindex="noPreviousPage ? -1 : 0"
+              @click.prevent="!noPreviousPage && loadPage(1)"
+            >
               <i class="bi bi-chevron-double-left"></i>
             </button>
           </li>
 
           <!-- Prev -->
           <li :class="['page-item', { disabled: noPreviousPage }]">
-            <button type="button" class="page-link" :aria-disabled="noPreviousPage ? 'true' : 'false'"
+            <button
+              type="button"
+              class="page-link"
+              :aria-disabled="noPreviousPage ? 'true' : 'false'"
               :tabindex="noPreviousPage ? -1 : 0"
-              @click.prevent="!noPreviousPage && loadPage(props.data.current_page - 1)">
+              @click.prevent="!noPreviousPage && loadPage(props.data.current_page - 1)"
+            >
               <i class="bi bi-chevron-left"></i>
             </button>
           </li>
 
           <li class="page-item">
             <div class="input-group input-group-sm">
-              <Input v-model="page.page" type="text" category="number" topclass="m-0" class="text-center"
-                style="width: 100px" @keyup.enter="loadPage(page.page)" />
+              <Input
+                v-model="page.page"
+                type="text"
+                category="number"
+                topclass="m-0"
+                class="text-center"
+                style="width: 100px"
+                @keyup.enter="loadPage(page.page)"
+              />
             </div>
           </li>
 
@@ -38,16 +54,26 @@
 
           <!-- Next -->
           <li :class="['page-item', { disabled: noNextPage }]">
-            <button type="button" class="page-link" :aria-disabled="noNextPage ? 'true' : 'false'"
-              :tabindex="noNextPage ? -1 : 0" @click.prevent="!noNextPage && loadPage(props.data.current_page + 1)">
+            <button
+              type="button"
+              class="page-link"
+              :aria-disabled="noNextPage ? 'true' : 'false'"
+              :tabindex="noNextPage ? -1 : 0"
+              @click.prevent="!noNextPage && loadPage(props.data.current_page + 1)"
+            >
               <i class="bi bi-chevron-right"></i>
             </button>
           </li>
 
           <!-- Last -->
           <li :class="['page-item', { disabled: noNextPage }]">
-            <button type="button" class="page-link" :aria-disabled="noNextPage ? 'true' : 'false'"
-              :tabindex="noNextPage ? -1 : 0" @click.prevent="!noNextPage && loadPage(props.data.last_page)">
+            <button
+              type="button"
+              class="page-link"
+              :aria-disabled="noNextPage ? 'true' : 'false'"
+              :tabindex="noNextPage ? -1 : 0"
+              @click.prevent="!noNextPage && loadPage(props.data.last_page)"
+            >
               <i class="bi bi-chevron-double-right"></i>
             </button>
           </li>

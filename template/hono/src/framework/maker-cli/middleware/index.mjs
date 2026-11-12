@@ -8,5 +8,10 @@ export function registerMiddlewareCommands(program, rawArgs) {
     .option("--force", "Overwrite existing middleware file")
     .option("--dry-run", "Print what would be created without executing")
     .allowUnknownOption(true)
-    .action(async (name) => makeMiddleware(name, rawArgs.filter((arg) => arg.startsWith("--"))));
+    .action(async (name) =>
+      makeMiddleware(
+        name,
+        rawArgs.filter((arg) => arg.startsWith("--"))
+      )
+    );
 }

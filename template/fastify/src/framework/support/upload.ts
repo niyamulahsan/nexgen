@@ -1,6 +1,6 @@
 import path from "node:path";
-import type { FastifyRequest } from "fastify";
 import type { MultipartFile } from "@fastify/multipart";
+import type { FastifyRequest } from "fastify";
 
 export type UploadedFile = {
   fieldname: string;

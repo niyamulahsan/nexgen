@@ -331,6 +331,8 @@ bun maker module:make-seeder posts
 
 Generate a schema file at `schemas/<name>.ts`. The generated set depends on the `OPEN_API` setting at scaffold time — full (item, create, update, id-params and response schemas) or minimal (create, update and id-params only).
 
+Each request schema also gets its derived type on the next line — `Create<Name>Type`, `Update<Name>Type` and `<Name>IdParamsType`, created with `z.input<typeof …Schema>`. Import the value where you validate (routes) and the type where you accept (controllers, services); there is no separate hand-written input interface to keep in sync. See [Schemas are the source of truth](/guide/conventions#schemas-are-the-source-of-truth).
+
 ::: code-group
 
 ```bash [npm]

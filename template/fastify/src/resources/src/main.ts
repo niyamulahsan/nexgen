@@ -16,7 +16,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 const app = createApp(App);
 const pinia = createPinia();
 const head = createHead({
-  init: [{ titleTemplate: (title) => (title ? `${title} | nexwire` : "nexwire") }],
+  init: [{ titleTemplate: (title) => (title ? `${title} | nexwire` : "nexwire") }]
 });
 
 app.use(pinia);

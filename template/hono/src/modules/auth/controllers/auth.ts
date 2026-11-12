@@ -1,19 +1,19 @@
 import type { Handler } from "hono";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
+import type {
+  ForgotPasswordType,
+  LoginType,
+  RefreshTokenType,
+  RegisterType,
+  ResetPasswordType,
+  VerifyEmailType
+} from "@/modules/auth/schemas/auth.js";
 import { forgotPasswordService } from "@/modules/auth/services/forgetpassword.js";
 import { loginService } from "@/modules/auth/services/login.js";
 import { logoutService } from "@/modules/auth/services/logout.js";
 import { meService } from "@/modules/auth/services/me.js";
 import { registerService } from "@/modules/auth/services/register.js";
 import { resetPasswordService } from "@/modules/auth/services/resetpassword.js";
-import {
-  ForgotPasswordInput,
-  LoginInput,
-  RefreshTokenInput,
-  RegisterInput,
-  ResetPasswordInput,
-  VerifyEmailInput
-} from "@/modules/auth/types/auth.js";
 import { logoutAllDevicesService } from "../services/logoutalldevices.js";
 import { refreshTokenService } from "../services/refreshtoken.js";
 import { verifyEmailService } from "../services/verifyemail.js";
@@ -25,7 +25,7 @@ import { verifyEmailService } from "../services/verifyemail.js";
  */
 export const register: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as RegisterInput;
+    const body = c.req.valid("json") as RegisterType;
     const result = await registerService.register(c, body);
 
     switch (result.kind) {
@@ -51,7 +51,7 @@ export const register: Handler = async (c: any) => {
  */
 export const login: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as LoginInput;
+    const body = c.req.valid("json") as LoginType;
     const result = await loginService.login(c, body);
 
     switch (result.kind) {
@@ -121,7 +121,7 @@ export const logout: Handler = async (c: any) => {
  */
 export const forgotPassword: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as ForgotPasswordInput;
+    const body = c.req.valid("json") as ForgotPasswordType;
     const result = await forgotPasswordService.forgotPassword(body);
 
     // Single success path — intentionally identical whether or not the email exists.
@@ -139,7 +139,7 @@ export const forgotPassword: Handler = async (c: any) => {
  */
 export const resetPassword: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as ResetPasswordInput;
+    const body = c.req.valid("json") as ResetPasswordType;
     const result = await resetPasswordService.resetPassword(body);
 
     switch (result.kind) {
@@ -162,7 +162,7 @@ export const resetPassword: Handler = async (c: any) => {
  */
 export const verifyEmail: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as VerifyEmailInput;
+    const body = c.req.valid("json") as VerifyEmailType;
     const result = await verifyEmailService.verifyEmail(body);
 
     switch (result.kind) {
@@ -188,7 +188,7 @@ export const verifyEmail: Handler = async (c: any) => {
  */
 export const refreshToken: Handler = async (c: any) => {
   try {
-    const body = c.req.valid("json") as RefreshTokenInput;
+    const body = c.req.valid("json") as RefreshTokenType;
     const result = await refreshTokenService.refreshToken(body);
 
     switch (result.kind) {

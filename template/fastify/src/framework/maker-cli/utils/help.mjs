@@ -117,14 +117,7 @@ const COMMAND_GROUPS = [
   },
   {
     title: "Modules - manage",
-    commands: [
-      "module:list",
-      "module:seed",
-      "module:migrate",
-      "module:delete",
-      "module:delete-notification",
-      "module:trash:clean"
-    ]
+    commands: ["module:list", "module:seed", "module:migrate", "module:delete", "module:delete-notification", "module:trash:clean"]
   },
   {
     title: "Database",
@@ -294,7 +287,13 @@ export function configureGroupedHelp(program, { stream = process.stdout } = {}) 
 
       const options = helper.visibleOptions(cmd);
       if (options.length > 0) {
-        blocks.push(renderTable("Options", options.map((option) => [helper.optionTerm(option), helper.optionDescription(option)]), width));
+        blocks.push(
+          renderTable(
+            "Options",
+            options.map((option) => [helper.optionTerm(option), helper.optionDescription(option)]),
+            width
+          )
+        );
       }
 
       const argumentsList = helper.visibleArguments(cmd);

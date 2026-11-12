@@ -68,12 +68,7 @@ export async function revokeCurrentRefreshToken(request: FastifyRequest) {
   }
 }
 
-export async function issueTokens(
-  _request: FastifyRequest,
-  reply: FastifyReply,
-  user: any,
-  options?: { remember?: boolean }
-) {
+export async function issueTokens(_request: FastifyRequest, reply: FastifyReply, user: any, options?: { remember?: boolean }) {
   const remember = !!options?.remember;
   const refreshExpiry = remember ? jwtConfig.refreshRememberExpirySeconds : jwtConfig.refreshExpirySeconds;
   const role = user.role || null;

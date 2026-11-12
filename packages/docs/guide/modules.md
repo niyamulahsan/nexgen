@@ -173,6 +173,13 @@ bun maker module:make-test blog post
 | `module:make-console <m> [name]`    | `console/<name>.ts`                     | `defineSchedule` cron pattern                                  |
 | `module:make-test <m> [name]`       | `__tests__/<name>.test.ts`              | Vitest unit test                                               |
 
+Every generated schema file also exports the derived request types next to their
+schemas — `Create<Name>Type`, `Update<Name>Type` and `<Name>IdParamsType`, built with
+`z.input<typeof …Schema>`. Controllers and services import those types from the same
+file as the schema, so a request shape is never written twice. `types/` stays for
+custom shapes that have no schema. See
+[Schemas are the source of truth](/guide/conventions#schemas-are-the-source-of-truth).
+
 ### Controller ↔ service wiring
 
 `module:make-controller` checks whether `services/<name>.ts` exists (legacy `controllers/<name>.service.ts` paths still count). When it does, the generated controller delegates every handler to `<name>Service`; when it does not, the controller gets standalone handlers you wire up yourself. Generate the service first — or just use `module:make` — for the wired shape.

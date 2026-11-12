@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 import { cookie, HttpStatusCodes } from "@/framework/facade.js";
+import type {
+  ForgotPasswordType,
+  LoginType,
+  RefreshTokenType,
+  RegisterType,
+  ResetPasswordType,
+  VerifyEmailType
+} from "@/modules/auth/schemas/auth.js";
 import { registerService } from "@/modules/auth/services/register.js";
-import {
-  ForgotPasswordInput,
-  LoginInput,
-  RefreshTokenInput,
-  RegisterInput,
-  ResetPasswordInput,
-  VerifyEmailInput
-} from "@/modules/auth/types/auth.js";
 import { forgotPasswordService } from "../services/forgetpassword.js";
 import { loginService } from "../services/login.js";
 import { logoutService } from "../services/logout.js";
@@ -25,7 +25,7 @@ import { verifyEmailService } from "../services/verifyemail.js";
  */
 export const register = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as RegisterInput;
+    const body = req.body as RegisterType;
     const result = await registerService.register(req, res, body);
 
     switch (result.kind) {
@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response, _next: NextFunction)
  */
 export const login = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as LoginInput;
+    const body = req.body as LoginType;
     const result = await loginService.login(req, res, body);
 
     switch (result.kind) {
@@ -133,7 +133,7 @@ export const logout = async (req: Request, res: Response, _next: NextFunction) =
  */
 export const forgotPassword = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as ForgotPasswordInput;
+    const body = req.body as ForgotPasswordType;
     const result = await forgotPasswordService.forgotPassword(body);
 
     // Single success path — intentionally identical whether or not the email exists.
@@ -151,7 +151,7 @@ export const forgotPassword = async (req: Request, res: Response, _next: NextFun
  */
 export const resetPassword = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as ResetPasswordInput;
+    const body = req.body as ResetPasswordType;
     const result = await resetPasswordService.resetPassword(body);
 
     switch (result.kind) {
@@ -174,7 +174,7 @@ export const resetPassword = async (req: Request, res: Response, _next: NextFunc
  */
 export const verifyEmail = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as VerifyEmailInput;
+    const body = req.body as VerifyEmailType;
     const result = await verifyEmailService.verifyEmail(body);
 
     switch (result.kind) {
@@ -200,7 +200,7 @@ export const verifyEmail = async (req: Request, res: Response, _next: NextFuncti
  */
 export const refreshToken = async (req: Request, res: Response, _next: NextFunction) => {
   try {
-    const body = req.body as RefreshTokenInput;
+    const body = req.body as RefreshTokenType;
     const result = await refreshTokenService.refreshToken(body);
 
     switch (result.kind) {

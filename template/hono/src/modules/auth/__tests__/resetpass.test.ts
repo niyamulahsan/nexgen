@@ -31,7 +31,8 @@ const fakeUser = { id: 1, email: "user@example.com", name: "Jane" };
 const body = {
   email: "user@example.com",
   token: "plain-token",
-  password: "new-secret"
+  password: "new-secret",
+  password_confirmation: "new-secret"
 };
 
 /**

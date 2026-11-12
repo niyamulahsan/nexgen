@@ -128,6 +128,23 @@ export const index = async (_request: FastifyRequest, reply: FastifyReply) => {
 
 Services that need the request context take `(request, reply, ...args)` — the same shape as the Express engine's `(req, res, ...args)` — so the HTTP layer stays in the controller and the service stays testable.
 
+### Typing `request.body`
+
+Fastify types the request body as `unknown` on purpose: the route schema is what makes it real, so a handler can never assume a shape that was not declared. The template keeps the cast local to each handler instead of widening `FastifyRequest`:
+
+```ts
+import type { FastifyRequest } from "fastify";
+import type { RegisterType } from "@/modules/auth/schemas/auth.js";
+
+type Body<T> = FastifyRequest<{ Body: T }>;
+
+export const register = async (request: Body<RegisterType>, reply: FastifyReply) => {
+  const body = request.body; // RegisterType
+};
+```
+
+This is the Fastify idiom, not a framework gap — `body`, `query` and `params` are declared per route through the request generic, and `fastify-type-provider-zod` still validates them at runtime. The type itself is derived next to the schema (`z.input<typeof RegisterSchema>` — see [Schemas are the source of truth](/guide/conventions#schemas-are-the-source-of-truth)); don't widen `request.body` to `any` just to avoid the cast.
+
 ## Scoped hooks
 
 Use a child plugin when a group of routes shares a hook. `addHook` is scoped to that plugin, so the hook never leaks to sibling routes or other modules.

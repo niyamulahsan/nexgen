@@ -8,7 +8,8 @@
         :theme-mode="themeMode"
         :on-logout="logout"
         :on-toggle-sidebar="ui.toggleSidebar"
-        :on-toggle-theme="ui.cycleTheme" />
+        :on-toggle-theme="ui.cycleTheme"
+      />
       <!-- content start -->
       <div class="content">
         <router-view />

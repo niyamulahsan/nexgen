@@ -4,10 +4,7 @@
       <label :for="inputId" class="d-flex align-items-center" :class="{ 'd-none': !inputLabel }">
         <div class="position-relative">
           <span class="text-capitalize mb-1" v-html="inputLabel"></span>
-          <span
-            class="position-absolute text-danger rounded-circle bg-danger must"
-            :class="{ 'd-none': !props.must }"
-          ></span>
+          <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
         </div>
         <div
           class="text-end ms-auto text-primary align-self-center"
@@ -27,32 +24,17 @@
           :readonly="props.readonly"
           v-bind="$attrs"
           @input="updateModel"
-        />
-        <button
-          class="input-group-text p-0 position-relative z-1"
-          type="button"
-          @click="togglePassword"
         >
-          <i
-            class="py-2 px-3"
-            :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"
-            style="font-size: 15px"
-          ></i>
+        <button class="input-group-text p-0 position-relative z-1" type="button" @click="togglePassword">
+          <i class="py-2 px-3" :class="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'" style="font-size: 15px"></i>
         </button>
       </div>
       <!-- <input class="form-control" v-model="model" :maxlength="max" v-bind="$attrs"> vue3.3 (2nd way)/3.4 -->
-      <div
-        class="position-absolute bottom-0 end-0 pe-1 text-secondary max"
-        :class="{ 'd-none': !max }"
-      >
+      <div class="position-absolute bottom-0 end-0 pe-1 text-secondary max" :class="{ 'd-none': !max }">
         {{ maxCounter }}
       </div>
     </div>
-    <div
-      :id="`${inputId}Help`"
-      class="form-text mt-1 text-danger"
-      :class="{ 'd-none': !props.err }"
-    >
+    <div :id="`${inputId}Help`" class="form-text mt-1 text-danger" :class="{ 'd-none': !props.err }">
       {{ props.err }}
     </div>
   </div>
@@ -67,14 +49,7 @@ const { isFirefox } = browserDetect;
 
 const $attrs = useAttrs();
 const inputRef = ref<HTMLInputElement | null>(null);
-type InputPasswordCategory =
-  | "number"
-  | "decimal"
-  | "mobile"
-  | "tax-period"
-  | "bin"
-  | "challan-number"
-  | string;
+type InputPasswordCategory = "number" | "decimal" | "mobile" | "tax-period" | "bin" | "challan-number" | string;
 
 interface InputPasswordProps {
   focus?: boolean;
@@ -88,7 +63,7 @@ interface InputPasswordProps {
 
 const props = withDefaults(defineProps<InputPasswordProps>(), {
   err: false,
-  modelValue: "",
+  modelValue: ""
 });
 
 const topclass = computed(() => ($attrs.topclass as string | undefined) || "mb-3");
@@ -102,9 +77,7 @@ const max = computed<number | null>(() => {
 });
 const maxLengthAttr = computed<number | undefined>(() => max.value ?? undefined);
 
-const hoodHtml = computed(() =>
-  props.hood === false || props.hood == null ? "" : String(props.hood),
-);
+const hoodHtml = computed(() => (props.hood === false || props.hood == null ? "" : String(props.hood)));
 
 const maxCounter = computed(() => {
   if (max.value == null) {

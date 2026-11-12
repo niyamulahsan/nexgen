@@ -24,11 +24,11 @@ export { type PaginatedResult, paginate, paginateModel, paginateQuery, paginateT
 // ==========================================
 export { command, dispatchCommand, dispatchEvent } from "@/framework/events/dispatcher.js";
 export { registerOpenApiRoute } from "@/framework/http/openapi.js";
-export type { RouteConfig } from "@/framework/http/router.js";
 // ==========================================
 // 3. HTTP & Routing
 // ==========================================
 export { loginLimiter } from "@/framework/http/ratelimiter.js";
+export type { RouteConfig } from "@/framework/http/router.js";
 export { createRoute, createRouter, group, jsonContent } from "@/framework/http/router.js";
 export { validate } from "@/framework/http/validation.js";
 export { broadcastChannel } from "@/framework/notification/channels/broadcast.js";

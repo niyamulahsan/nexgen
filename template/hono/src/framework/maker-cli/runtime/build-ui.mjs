@@ -14,4 +14,3 @@ if (isFalse(process.env.UI) || fileDisabled) {
 }
 
 execSync("vite build --config src/resources/vite.config.ts", { stdio: "inherit" });
-

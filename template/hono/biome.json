@@ -18,10 +18,7 @@
     "bracketSameLine": false
   },
   "files": {
-    "includes": [
-      "**",
-      "!**/node_modules"
-    ]
+    "includes": ["**", "!**/node_modules"]
   },
   "linter": {
     "rules": {
@@ -68,14 +65,9 @@
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.{js,mjs,cjs,ts,tsx,vue}"
-      ],
+      "includes": ["**/*.{js,mjs,cjs,ts,tsx,vue}"],
       "javascript": {
-        "globals": [
-          "exports",
-          "location"
-        ]
+        "globals": ["exports", "location"]
       }
     }
   ],
@@ -85,12 +77,7 @@
         "organizeImports": {
           "level": "on",
           "options": {
-            "groups": [
-              ":NODE:",
-              ":PACKAGE:",
-              ":ALIAS:",
-              ":PATH:"
-            ]
+            "groups": [":NODE:", ":PACKAGE:", ":ALIAS:", ":PATH:"]
           }
         }
       }

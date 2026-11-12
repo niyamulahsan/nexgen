@@ -1,5 +1,5 @@
-import { clearViteCache, runRuntime, runTest, runTestCoverage, runTestUI, runTestWatch, runUi, runVite } from "./core.mjs";
 import { initProjectCommands, PROJECT_COMMANDS_PATH } from "../utils/project-commands.mjs";
+import { clearViteCache, runRuntime, runTest, runTestCoverage, runTestUI, runTestWatch, runUi, runVite } from "./core.mjs";
 
 /** Register runtime commands (dev, serve, queue, schedule, UI tools) on the CLI program. */
 export function registerRuntimeCommands(program, rawArgs) {

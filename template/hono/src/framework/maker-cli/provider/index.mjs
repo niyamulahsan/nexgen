@@ -8,5 +8,10 @@ export function registerProviderCommands(program, rawArgs) {
     .option("--force", "Overwrite existing provider file")
     .option("--dry-run", "Print what would be created without executing")
     .allowUnknownOption(true)
-    .action(async (name) => makeProvider(name, rawArgs.filter((arg) => arg.startsWith("--"))));
+    .action(async (name) =>
+      makeProvider(
+        name,
+        rawArgs.filter((arg) => arg.startsWith("--"))
+      )
+    );
 }

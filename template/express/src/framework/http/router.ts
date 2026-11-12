@@ -73,7 +73,7 @@ function validationMiddleware(route: RouteConfig): RequestHandler {
       if (req.params) {
         for (const key of Object.keys(req.params)) {
           if (Array.isArray(req.params[key])) {
-            req.params[key] = (req.params[key] as string[]).join('/');
+            req.params[key] = (req.params[key] as string[]).join("/");
           }
         }
       }
@@ -148,13 +148,7 @@ export function createRouter(): NexwireRouter {
       throw new Error("api(route, middlewares, handler) requires a handler function");
     }
 
-    (router as any)[route.method](
-      expressPath(route.path),
-      validationMiddleware(route),
-      ...groupMiddlewares,
-      ...middlewares,
-      finalHandler
-    );
+    (router as any)[route.method](expressPath(route.path), validationMiddleware(route), ...groupMiddlewares, ...middlewares, finalHandler);
     stateOf(router).routes.push(route);
     return this;
   };

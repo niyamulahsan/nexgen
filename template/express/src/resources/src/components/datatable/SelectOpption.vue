@@ -1,10 +1,10 @@
 <template>
-  <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-2 mb-md-0" :class="{ 'd-none': !props.isOptions }">
+  <div
+    class="d-flex align-items-center justify-content-center justify-content-md-start mb-2 mb-md-0"
+    :class="{ 'd-none': !props.isOptions }"
+  >
     Show
-    <select
-      v-model="selectedoption"
-      class="form-select shadow-none w-auto mx-2"
-      @change="selectOption">
+    <select v-model="selectedoption" class="form-select shadow-none w-auto mx-2" @change="selectOption">
       <option v-for="(val, i) in props.option" :key="i" :value="val">{{ val }}</option>
     </select>
     entries

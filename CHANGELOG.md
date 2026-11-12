@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.4.2] — 2026-11-13
+
+### Changed
+
+- **Template (Hono, Express, Fastify)**: request bodies now derive from their Zod schema instead of being hand-written. Every request schema in `modules/auth/schemas/auth.ts` exports its type on the next line (`export type RegisterType = z.input<typeof RegisterSchema>;`, and the same for `Login`, `ForgotPassword`, `ResetPassword`, `RefreshToken`, `VerifyEmail`). Controllers and services import the `*Type` from the schema file, so there is one source of truth and no second interface to keep in sync; `modules/auth/types/auth.ts` is removed. `types/` is now reserved for custom, non-request shapes (`maker module:make-type` still generates it). Generated schema stubs (`module:make`, `module:make-schema`) emit `Create<Name>Type`, `Update<Name>Type` and `<Name>IdParamsType` the same way.
+
+### Fixed
+
+- **Template (all engines)**: the hand-written `RegisterInput` / `ResetPasswordInput` types had drifted from their schemas — both omitted the required `password_confirmation`, and `RegisterInput` advertised a `remember` flag that `RegisterSchema` never accepted (Zod strips unknown keys, so registration always ignored it). Deriving the types exposed the drift: `RegisterSchema` now accepts `remember` (`z.boolean().optional().default(false)`), and the auth tests send complete bodies.
+
+### Documentation
+
+- `guide/conventions.md` gains **Schemas are the source of truth** (`<X>Schema` value + `<X>Type` derived with `z.input`, `types/` custom-only), `guide/modules.md` and `cli/module.md` document the derived aliases in generated schemas, and `guide/fastify.md` documents why `request.body` is `unknown` and why the per-handler `Body<T>` cast is the intended Fastify idiom.
+
 ## [4.4.1] — 2026-11-11
 
 ### Fixed

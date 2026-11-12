@@ -6,13 +6,14 @@
       role="button"
       class="sidebar-toggle card card-body rounded-circle position-absolute top-0 end-0 d-xl-none"
       title="sidebar-toggle"
-      @click.prevent="props.onToggleSidebar">
+      @click.prevent="props.onToggleSidebar"
+    >
       <i class="bi bi-chevron-left fw-bold"></i>
     </a>
 
     <div class="app-brand">
       <a href="#" aria-label="logo">
-        <img src="@/assets/images/logo.png" alt="nexwire" />
+        <img src="@/assets/images/logo.png" alt="nexwire">
       </a>
     </div>
     <div id="accordion-sidebar" class="accordion accordion-flush">
@@ -36,16 +37,14 @@
             data-bs-toggle="collapse"
             data-bs-target="#flush-collapseOne"
             aria-expanded="false"
-            aria-controls="flush-collapseOne">
+            aria-controls="flush-collapseOne"
+          >
             <div class="menu-icon">
               <i class="bi bi-shield-check"></i>
             </div>
             <span>Content</span>
           </a>
-          <ul
-            id="flush-collapseOne"
-            class="list-group accordion-collapse collapse"
-            data-bs-parent="#accordion-sidebar">
+          <ul id="flush-collapseOne" class="list-group accordion-collapse collapse" data-bs-parent="#accordion-sidebar">
             <li class="list-group-item">
               <a href="#">Posts</a>
             </li>
@@ -60,7 +59,8 @@
                 data-bs-toggle="collapse"
                 data-bs-target="#flush-collapseTwo"
                 aria-expanded="false"
-                aria-controls="flush-collapseTwo">
+                aria-controls="flush-collapseTwo"
+              >
                 <span>Media</span>
               </a>
               <ul id="flush-collapseTwo" class="list-group accordion-collapse collapse">
@@ -78,7 +78,8 @@
                     data-bs-toggle="collapse"
                     data-bs-target="#flush-collapseThree"
                     aria-expanded="false"
-                    aria-controls="flush-collapseThree">
+                    aria-controls="flush-collapseThree"
+                  >
                     <span>Settings</span>
                   </a>
                   <ul id="flush-collapseThree" class="list-group accordion-collapse collapse">

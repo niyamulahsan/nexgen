@@ -5,7 +5,12 @@
         <span class="text-capitalize" v-html="inputLabel"></span>
         <span class="position-absolute text-danger rounded-circle bg-danger must" :class="{ 'd-none': !props.must }"></span>
       </div>
-      <div class="text-uppercase w-100 text-end text-primary fw-semibold" :class="{ 'd-none': !props.hood }" style="font-size: 12px; margin-top: 0.15rem" v-html="hoodHtml"></div>
+      <div
+        class="text-uppercase w-100 text-end text-primary fw-semibold"
+        :class="{ 'd-none': !props.hood }"
+        style="font-size: 12px; margin-top: 0.15rem"
+        v-html="hoodHtml"
+      ></div>
     </label>
     <VueDatePicker
       v-if="usePicker"
@@ -16,7 +21,8 @@
       :time-config="timeConfig"
       :formats="formats"
       text-input
-      v-bind="$attrs"></VueDatePicker>
+      v-bind="$attrs"
+    ></VueDatePicker>
     <input
       v-else
       type="month"
@@ -24,7 +30,8 @@
       :value="nativeValue"
       :disabled="Boolean($attrs.disabled)"
       :readonly="Boolean($attrs.readonly)"
-      @input="onNativeInput" />
+      @input="onNativeInput"
+    >
     <div class="form-text text-danger" :class="{ 'd-none': !props.err }" style="font-size: 0.8rem">
       {{ props.err }}
     </div>

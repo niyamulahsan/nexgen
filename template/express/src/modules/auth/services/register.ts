@@ -11,7 +11,7 @@ import {
   revokeCurrentRefreshToken,
   sanitizeUser
 } from "@/modules/auth/helpers/auth.js";
-import type { RegisterInput } from "@/modules/auth/types/auth.js";
+import type { RegisterType } from "@/modules/auth/schemas/auth.js";
 
 export type RegisterResult =
   | { kind: "email_exists"; message: string }
@@ -30,7 +30,7 @@ export type RegisterResult =
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 export const registerService = {
-  register: async (req: Request, res: Response, body: RegisterInput): Promise<RegisterResult> => {
+  register: async (req: Request, res: Response, body: RegisterType): Promise<RegisterResult> => {
     const defaultRole = await db.query.roles.findFirst({
       where: eq(roles.name, "user")
     });

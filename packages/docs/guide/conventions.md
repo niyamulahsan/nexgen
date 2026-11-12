@@ -77,6 +77,9 @@ src/modules/blog/
 └── facade.ts
 ```
 
+Request shapes belong in `schemas/`; `types/` is for custom shapes that do not come
+from a schema (see [Schemas are the source of truth](#schemas-are-the-source-of-truth)).
+
 ::: tip Use the `@/` alias, always
 Every import inside `src/modules/` uses the `@/` alias, including files in the
 same module:
@@ -93,6 +96,43 @@ stable when you move a file between folders.
 `helpers/`, `services/`, and `middlewares/` are created empty (`.gitkeep`) by
 default — fill them with the matching `module:make-*` command when needed.
 :::
+
+## Schemas are the source of truth
+
+A request shape is declared **once**, in `schemas/<module>.ts`, and the TypeScript
+type is derived from it on the next line:
+
+```ts
+// src/modules/blog/schemas/post.ts
+export const CreatePostSchema = z.object({
+  title: z.string().min(1),
+  body: z.string()
+});
+
+export type CreatePostType = z.input<typeof CreatePostSchema>;
+```
+
+- `CreatePostSchema` is the **value**. It validates at runtime — the route `schema`
+  and `validate()` use it, always.
+- `CreatePostType` is the **type**. Controllers and services accept it without a
+  second hand-written interface that drifts when the schema changes.
+- `z.input` describes the **request** shape: fields with a `.default()` stay
+  optional, exactly what a client may send. Use `z.output` (or `z.infer`) when you
+  need the post-parse shape instead.
+- Name the pair `<X>Schema` / `<X>Type` so a reader can tell the validator from the
+  type at a glance.
+
+Both are imported from the same file — value in the route, type in the layers
+below it:
+
+```ts
+import { CreatePostSchema } from "@/modules/blog/schemas/post.js"; // runtime validation
+import type { CreatePostType } from "@/modules/blog/schemas/post.js"; // compile-time shape
+```
+
+`types/` is **not** for request shapes. It holds custom types that do not come from
+a schema — result unions, DTOs, view models — and `maker module:make-type` still
+generates it.
 
 ## App-level providers
 

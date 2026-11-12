@@ -155,7 +155,7 @@ function startRecentTimer(target: { recentlySuccessful: { value: boolean } }) {
 function assertSource(url: string | undefined, fetcher: Fetcher | undefined, ctx: string) {
   if (!url && !fetcher) {
     throw new Error(
-      `gum: ${ctx} requires either "url" or "fetcher". ` + `Pass a URL for axios, or a fetcher (e.g. a store method) to delegate the call.`
+      `gum: ${ctx} requires either "url" or "fetcher". Pass a URL for axios, or a fetcher (e.g. a store method) to delegate the call.`
     );
   }
   if (import.meta.env?.DEV && url && fetcher) {

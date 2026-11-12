@@ -152,9 +152,7 @@ export async function registerProjectCommands(program, rawArgs, cwd = process.cw
   const register = module.default ?? module.register;
 
   if (typeof register !== "function") {
-    throw new TypeError(
-      `${rel} must export a default function (program, args) => void. Found: ${typeof register}.`
-    );
+    throw new TypeError(`${rel} must export a default function (program, args) => void. Found: ${typeof register}.`);
   }
 
   const before = new Set(program.commands);

@@ -44,7 +44,7 @@ import { db, dispatchEvent, password, urls } from "@/framework/facade.js";
 import { issueTokens, revokeCurrentRefreshToken } from "@/modules/auth/helpers/auth.js";
 import { registerService } from "@/modules/auth/services/register.js";
 
-const body = { name: "Jane", email: "jane@example.com", password: "secret123" };
+const body = { name: "Jane", email: "jane@example.com", password: "secret123", password_confirmation: "secret123" };
 
 const fakeUser = {
   id: 1,

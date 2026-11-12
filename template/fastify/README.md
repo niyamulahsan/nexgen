@@ -82,10 +82,10 @@ All examples use `npm` as the default. nexwire works with any major package mana
 
 nexwire runs on **Node.js** or **Bun** — pick whichever fits your deployment:
 
-| Runtime     | Minimum version | Notes                                                                 |
-| ----------- | --------------- | --------------------------------------------------------------------- |
-| **Node.js** | `>= 22.12`      | Default. Uses `node` in Dockerfile. Required by Fastify.              |
-| **Bun**     | `>= 1.3`        | Hono and Express only. Pass `--runtime=bun` to deploy:init.           |
+| Runtime     | Minimum version | Notes                                                       |
+| ----------- | --------------- | ----------------------------------------------------------- |
+| **Node.js** | `>= 22.12`      | Default. Uses `node` in Dockerfile. Required by Fastify.    |
+| **Bun**     | `>= 1.3`        | Hono and Express only. Pass `--runtime=bun` to deploy:init. |
 
 ::: tip
 The Fastify template is **Node-only** and does not include Bun support.
@@ -93,22 +93,22 @@ The Fastify template is **Node-only** and does not include Bun support.
 
 ## Features
 
-| Category            | What you get                                                                           |
-| ------------------- | -------------------------------------------------------------------------------------- |
+| Category            | What you get                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
 | **API**             | Hono/Express/Fastify HTTP server with Zod validation, OpenAPI/Scalar docs, CORS, rate limiting |
-| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.         |
-| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware          |
-| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard           |
-| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events               |
-| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                             |
-| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                                 |
-| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)                   |
-| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                        |
-| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin               |
-| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment          |
-| **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation |
-| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy                   |
-| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                           |
+| **Database**        | Drizzle ORM — SQLite, MySQL, or PostgreSQL. Auto-detected from `DATABASE_URL`.                 |
+| **Auth**            | JWT access + refresh token rotation, signed httpOnly cookies, role middleware                  |
+| **Queue**           | BullMQ background jobs with `shouldQueue` decorator and Bull Board dashboard                   |
+| **Realtime**        | Socket.IO with auto room joining (user, role, auth) and broadcast events                       |
+| **Cache & Session** | Redis-backed with graceful fallback when Redis is disabled                                     |
+| **Scheduler**       | Cron-based task scheduling with distributed Redis lock                                         |
+| **Storage**         | Local disk or S3-compatible (AWS S3, R2, MinIO, DigitalOcean Spaces)                           |
+| **Notifications**   | Database-persisted notifications with broadcast + mail delivery                                |
+| **Frontend**        | Vue 3 SPA — Vite, Pinia, Vue Router, Bootstrap 5, real-time Pulse plugin                       |
+| **Security**        | CSP, HSTS, X-Frame headers — configured in one place, toggled per environment                  |
+| **Reliability**     | Circuit breakers for Redis, mail, and S3 with auto-fallback; startup config validation         |
+| **CLI**             | `maker` command for code generation, migrations, runtime, and deploy                           |
+| **Deploy**          | Two-layer Docker Compose — nginx-proxy, auto SSL, supervisor                                   |
 
 ## Architecture
 

@@ -3,7 +3,7 @@ import { jwtConfig } from "@/config/index.js";
 import { db, jwt } from "@/framework/facade.js";
 import { refreshTokens, users } from "@/modules/auth/database/models/user.js";
 import { sanitizeUser } from "@/modules/auth/helpers/auth.js";
-import type { RefreshTokenInput } from "@/modules/auth/types/auth.js";
+import type { RefreshTokenType } from "@/modules/auth/schemas/auth.js";
 
 export type RefreshTokenResult =
   | { kind: "invalid_token"; message: string }
@@ -27,7 +27,7 @@ export type RefreshTokenResult =
     };
 
 export const refreshTokenService = {
-  refreshToken: async (body: RefreshTokenInput): Promise<RefreshTokenResult> => {
+  refreshToken: async (body: RefreshTokenType): Promise<RefreshTokenResult> => {
     const payload = await jwt.verifyToken(body.refresh_token, "refresh");
 
     if (!payload?.jti || typeof payload.jti !== "string") {

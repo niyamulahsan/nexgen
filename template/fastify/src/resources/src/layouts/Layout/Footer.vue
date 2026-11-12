@@ -1,7 +1,8 @@
 <template>
   <!-- footer start -->
   <footer
-    class="d-flex flex-column flex-sm-row row-gap-2 align-items-center justify-content-center justify-content-sm-between py-3 fst-italic">
+    class="d-flex flex-column flex-sm-row row-gap-2 align-items-center justify-content-center justify-content-sm-between py-3 fst-italic"
+  >
     <div class="text-secondary">
       © nexwire {{ startYear }} - {{ currentYear }} ❤️ created by
       <a href="#" target="_blank" class="text-decoration-none">niYam</a>

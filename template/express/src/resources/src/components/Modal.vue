@@ -9,20 +9,12 @@
       tabindex="-1"
       :aria-labelledby="`${props.id}Label`"
     >
-      <div
-        :class="`modal-dialog modal-dialog-centered modal-dialog-scrollable modal-${props.size}`"
-      >
+      <div :class="`modal-dialog modal-dialog-centered modal-dialog-scrollable modal-${props.size}`">
         <div class="modal-content border">
           <div class="modal-header">
             <div class="d-flex w-100 justify-content-between align-items-center">
               <h5 id="modalScrollableTitle" class="modal-title me-3">{{ props.title }}</h5>
-              <button
-                ref="closeButton"
-                type="button"
-                class="btn-close shadow-none"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+              <button ref="closeButton" type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
               <slot name="modal-header-extra"></slot>
             </div>
           </div>

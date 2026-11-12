@@ -3,8 +3,13 @@
     <div class="card-header" :class="{ 'd-none': !(props.removable || props.searchable || props.optionable) }">
       <div class="row align-items-center gx-1">
         <div class="col-12 col-md-3">
-          <SelectOption :is-options="props.optionable" :option="props.option" :data="dataForOption"
-            :selectedoption="selectedoption" :search="searchdata" />
+          <SelectOption
+            :is-options="props.optionable"
+            :option="props.option"
+            :data="dataForOption"
+            :selectedoption="selectedoption"
+            :search="searchdata"
+          />
         </div>
         <div class="col-12 col-md-9">
           <slot name="extra-tools"></slot>
@@ -18,8 +23,15 @@
               <Button class="btn btn-outline-secondary rounded-0 rounded-start" type="button" @click="searchMe">
                 <i class="bi bi-search"></i>
               </Button>
-              <Input v-model="searchdata" type="text" class="w-auto rounded-0 rounded-end" topclass="mb-0"
-                placeholder="Search..." @keyup.enter="searchMe" @keyup.delete="searchMe" />
+              <Input
+                v-model="searchdata"
+                type="text"
+                class="w-auto rounded-0 rounded-end"
+                topclass="mb-0"
+                placeholder="Search..."
+                @keyup.enter="searchMe"
+                @keyup.delete="searchMe"
+              />
             </div>
           </div>
         </div>
@@ -28,14 +40,12 @@
     <div class="card-body">
       <slot name="extra"></slot>
       <div class="table-responsive">
-        <table
-          class="table table-bordered table-striped border-custom table-sm align-middle m-0 datatable no-shrink-table">
+        <table class="table table-bordered table-striped border-custom table-sm align-middle m-0 datatable no-shrink-table">
           <slot name="customhead"></slot>
           <thead :class="{ 'd-none': slots.customhead }">
             <tr>
               <th class="align-middle" :class="{ 'd-none': !props.removable || !props.data.current_page }">
-                <Checkbox v-model="checked.check" topclass="ms-2" :value="checked.check" :disabled="props.disabled"
-                  @click="checkAll" />
+                <Checkbox v-model="checked.check" topclass="ms-2" :value="checked.check" :disabled="props.disabled" @click="checkAll" />
               </th>
               <th class="text-center align-middle" :class="{ 'd-none': !props.countable }">#</th>
               <slot name="thead"></slot>
@@ -46,15 +56,10 @@
           <tbody :class="{ 'd-none': slots.custombody }">
             <tr v-for="(dt, i) in tableRows" :key="`${dt.id}-${i}`">
               <td class="align-middle" :class="{ 'd-none': !props.removable || !props.data.current_page }">
-                <Checkbox v-model="checked.checkcolumn" topclass="ms-2" :value="dt.id" :disabled="props.disabled"
-                  @change="updateChecked" />
+                <Checkbox v-model="checked.checkcolumn" topclass="ms-2" :value="dt.id" :disabled="props.disabled" @change="updateChecked" />
               </td>
               <td class="text-center align-middle" :class="{ 'd-none': !props.countable }">
-                {{
-                  props.data.current_page
-                    ? props.data.per_page * (props.data.current_page - 1) + (i + 1)
-                    : i + 1
-                }}
+                {{ props.data.current_page ? props.data.per_page * (props.data.current_page - 1) + (i + 1) : i + 1 }}
               </td>
               <slot name="tbody" :td="dt"></slot>
             </tr>
