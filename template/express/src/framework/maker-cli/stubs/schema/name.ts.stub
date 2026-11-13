@@ -9,19 +9,19 @@ export const Create{{ClassName}}Schema = z.object({
   name: z.string().min(1)
 });
 
-export type Create{{ClassName}}Type = z.infer<typeof Create{{ClassName}}Schema>;
+export type Create{{ClassName}}Type = z.input<typeof Create{{ClassName}}Schema>;
 
 export const Update{{ClassName}}Schema = z.object({
   name: z.string().min(1)
 });
 
-export type Update{{ClassName}}Type = z.infer<typeof Update{{ClassName}}Schema>;
+export type Update{{ClassName}}Type = z.input<typeof Update{{ClassName}}Schema>;
 
 export const {{ClassName}}IdParamsSchema = z.object({
   id: z.coerce.number().int().positive()
 });
 
-export type {{ClassName}}IdParamsType = z.infer<typeof {{ClassName}}IdParamsSchema>;
+export type {{ClassName}}IdParamsType = z.input<typeof {{ClassName}}IdParamsSchema>;
 
 export const {{ClassName}}ListResponseSchema = z.object({
   message: z.string(),

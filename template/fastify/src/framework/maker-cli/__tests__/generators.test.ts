@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import ts from "typescript";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { makeMiddleware } from "../middleware/core.mjs";
 import {
+  generateSchema,
   makeController,
   makeHelper,
   makeJob,
@@ -462,5 +464,53 @@ describe.skipIf(!canChdir)("module:make-seeder model binding", () => {
     expect(source).toContain("@/modules/blog-post/database/models/post-comments.js");
     expect(source).toContain("export const table = postComments;");
     expect(source).toContain("module:seed blog-post");
+  });
+});
+
+/**
+ * Every generator stamps the file it writes with its own path on line 1, then a
+ * blank line (AGENTS.md ground rule 3). The path is only known at write time, so
+ * the header is injected from the destination - a stub that hard-coded it would
+ * leak one module's path into every generated file.
+ */
+describe.skipIf(!canChdir)("location headers", () => {
+  it("stamps every file of a generated module with its own path", async () => {
+    await makeModule("blog-post");
+    const files = await collectTypeScript(path.join(workdir, "src", "modules", "blog-post"));
+    expect(files.length).toBeGreaterThan(5);
+
+    for (const file of files) {
+      const relative = toPosix(path.relative(workdir, file));
+      const lines = (await readFile(file, "utf8")).split(/\r?\n/);
+      expect(lines[0].trim(), `${relative} should name its own location`).toBe(`// ./${relative}`);
+      expect(lines[1], `${relative} should have one blank line under the header`).toBe("");
+    }
+  });
+
+  it("stamps app-wide middleware and provider files", async () => {
+    await makeMiddleware("rate-limit");
+    await makeProvider("payment-gateway");
+
+    const middleware = await readFile(path.join(workdir, "src", "middlewares", "rate-limit-middleware.ts"), "utf8");
+    expect(middleware.split(/\r?\n/)[0].trim()).toBe("// ./src/middlewares/rate-limit-middleware.ts");
+
+    const provider = await readFile(path.join(workdir, "src", "providers", "payment-gateway.ts"), "utf8");
+    expect(provider.split(/\r?\n/)[0].trim()).toBe("// ./src/providers/payment-gateway.ts");
+  });
+
+  it("stamps the aggregated database schema", async () => {
+    await makeModel("blog-post", "post");
+    await generateSchema({ silent: true });
+
+    const schema = await readFile(path.join(workdir, "src", "database", "schema.ts"), "utf8");
+    expect(schema.split(/\r?\n/)[0].trim()).toBe("// ./src/database/schema.ts");
+  });
+
+  it("does not add a second header when the file already has one", async () => {
+    await makeProvider("payment-gateway");
+    await makeProvider("payment-gateway", ["--force"]);
+
+    const provider = await readFile(path.join(workdir, "src", "providers", "payment-gateway.ts"), "utf8");
+    expect(provider.match(/^\/\/ \.\/src\/providers\/payment-gateway\.ts$/gm)).toHaveLength(1);
   });
 });

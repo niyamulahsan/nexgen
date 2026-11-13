@@ -142,6 +142,8 @@ The controller, schema, service and route adapt to the `OPEN_API` environment va
 
 The generated `providers.ts` is where the module plugs its own implementations into the application — it is imported automatically at boot. See [Providers](/guide/providers).
 
+Every generated file opens with its own location header — for example `// ./src/modules/posts/controllers/posts.ts` — followed by a blank line, the same line 1 the hand-written files use. See [Every file names its own location](/guide/conventions#every-file-names-its-own-location).
+
 ### `module:make-notification [name]`
 
 Notifications are opt-in: this command creates the notification backend module, then `module:migrate` creates its table. Default name is `notification`.

@@ -5,7 +5,7 @@ import path from "node:path";
 import { glob } from "glob";
 import { drizzleGenerateArgs, ensureDatabaseDirectory, ensureMigrationMeta, syncMigrationDialect } from "../db/core.mjs";
 import { detectDialect, openApiEnabled } from "../utils/env-db.mjs";
-import { writeFiles } from "../utils/file-ops.mjs";
+import { withLocationHeader, writeSourceFiles } from "../utils/file-ops.mjs";
 import { hasFlag } from "../utils/flags.mjs";
 import { assertName, camelCase, normalizeName, pascal, plural, snakeCase } from "../utils/naming.mjs";
 import { packageScript, runNodeScript } from "../utils/process.mjs";
@@ -438,7 +438,7 @@ async function writeFileSafe(filePath, content, flags = [], label = "File") {
     throw new Error(`${label} already exists: ${path.relative(process.cwd(), filePath)}. Re-run with --force to overwrite.`);
   }
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, content);
+  await fs.writeFile(filePath, withLocationHeader(filePath, content));
 }
 
 /**
@@ -499,7 +499,7 @@ function reportModule({ moduleName, panel, leaf }) {
  * Scaffold one module.
  *
  * Refuses to touch a module folder that already has content. Without this guard
- * writeFiles overwrites unconditionally, so re-running module:make on an
+ * writeSourceFiles overwrites unconditionally, so re-running module:make on an
  * existing module silently destroys the developer's edits to the controller,
  * service, schema and route.
  */
@@ -518,11 +518,13 @@ async function createModule(rawName, flags = []) {
   const dialect = detectDialect();
   const model = await namedModelTemplate(moduleName, leaf, dialect);
   const seeder = await namedSeederTemplate(moduleName, leaf, leaf);
-  await writeFiles(root, { ...files, "routes/index.ts": route });
+  await writeSourceFiles(root, { ...files, "routes/index.ts": route });
   await fs.mkdir(path.join(root, "database", "models"), { recursive: true });
   await fs.mkdir(path.join(root, "database", "seeders"), { recursive: true });
-  await fs.writeFile(path.join(root, "database", "models", `${leaf}.ts`), model);
-  await fs.writeFile(path.join(root, "database", "seeders", `${leaf}.ts`), seeder);
+  const modelPath = path.join(root, "database", "models", `${leaf}.ts`);
+  const seederPath = path.join(root, "database", "seeders", `${leaf}.ts`);
+  await fs.writeFile(modelPath, withLocationHeader(modelPath, model));
+  await fs.writeFile(seederPath, withLocationHeader(seederPath, seeder));
   return { moduleName, panel, leaf };
 }
 
@@ -555,7 +557,7 @@ export async function makeRoute(rawModule, rawControllerOrFlag, extraFlags = [])
   if (exists && !force)
     throw new Error(`Route file already exists: ${path.relative(process.cwd(), routePath)}. Re-run with --force to overwrite.`);
   await fs.mkdir(path.dirname(routePath), { recursive: true });
-  await fs.writeFile(routePath, route);
+  await fs.writeFile(routePath, withLocationHeader(routePath, route));
   console.log(`Route ready: ${path.relative(process.cwd(), routePath)}`);
 }
 
@@ -595,7 +597,7 @@ export async function makeNotificationModule(rawName = "notification", flags = [
     files["jobs/mail.ts"] = await stub(STUBS.notification.job, vars);
   }
 
-  await writeFiles(root, files);
+  await writeSourceFiles(root, files);
 
   console.log(`Notification module ready: ${moduleName}`);
   if (writesStore) {
@@ -1017,7 +1019,7 @@ export async function generateSchema(options = {}) {
   }
   const output = path.join(backendSrc, "database/schema.ts");
   await fs.mkdir(path.dirname(output), { recursive: true });
-  await fs.writeFile(output, `${exports.join("\n")}\n`);
+  await fs.writeFile(output, withLocationHeader(output, `${exports.join("\n")}\n`));
   if (!options.silent) console.log(`Generated database schema with ${files.length} model file(s)`);
 }
 

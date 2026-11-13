@@ -4,3 +4,7 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
+
+# Generated from packages/docs at build time (see packages/docs/scripts/gen-llms.mjs)
+packages/docs/public/llms.txt
+packages/docs/public/llms-full.txt

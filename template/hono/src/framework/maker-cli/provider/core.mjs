@@ -2,6 +2,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { withLocationHeader } from "../utils/file-ops.mjs";
 import { hasFlag } from "../utils/flags.mjs";
 import { assertName, camelCase } from "../utils/naming.mjs";
 
@@ -45,7 +46,7 @@ export async function makeProvider(rawName, flags = []) {
 
   const content = await stub("provider/name.ts.stub", { name, camel });
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, content);
+  await fs.writeFile(filePath, withLocationHeader(filePath, content));
   console.log(`Provider ready: ${path.relative(process.cwd(), filePath)}`);
   console.log(`It is imported at boot. Reach it with: getProvider("${name}")`);
 }

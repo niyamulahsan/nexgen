@@ -109,7 +109,10 @@ identical files keep identical first lines.
 
 Not every file can carry one: `package.json` and `.env` have no comment syntax
 (a `//` line breaks npm and the dotenv parser), and `maker-cli/stubs/**` are
-templates — a hard-coded path there would end up inside *generated* files.
+templates — a hard-coded path there would end up inside *generated* files. You
+do not add the header by hand, either: every `maker` generator writes it from
+the real output path, so a scaffolded file lands with the same line 1 as the
+files it sits beside.
 
 ::: tip Use the `@/` alias, always
 Every import inside `src/modules/` uses the `@/` alias, including files in the

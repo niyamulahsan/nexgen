@@ -2,6 +2,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { withLocationHeader } from "../utils/file-ops.mjs";
 import { hasFlag } from "../utils/flags.mjs";
 import { assertName, camelCase } from "../utils/naming.mjs";
 
@@ -37,7 +38,7 @@ export async function makeMiddleware(rawName, flags = []) {
 
   const content = await stub("middleware/name.ts.stub", { name, camel });
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, content);
+  await fs.writeFile(filePath, withLocationHeader(filePath, content));
   console.log(`Middleware ready: ${path.relative(process.cwd(), filePath)}`);
   console.log(`Apply it to a route scope: app.addHook("preHandler", ${camel}Middleware)`);
 }

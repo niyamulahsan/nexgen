@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "gen:llms": "node scripts/gen-llms.mjs",
+    "prebuild": "npm run gen:llms",
+    "predev": "npm run gen:llms",
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview"

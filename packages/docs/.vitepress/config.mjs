@@ -107,6 +107,7 @@ const config = defineConfig({
           items: [
             { text: mi("info", "Introduction"), link: "/guide/introduction" },
             { text: mi("zap", "Quick Start"), link: "/guide/quick-start" },
+            { text: mi("sparkles", "AI Agents"), link: "/guide/ai-agents" },
           ],
         },
         {
